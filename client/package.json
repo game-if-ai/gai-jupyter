@@ -1,0 +1,51 @@
+{
+  "name": "gai-jupyter-client",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@datalayer/jupyter-react": "0.0.25",
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@mui/material": "^5.11.8",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "typescript": "^4.9.5"
+  },
+  "scripts": {
+    "start": "run-p -c start:*",
+    "start:jupyter": "./dev/sh/start-jupyter-server.sh",
+    "start:react": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "test:audit": "npm audit --production --audit-level=moderate",
+    "test:lint": "eslint src --ext ts --ext tsx --ext js --ext jsx --max-warnings 0",
+    "test:types": "tsc --noEmit"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
