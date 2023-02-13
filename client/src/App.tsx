@@ -6,40 +6,44 @@ The full terms of this copyright and license should always be found in the root 
 */
 import {
   Jupyter,
-  IpyWidgetsComponent,
   Notebook,
   CellSidebarDefault,
 } from "@datalayer/jupyter-react";
-import OutputsComponents from "./components/OutputsComponents";
-import CellComponents from "./components/CellComponents";
-import IPyWidgetsSimple from "./components/IPyWidgetsSimple";
+import { ICodeCell, IMarkdownCell } from "@jupyterlab/nbformat/lib/index";
 
 import "./App.css";
 
-function App(): JSX.Element {
+function App() {
   return (
     <>
-      <Jupyter startDefaultKernel={true}>
-        <IpyWidgetsComponent Widget={IPyWidgetsSimple}/>
-        <OutputsComponents/>
-        <CellComponents/>
-        <Notebook path={"/ping.ipynb"} CellSidebar={CellSidebarDefault} />
+      <Jupyter terminals={true} startDefaultKernel={true}>
+        <Notebook
+          model={{
+            cells: [
+              {
+                source: "x=2",
+                cell_type: "code",
+                metadata: { trusted: true, editable: false, deletable: false },
+                outputs: [],
+                execution_count: 0,
+              } as ICodeCell,
+              {
+                source: "Markdown Cell Example",
+                cell_type: "markdown",
+              } as IMarkdownCell,
+              {
+                source: 'print("Hello, world!")',
+                cell_type: "code",
+              } as ICodeCell,
+            ],
+            metadata: {},
+            nbformat_minor: 1,
+            nbformat: 1,
+          }}
+          uid="123"
+          CellSidebar={CellSidebarDefault}
+        />
       </Jupyter>
-      <div className="App">
-        <header className="App-header">
-          <p>
-            Edit <code>src/App.tsx</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
     </>
   );
 }
