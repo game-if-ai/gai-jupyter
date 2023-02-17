@@ -10,12 +10,12 @@ import {
   CellSidebarDefault,
 } from "@datalayer/jupyter-react";
 import { ICodeCell, IMarkdownCell } from "@jupyterlab/nbformat/lib/index";
-
-import "./App.css";
+import GameSimulator from "./games";
 
 function App() {
   return (
-    <>
+    <div>
+      <GameSimulator />
       <Jupyter terminals={true} startDefaultKernel={true}>
         <Notebook
           model={{
@@ -23,7 +23,11 @@ function App() {
               {
                 source: "x=2",
                 cell_type: "code",
-                metadata: { trusted: true, editable: false, deletable: false },
+                metadata: {
+                  trusted: true,
+                  editable: false,
+                  deletable: false,
+                },
                 outputs: [],
                 execution_count: 0,
               } as ICodeCell,
@@ -44,7 +48,7 @@ function App() {
           CellSidebar={CellSidebarDefault}
         />
       </Jupyter>
-    </>
+    </div>
   );
 }
 
