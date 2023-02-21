@@ -7,6 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
+  IconButton,
   Paper,
   TableBody,
   TableCell,
@@ -16,6 +17,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { FastForward, FastRewind, PauseCircleOutline, PlayCircleOutline } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
 import FruitPicker from "./fruit-picker";
@@ -61,9 +63,14 @@ function App(): JSX.Element {
       Simulator<SimulationOutput, Classifier<ClassifierInput, ClassifierOutput>>
     >();
   const [phaserGame, setPhaserGame] = useState<Phaser.Game>();
-  const [numSimulations, setNumSimulations] = useState<number>(10);
+
   const [simulations, setSimulations] = useState<SimulationOutput[]>([]);
   const [summary, setSummary] = useState<SimulationSummary>();
+
+  const [numSimulations, setNumSimulations] = useState<number>(5);
+  const [speed, setSpeed] = useState<number>(1);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+
   const gameContainerElement = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -90,6 +97,28 @@ function App(): JSX.Element {
     setSimulator(simulator);
   }
 
+  function closeGame(): void {
+    if (!phaserGame) {
+      return;
+    }
+    phaserGame.destroy(true, false);
+    setPhaserGame(undefined);
+  }
+
+  function pauseGame() {
+    if (!phaserGame) {
+      return;
+    }
+    EventBus.emit("pause", !isPaused);
+    setIsPaused(!isPaused);
+  }
+
+  function changeGameSpeed(faster = true) {
+    const newSpeed = speed + (0.5 * (faster ? 1 : -1))
+    EventBus.emit("changeSpeed", newSpeed)
+    setSpeed(newSpeed);
+  }
+
   function simulate(): void {
     if (!simulator) {
       return;
@@ -104,19 +133,13 @@ function App(): JSX.Element {
       return;
     }
     const phaserGame = new Phaser.Game(game);
+    EventBus.emit("changeSpeed", speed)
     phaserGame.scene.start("Boot", {
+      playManually: !simulation,
       simulator,
       simulation,
     });
     setPhaserGame(phaserGame);
-  }
-
-  function closeGame(): void {
-    if (!phaserGame) {
-      return;
-    }
-    phaserGame.destroy(true, false);
-    setPhaserGame(undefined);
   }
 
   return (
@@ -200,10 +223,35 @@ function App(): JSX.Element {
         </div>
         <div style={{ width: "50%" }}>
           <div id="game-container" ref={gameContainerElement} />
+          <div className={classes.row}>
+            <IconButton onClick={pauseGame}>
+              {
+                isPaused ? <PlayCircleOutline /> : <PauseCircleOutline />
+              }
+            </IconButton>
+            <IconButton disabled={speed === 0.5} onClick={() => changeGameSpeed(false)}>
+              <FastRewind />
+            </IconButton>
+            <Typography>
+              x{speed}
+            </Typography>
+            <IconButton disabled={speed === 10} onClick={() => changeGameSpeed(true)}>
+              <FastForward />
+            </IconButton>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+const createEmitter = () => {
+  let emitter!: Phaser.Events.EventEmitter;
+  if (!emitter) {
+    emitter = new Phaser.Events.EventEmitter();
+  }
+  return emitter;
+}
+export const EventBus = createEmitter();
 
 export default App;

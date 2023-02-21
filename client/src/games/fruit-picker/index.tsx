@@ -6,8 +6,6 @@ The full terms of this copyright and license should always be found in the root 
 */
 import Phaser from "phaser";
 import Boot from "./scenes/Boot";
-import Preloader from "./scenes/Preloader";
-import MainMenu from "./scenes/MainMenu";
 import MainGame from "./scenes/Game";
 import { FruitSimulationOutput, FruitSimulator } from "./simulator";
 
@@ -27,10 +25,11 @@ export const FruitPickerConfig: Phaser.Types.Core.GameConfig = {
       gravity: { y: 150 },
     },
   },
-  scene: [Boot, Preloader, MainMenu, MainGame],
+  scene: [Boot, MainGame],
 };
 
 export interface GameConfig {
+  playManually: boolean;
   simulator: FruitSimulator;
   simulation?: FruitSimulationOutput;
 }
