@@ -4,52 +4,112 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import {
-  Jupyter,
-  Notebook,
-  CellSidebarDefault,
-} from "@datalayer/jupyter-react";
-import { ICodeCell, IMarkdownCell } from "@jupyterlab/nbformat/lib/index";
-import GameSimulator from "./games";
+import React, { useState } from "react";
+import makeStyles from "@mui/styles/makeStyles";
 
-function App() {
+import { Classifier, ClassifierInput, ClassifierOutput } from "./classifier";
+import { SimulationOutput, SimulationSummary, Simulator } from "./simulator";
+import GamePicker from "./components/GamePicker";
+import Notebook from "./components/Notebook";
+import SimulationPanel from "./components/SimulationPanel";
+import Summary from "./components/Summary";
+
+import "./App.css";
+
+enum STEP {
+  PICK_GAME,
+  NOTEBOOK,
+  SIMULATION,
+  SUMMARY,
+}
+
+function App(): JSX.Element {
+  const classes = useStyles();
+  const [step, setStep] = useState<STEP>(STEP.PICK_GAME);
+  const [game, setGame] = useState<Phaser.Types.Core.GameConfig>();
+  const [classifier, setClassifier] =
+    useState<Classifier<ClassifierInput, ClassifierOutput>>();
+  const [simulator, setSimulator] =
+    useState<
+      Simulator<SimulationOutput, Classifier<ClassifierInput, ClassifierOutput>>
+    >();
+  const [simulations, setSimulations] = useState<SimulationOutput[]>([]);
+  const [summary, setSummary] = useState<SimulationSummary>();
+  const [simulation, setSimulation] = useState<number>(0);
+
+  function loadGame(
+    config: Phaser.Types.Core.GameConfig,
+    classifier: Classifier<ClassifierInput, ClassifierOutput>,
+    simulator: Simulator<
+      SimulationOutput,
+      Classifier<ClassifierInput, ClassifierOutput>
+    >
+  ): void {
+    setGame(config);
+    setClassifier(classifier);
+    setSimulator(simulator);
+    setStep(STEP.NOTEBOOK);
+  }
+
+  function simulateGame(runs: number): void {
+    if (!simulator) {
+      return;
+    }
+    simulator.simulate(runs);
+    setSimulations([...simulator.simulations]);
+    setSummary({ ...simulator.summary });
+    setStep(STEP.SUMMARY);
+  }
+
+  function viewSimulation(i: number): void {
+    setSimulation(i);
+    setStep(STEP.SIMULATION);
+  }
+
+  function viewSummary(): void {
+    setStep(STEP.SUMMARY);
+  }
+
+  function viewNotebook(): void {
+    setStep(STEP.NOTEBOOK);
+  }
+
+  function getComponent(): JSX.Element {
+    if (step === STEP.PICK_GAME) {
+      return <GamePicker loadGame={loadGame} />
+    }
+    else if (step === STEP.NOTEBOOK) {
+      return <Notebook classifier={classifier!} simulate={simulateGame} />
+    }
+    else if (step === STEP.SUMMARY) {
+      return <Summary summary={summary!} simulations={simulations} runSimulation={viewSimulation} />
+    }
+    else if (step === STEP.SIMULATION) {
+      return <SimulationPanel game={game!} simulator={simulator!} simulations={simulations} simulation={simulation} toNotebook={viewNotebook} toSummary={viewSummary} />
+    }
+    return <div />
+  }
+
   return (
-    <div>
-      <GameSimulator />
-      <Jupyter terminals={true} startDefaultKernel={true}>
-        <Notebook
-          model={{
-            cells: [
-              {
-                source: "x=2",
-                cell_type: "code",
-                metadata: {
-                  trusted: true,
-                  editable: false,
-                  deletable: false,
-                },
-                outputs: [],
-                execution_count: 0,
-              } as ICodeCell,
-              {
-                source: "Markdown Cell Example",
-                cell_type: "markdown",
-              } as IMarkdownCell,
-              {
-                source: 'print("Hello, world!")',
-                cell_type: "code",
-              } as ICodeCell,
-            ],
-            metadata: {},
-            nbformat_minor: 1,
-            nbformat: 1,
-          }}
-          uid="123"
-          CellSidebar={CellSidebarDefault}
-        />
-      </Jupyter>
+    <div className={classes.root}>
+      {getComponent()}
     </div>
   );
 }
+
+const useStyles = makeStyles(() => ({
+  root: {
+    margin: 20,
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    flexFlow: "column",
+    textAlign: "center",
+    alignContent: "center",
+    alignItems: "center",
+    justifyItems: "center",
+    justifyContent: "center",
+  }
+}));
 
 export default App;

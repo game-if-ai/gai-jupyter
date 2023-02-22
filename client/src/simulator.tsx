@@ -6,7 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { Classifier, ClassifierInput, ClassifierOutput } from "./classifier";
-import { average } from "../utils";
+import { average } from "./utils";
 
 export interface SimulationOutput {
   score: number;

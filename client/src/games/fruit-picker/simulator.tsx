@@ -6,7 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 import { Fruit, Fruits, FruitTrait } from "./types";
 import FruitClassifier, { FruitClassifierOutput } from "./classifier";
-import { SimulationOutput, Simulator } from "../simulator";
+import { SimulationOutput, Simulator } from "../../simulator";
 import { randomInt } from "../../utils";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
