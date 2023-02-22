@@ -6,6 +6,10 @@ clean:
 develop:
 	npm start
 
+.PHONY: format
+format:
+	cd .. && $(MAKE) format
+
 .PHONY: test-lint
 test-lint:
 	npm run test:lint
