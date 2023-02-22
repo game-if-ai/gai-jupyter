@@ -1,3 +1,9 @@
+/*
+This software is Copyright ©️ 2020 The University of Southern California. All Rights Reserved. 
+Permission to use, copy, modify, and distribute this software and its documentation for educational, research and non-profit purposes, without fee, and without a written agreement is hereby granted, provided that the above copyright notice and subject to the full license file found in the root of this software deliverable. Permission to make commercial use of this software may be obtained by contacting:  USC Stevens Center for Innovation University of Southern California 1150 S. Olive Street, Suite 2300, Los Angeles, CA 90115, USA Email: accounting@stevens.usc.edu
+
+The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
+*/
 import Phaser from "phaser";
 import { GameConfig } from ".";
 import { EventSystem } from "../../event-system";
@@ -76,14 +82,21 @@ export default class MainGame extends Phaser.Scene {
   create(data: GameConfig) {
     this.config = data;
     this.add.image(400, 300, "background");
-    this.highscore = this.config.playManually ? 0 : this.config.simulator.summary.highScore;
-    this.highscoreText = this.add.text(60, 20, `High Score: ${this.highscore}`, fontStyle);
+    this.highscore = this.config.playManually
+      ? 0
+      : this.config.simulator.summary.highScore;
+    this.highscoreText = this.add.text(
+      60,
+      20,
+      `High Score: ${this.highscore}`,
+      fontStyle
+    );
     this.timerText = this.add.text(20, 20, `${GAME_TIME}:00`, fontStyle);
     this.scoreText = this.add.text(550, 20, "Score: 0", fontStyle);
     this.accuracyText = this.add.text(650, 20, "Accuracy: 100%", fontStyle);
     this.matchText = this.add.text(350, 550, "Catch the fruits!", fontStyle);
-    EventSystem.on('changeSpeed', this.changeSpeed, this);
-    EventSystem.on('pause', this.pause, this);
+    EventSystem.on("changeSpeed", this.changeSpeed, this);
+    EventSystem.on("pause", this.pause, this);
     this.start();
   }
 
@@ -173,7 +186,12 @@ export default class MainGame extends Phaser.Scene {
     _pointer: Phaser.Input.Pointer | undefined,
     fruit: Phaser.GameObjects.Sprite
   ) {
-    if (fruit.state === "deleting" || fruit.state === "deleted" || !this.config || !this.config.simulation) {
+    if (
+      fruit.state === "deleting" ||
+      fruit.state === "deleted" ||
+      !this.config ||
+      !this.config.simulation
+    ) {
       return;
     }
     fruit.state = "deleting";
@@ -226,13 +244,9 @@ export default class MainGame extends Phaser.Scene {
       ease: "sine.inout",
       onComplete: () => {
         if (this.config?.playManually) {
-          this.input.once(
-            "pointerdown",
-            () => this.start(),
-            this
-          );
+          this.input.once("pointerdown", () => this.start(), this);
         } else {
-          EventSystem.emit("gameOver")
+          EventSystem.emit("gameOver");
         }
       },
     });

@@ -5,85 +5,92 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import React, { useRef, useState } from "react";
-import { Button, FormControl, InputLabel, MenuItem, Select } from "@mui/material"
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+} from "@mui/material";
 
-import { Classifier, ClassifierInput, ClassifierOutput } from "../classifier"
-import { Simulator, SimulationOutput } from "../simulator"
+import { Classifier, ClassifierInput, ClassifierOutput } from "../classifier";
+import { Simulator, SimulationOutput } from "../simulator";
 import FruitPicker from "../games/fruit-picker";
 import FruitClassifier from "../games/fruit-picker/classifier";
 import { FruitSimulator } from "../games/fruit-picker/simulator";
 
 function GamePicker(props: {
-    loadGame: (
-        g: Phaser.Types.Core.GameConfig,
-        c: Classifier<ClassifierInput, ClassifierOutput>,
-        s: Simulator<SimulationOutput, Classifier<ClassifierInput, ClassifierOutput>>
-    ) => void
+  loadGame: (
+    g: Phaser.Types.Core.GameConfig,
+    c: Classifier<ClassifierInput, ClassifierOutput>,
+    s: Simulator<
+      SimulationOutput,
+      Classifier<ClassifierInput, ClassifierOutput>
+    >
+  ) => void;
 }): JSX.Element {
-    const [game, setGame] = useState<Phaser.Types.Core.GameConfig>();
-    const [classifier, setClassifier] =
-        useState<Classifier<ClassifierInput, ClassifierOutput>>();
-    const [simulator, setSimulator] =
-        useState<
-            Simulator<SimulationOutput, Classifier<ClassifierInput, ClassifierOutput>>
-        >();
-    const [phaserGame, setPhaserGame] = useState<Phaser.Game>();
-    const gameContainerElement = useRef<HTMLDivElement | null>(null);
+  const [game, setGame] = useState<Phaser.Types.Core.GameConfig>();
+  const [classifier, setClassifier] =
+    useState<Classifier<ClassifierInput, ClassifierOutput>>();
+  const [simulator, setSimulator] =
+    useState<
+      Simulator<SimulationOutput, Classifier<ClassifierInput, ClassifierOutput>>
+    >();
+  const [phaserGame, setPhaserGame] = useState<Phaser.Game>();
+  const gameContainerElement = useRef<HTMLDivElement | null>(null);
 
-    function select(): void {
-        if (phaserGame) {
-            phaserGame.destroy(true);
-        }
-        const game = FruitPicker;
-        const classifier = new FruitClassifier();
-        const simulator = new FruitSimulator(classifier);
-        setGame(game);
-        setClassifier(classifier);
-        setSimulator(simulator);
-        setPhaserGame(new Phaser.Game({
-            ...game,
-            parent: gameContainerElement.current as HTMLElement,
-        }));
+  function select(): void {
+    if (phaserGame) {
+      phaserGame.destroy(true);
     }
+    const game = FruitPicker;
+    const classifier = new FruitClassifier();
+    const simulator = new FruitSimulator(classifier);
+    setGame(game);
+    setClassifier(classifier);
+    setSimulator(simulator);
+    setPhaserGame(
+      new Phaser.Game({
+        ...game,
+        parent: gameContainerElement.current as HTMLElement,
+      })
+    );
+  }
 
-    function play(): void {
-        if (!phaserGame) {
-            return;
-        }
-        phaserGame.scene.start("MainGame", {
-            playManually: true,
-            simulator: simulator,
-        });
+  function play(): void {
+    if (!phaserGame) {
+      return;
     }
+    phaserGame.scene.start("MainGame", {
+      playManually: true,
+      simulator: simulator,
+    });
+  }
 
-    function confirm(): void {
-        if (!game || !classifier || !simulator) {
-            return;
-        }
-        props.loadGame(game, classifier, simulator);
+  function confirm(): void {
+    if (!game || !classifier || !simulator) {
+      return;
     }
+    props.loadGame(game, classifier, simulator);
+  }
 
-    return (
-        <div>
-            <FormControl fullWidth>
-                <InputLabel>Select Game</InputLabel>
-                <Select
-                    value={game?.title}
-                    label="Select Game"
-                    onChange={select}
-                >
-                    <MenuItem value="Fruit Picker">Fruit Picker</MenuItem>
-                </Select>
-            </FormControl>
-            <Button disabled={!phaserGame} onClick={confirm}>
-                Confirm
-            </Button>
-            <Button disabled={!phaserGame} onClick={play}>
-                Play
-            </Button>
-            <div id="game-container" ref={gameContainerElement} />
-        </div>
-    )
+  return (
+    <div>
+      <FormControl fullWidth>
+        <InputLabel>Select Game</InputLabel>
+        <Select value={game?.title} label="Select Game" onChange={select}>
+          <MenuItem value="Fruit Picker">Fruit Picker</MenuItem>
+        </Select>
+      </FormControl>
+      <Button disabled={!phaserGame} onClick={confirm}>
+        Confirm
+      </Button>
+      <Button disabled={!phaserGame} onClick={play}>
+        Play
+      </Button>
+      <div id="game-container" ref={gameContainerElement} />
+    </div>
+  );
 }
 
-export default GamePicker
+export default GamePicker;

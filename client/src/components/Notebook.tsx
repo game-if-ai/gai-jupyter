@@ -6,69 +6,69 @@ The full terms of this copyright and license should always be found in the root 
 */
 import React, { useState } from "react";
 import {
-    Jupyter,
-    Notebook,
-    CellSidebarDefault,
+  Jupyter,
+  Notebook,
+  CellSidebarDefault,
 } from "@datalayer/jupyter-react";
 import { ICodeCell, IMarkdownCell } from "@jupyterlab/nbformat/lib/index";
 import { TextField, Button } from "@mui/material";
 import { Send } from "@mui/icons-material";
 
-import { Classifier, ClassifierInput, ClassifierOutput } from "../classifier"
+import { Classifier, ClassifierInput, ClassifierOutput } from "../classifier";
 
 function NotebookComponent(props: {
-    classifier: Classifier<ClassifierInput, ClassifierOutput>,
-    simulate: (runs: number) => void;
+  classifier: Classifier<ClassifierInput, ClassifierOutput>;
+  simulate: (runs: number) => void;
 }): JSX.Element {
-    const [numSimulations, setNumSimulations] = useState<number>(5);
+  const [numSimulations, setNumSimulations] = useState<number>(5);
 
-    return (
-        <div style={{ alignItems: "center" }}>
-            <TextField
-                variant="outlined"
-                label="Number of Simulations"
-                value={numSimulations}
-                onChange={(e) => setNumSimulations(Number(e.target.value) || 0)}
-                inputProps={{ inputMode: "numeric", pattern: "[0-9]+" }}
-                InputLabelProps={{ shrink: true }}
-            />
-            <Button endIcon={<Send />} onClick={() => props.simulate(numSimulations)}>
-                Run
-            </Button>
-            <Jupyter terminals={true} startDefaultKernel={true}>
-                <Notebook
-                    model={{
-                        cells: [
-                            {
-                                source: "x=2",
-                                cell_type: "code",
-                                metadata: {
-                                    trusted: true,
-                                    editable: false,
-                                    deletable: false,
-                                },
-                                outputs: [],
-                                execution_count: 0,
-                            } as ICodeCell,
-                            {
-                                source: "Markdown Cell Example",
-                                cell_type: "markdown",
-                            } as IMarkdownCell,
-                            {
-                                source: 'print("Hello, world!")',
-                                cell_type: "code",
-                            } as ICodeCell,
-                        ],
-                        metadata: {},
-                        nbformat_minor: 1,
-                        nbformat: 1,
-                    }}
-                    uid="123"
-                    CellSidebar={CellSidebarDefault}
-                />
-            </Jupyter>
-        </div>
-    )
+  return (
+    <div style={{ alignItems: "center" }}>
+      <TextField
+        variant="outlined"
+        label="Number of Simulations"
+        value={numSimulations}
+        onChange={(e) => setNumSimulations(Number(e.target.value) || 0)}
+        inputProps={{ inputMode: "numeric", pattern: "[0-9]+" }}
+        InputLabelProps={{ shrink: true }}
+      />
+      <Button endIcon={<Send />} onClick={() => props.simulate(numSimulations)}>
+        Run
+      </Button>
+      <Jupyter terminals={true} startDefaultKernel={true}>
+        <Notebook
+          model={{
+            cells: [
+              {
+                source: "x=2",
+                cell_type: "code",
+                metadata: {
+                  trusted: true,
+                  editable: false,
+                  deletable: false,
+                },
+                outputs: [],
+                execution_count: 0,
+              } as ICodeCell,
+              {
+                source: "Markdown Cell Example",
+                cell_type: "markdown",
+              } as IMarkdownCell,
+              {
+                source: 'print("Hello, world!")',
+                cell_type: "code",
+              } as ICodeCell,
+            ],
+            metadata: {},
+            nbformat_minor: 1,
+            nbformat: 1,
+          }}
+          uid="123"
+          CellSidebar={CellSidebarDefault}
+        />
+      </Jupyter>
+    </div>
+  );
 }
 
 export default NotebookComponent;

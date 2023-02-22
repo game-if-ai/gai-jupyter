@@ -76,25 +76,33 @@ function App(): JSX.Element {
 
   function getComponent(): JSX.Element {
     if (step === STEP.PICK_GAME) {
-      return <GamePicker loadGame={loadGame} />
+      return <GamePicker loadGame={loadGame} />;
+    } else if (step === STEP.NOTEBOOK) {
+      return <Notebook classifier={classifier!} simulate={simulateGame} />;
+    } else if (step === STEP.SUMMARY) {
+      return (
+        <Summary
+          summary={summary!}
+          simulations={simulations}
+          runSimulation={viewSimulation}
+        />
+      );
+    } else if (step === STEP.SIMULATION) {
+      return (
+        <SimulationPanel
+          game={game!}
+          simulator={simulator!}
+          simulations={simulations}
+          simulation={simulation}
+          toNotebook={viewNotebook}
+          toSummary={viewSummary}
+        />
+      );
     }
-    else if (step === STEP.NOTEBOOK) {
-      return <Notebook classifier={classifier!} simulate={simulateGame} />
-    }
-    else if (step === STEP.SUMMARY) {
-      return <Summary summary={summary!} simulations={simulations} runSimulation={viewSimulation} />
-    }
-    else if (step === STEP.SIMULATION) {
-      return <SimulationPanel game={game!} simulator={simulator!} simulations={simulations} simulation={simulation} toNotebook={viewNotebook} toSummary={viewSummary} />
-    }
-    return <div />
+    return <div />;
   }
 
-  return (
-    <div className={classes.root}>
-      {getComponent()}
-    </div>
-  );
+  return <div className={classes.root}>{getComponent()}</div>;
 }
 
 const useStyles = makeStyles(() => ({
@@ -109,7 +117,7 @@ const useStyles = makeStyles(() => ({
     alignItems: "center",
     justifyItems: "center",
     justifyContent: "center",
-  }
+  },
 }));
 
 export default App;

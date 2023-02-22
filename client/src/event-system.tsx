@@ -6,12 +6,12 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 const createEmitter = () => {
-    let emitter!: Phaser.Events.EventEmitter;
-    if (!emitter) {
-        emitter = new Phaser.Events.EventEmitter();
-    }
-    return emitter;
-}
+  let emitter!: Phaser.Events.EventEmitter;
+  if (!emitter) {
+    emitter = new Phaser.Events.EventEmitter();
+  }
+  return emitter;
+};
 
 export const EventSystem = createEmitter();
 
