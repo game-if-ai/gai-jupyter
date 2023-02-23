@@ -5,7 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import Phaser from "phaser";
-import { GameConfig } from ".";
+import { GameParams } from ".";
 import { EventSystem } from "../../event-system";
 import {
   CLASSIFIER_DELAY,
@@ -34,7 +34,6 @@ export default class MainGame extends Phaser.Scene {
   highscore: number;
   speed: number;
   isPaused: boolean;
-
   score: number;
   accuracy: number;
   fruit: Phaser.GameObjects.Sprite[];
@@ -48,7 +47,7 @@ export default class MainGame extends Phaser.Scene {
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
 
-  config?: GameConfig;
+  config?: GameParams;
 
   constructor() {
     super("MainGame");
@@ -79,7 +78,7 @@ export default class MainGame extends Phaser.Scene {
     this.load.audio("match", ["match.ogg", "match.m4a", "match.mp3"]);
   }
 
-  create(data: GameConfig) {
+  create(data: GameParams) {
     this.config = data;
     this.add.image(400, 300, "background");
     this.highscore = this.config.playManually
@@ -92,9 +91,10 @@ export default class MainGame extends Phaser.Scene {
       fontStyle
     );
     this.timerText = this.add.text(20, 20, `${GAME_TIME}:00`, fontStyle);
-    this.scoreText = this.add.text(550, 20, "Score: 0", fontStyle);
-    this.accuracyText = this.add.text(650, 20, "Accuracy: 100%", fontStyle);
+    this.scoreText = this.add.text(600, 20, "Score: 0", fontStyle);
+    this.accuracyText = this.add.text(680, 20, "Accuracy: 100%", fontStyle);
     this.matchText = this.add.text(350, 550, "Catch the fruits!", fontStyle);
+    // this.sound.play("music", { loop: true });
     EventSystem.on("changeSpeed", this.changeSpeed, this);
     EventSystem.on("pause", this.pause, this);
     this.start();
@@ -264,7 +264,7 @@ export default class MainGame extends Phaser.Scene {
 
   changeSpeed(speed: number) {
     this.speed = speed;
-    this.physics.config.timeScale = this.speed;
+    this.physics.config.timeScale = 1 / this.speed;
     this.time.timeScale = this.speed;
   }
 }

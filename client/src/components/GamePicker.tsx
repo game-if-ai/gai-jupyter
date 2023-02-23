@@ -12,81 +12,57 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
+import { Game, Games } from "../games";
 
-import { Classifier, ClassifierInput, ClassifierOutput } from "../classifier";
-import { Simulator, SimulationOutput } from "../simulator";
-import FruitPicker from "../games/fruit-picker";
-import FruitClassifier from "../games/fruit-picker/classifier";
-import { FruitSimulator } from "../games/fruit-picker/simulator";
-
-function GamePicker(props: {
-  loadGame: (
-    g: Phaser.Types.Core.GameConfig,
-    c: Classifier<ClassifierInput, ClassifierOutput>,
-    s: Simulator<
-      SimulationOutput,
-      Classifier<ClassifierInput, ClassifierOutput>
-    >
-  ) => void;
-}): JSX.Element {
-  const [game, setGame] = useState<Phaser.Types.Core.GameConfig>();
-  const [classifier, setClassifier] =
-    useState<Classifier<ClassifierInput, ClassifierOutput>>();
-  const [simulator, setSimulator] =
-    useState<
-      Simulator<SimulationOutput, Classifier<ClassifierInput, ClassifierOutput>>
-    >();
+function GamePicker(props: { loadGame: (g: Game) => void }): JSX.Element {
+  const [game, setGame] = useState<Game>();
   const [phaserGame, setPhaserGame] = useState<Phaser.Game>();
   const gameContainerElement = useRef<HTMLDivElement | null>(null);
 
-  function select(): void {
+  function select(id: string): void {
     if (phaserGame) {
       phaserGame.destroy(true);
     }
-    const game = FruitPicker;
-    const classifier = new FruitClassifier();
-    const simulator = new FruitSimulator(classifier);
-    setGame(game);
-    setClassifier(classifier);
-    setSimulator(simulator);
-    setPhaserGame(
-      new Phaser.Game({
-        ...game,
+    const game = Games.find(g => g.id === id);
+    if (game) {
+      const pg = new Phaser.Game({
+        ...game.config,
         parent: gameContainerElement.current as HTMLElement,
       })
-    );
-  }
-
-  function play(): void {
-    if (!phaserGame) {
-      return;
+      pg.scene.start("MainMenu", {
+        playManually: true,
+        simulator: game.simulator,
+      });
+      setGame(game);
+      setPhaserGame(pg);
     }
-    phaserGame.scene.start("MainGame", {
-      playManually: true,
-      simulator: simulator,
-    });
   }
 
   function confirm(): void {
-    if (!game || !classifier || !simulator) {
+    if (!game) {
       return;
     }
-    props.loadGame(game, classifier, simulator);
+    if (phaserGame) {
+      phaserGame.destroy(true);
+      setPhaserGame(undefined);
+    }
+    props.loadGame(game);
   }
 
   return (
     <div>
       <FormControl fullWidth>
         <InputLabel>Select Game</InputLabel>
-        <Select value={game?.title} label="Select Game" onChange={select}>
-          <MenuItem value="Fruit Picker">Fruit Picker</MenuItem>
+        <Select value={game?.id} label="Select Game" onChange={(e) => select(e.target.value)}>
+          {
+            Games.map((g) =>
+              <MenuItem key={g.id} value={g.id}>{g.config.title}</MenuItem>
+            )
+          }
         </Select>
       </FormControl>
       <Button disabled={!phaserGame} onClick={confirm}>
         Confirm
-      </Button>
-      <Button disabled={!phaserGame} onClick={play}>
-        Play
       </Button>
       <div id="game-container" ref={gameContainerElement} />
     </div>

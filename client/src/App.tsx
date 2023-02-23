@@ -4,16 +4,17 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import React, { useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Classifier, ClassifierInput, ClassifierOutput } from "./classifier";
-import { SimulationOutput, SimulationSummary, Simulator } from "./simulator";
+import { Classifier } from "./classifier";
+import { Simulation, SimulationSummary } from "./simulator";
+import { Game } from "./games";
 import GamePicker from "./components/GamePicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
-
 import "./App.css";
 
 enum STEP {
@@ -26,38 +27,24 @@ enum STEP {
 function App(): JSX.Element {
   const classes = useStyles();
   const [step, setStep] = useState<STEP>(STEP.PICK_GAME);
-  const [game, setGame] = useState<Phaser.Types.Core.GameConfig>();
-  const [classifier, setClassifier] =
-    useState<Classifier<ClassifierInput, ClassifierOutput>>();
-  const [simulator, setSimulator] =
-    useState<
-      Simulator<SimulationOutput, Classifier<ClassifierInput, ClassifierOutput>>
-    >();
-  const [simulations, setSimulations] = useState<SimulationOutput[]>([]);
+  const [game, setGame] = useState<Game>();
+  const [classifier, setClassifier] = useState<Classifier>();
   const [summary, setSummary] = useState<SimulationSummary>();
+  const [simulations, setSimulations] = useState<Simulation[]>([]);
   const [simulation, setSimulation] = useState<number>(0);
 
-  function loadGame(
-    config: Phaser.Types.Core.GameConfig,
-    classifier: Classifier<ClassifierInput, ClassifierOutput>,
-    simulator: Simulator<
-      SimulationOutput,
-      Classifier<ClassifierInput, ClassifierOutput>
-    >
-  ): void {
-    setGame(config);
-    setClassifier(classifier);
-    setSimulator(simulator);
+  function loadGame(game: Game): void {
+    setGame(game);
     setStep(STEP.NOTEBOOK);
   }
 
-  function simulateGame(runs: number): void {
-    if (!simulator) {
+  function onSimulate(c: Classifier): void {
+    if (!game) {
       return;
     }
-    simulator.simulate(runs);
-    setSimulations([...simulator.simulations]);
-    setSummary({ ...simulator.summary });
+    setClassifier(c);
+    setSimulations([...game.simulator.simulations]);
+    setSummary({ ...game.simulator.summary });
     setStep(STEP.SUMMARY);
   }
 
@@ -76,9 +63,19 @@ function App(): JSX.Element {
 
   function getComponent(): JSX.Element {
     if (step === STEP.PICK_GAME) {
-      return <GamePicker loadGame={loadGame} />;
+      return (
+        <GamePicker
+          loadGame={loadGame}
+        />
+      );
     } else if (step === STEP.NOTEBOOK) {
-      return <Notebook classifier={classifier!} simulate={simulateGame} />;
+      return (
+        <Notebook
+          game={game!}
+          classifier={classifier}
+          simulate={onSimulate}
+        />
+      );
     } else if (step === STEP.SUMMARY) {
       return (
         <Summary
@@ -91,7 +88,6 @@ function App(): JSX.Element {
       return (
         <SimulationPanel
           game={game!}
-          simulator={simulator!}
           simulations={simulations}
           simulation={simulation}
           toNotebook={viewNotebook}

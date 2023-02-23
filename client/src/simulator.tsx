@@ -5,10 +5,10 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { Classifier, ClassifierInput, ClassifierOutput } from "./classifier";
+import { Classifier } from "./classifier";
 import { average } from "./utils";
 
-export interface SimulationOutput {
+export interface Simulation {
   score: number;
   accuracy: number;
 }
@@ -23,16 +23,11 @@ export interface SimulationSummary {
   averageAccuracy: number;
 }
 
-export class Simulator<
-  O extends SimulationOutput,
-  C extends Classifier<ClassifierInput, ClassifierOutput>
-> {
-  classifier: C;
-  simulations: O[];
+export class Simulator<S extends Simulation> {
+  simulations: S[];
   summary: SimulationSummary;
 
-  constructor(classifier: C) {
-    this.classifier = classifier;
+  constructor() {
     this.simulations = [];
     this.summary = {
       numRuns: 0,
@@ -45,18 +40,18 @@ export class Simulator<
     };
   }
 
-  play(): O {
+  play(): S {
     const o: any = {};
     o.score = 0;
     o.accuracy = 0;
     return o;
   }
 
-  simulate(runs: number) {
+  simulate(runs: number, classifier: Classifier) {
     this.summary.numRuns += runs;
   }
 
-  updateSummary() {
+  protected updateSummary() {
     const scores = this.simulations.map((s) => s.score);
     const accuracies = this.simulations.map((s) => s.accuracy);
     this.summary.lowScore = Math.min(...scores);

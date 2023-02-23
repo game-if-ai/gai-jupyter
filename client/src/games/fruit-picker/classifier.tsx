@@ -4,20 +4,17 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import { Fruit, Fruits, FruitTrait } from "./types";
-import {
-  Classifier,
-  ClassifierInput,
-  ClassifierOutput,
-} from "../../classifier";
+import { Classifier } from "../../classifier";
 import { random, randomInt } from "../../utils";
 
-export interface FruitClassifierInput extends ClassifierInput {
+export interface FruitClassifierInput {
   fruit: Fruit;
   label: FruitTrait;
 }
 
-export interface FruitClassifierOutput extends ClassifierOutput {
+export interface FruitClassifierOutput {
   inputText: string; // description of fruit
   label: string; // trait (color, shape, etc.)
   realLabel: string; // what the fruit's trait (color, shape, etc.) was
@@ -25,35 +22,26 @@ export interface FruitClassifierOutput extends ClassifierOutput {
   confidence: number; // how confident the classifier was (0 to 1)
 }
 
-export class FruitClassifier extends Classifier<
-  FruitClassifierInput,
-  FruitClassifierOutput
-> {
-  constructor(data?: FruitClassifierOutput[]) {
-    super(data);
-    // randomly generate classifier data
-    if (!data) {
-      for (const label of Object.values(FruitTrait)) {
-        for (const fruit of Fruits) {
-          const correctAnswer = random(1, 0) < 0.85; // chance to pick right answer
-          this.data.push({
-            inputText: fruit.description,
-            label: label,
-            realLabel: fruit.traits[label],
-            classifierLabel: correctAnswer
-              ? fruit.traits[label]
-              : Fruits[randomInt(Fruits.length)].traits[label],
-            confidence: random(1, 0),
-          });
-        }
+export const FruitClassifier: Classifier = {
+  classify(input: FruitClassifierInput): FruitClassifierOutput | undefined {
+    const data = [];
+    for (const label of Object.values(FruitTrait)) {
+      for (const fruit of Fruits) {
+        const correctAnswer = random(1, 0) < 0.85; // chance to pick right answer
+        data.push({
+          inputText: fruit.description,
+          label: label,
+          realLabel: fruit.traits[label],
+          classifierLabel: correctAnswer
+            ? fruit.traits[label]
+            : Fruits[randomInt(Fruits.length)].traits[label],
+          confidence: random(1, 0),
+        });
       }
     }
-  }
-
-  classify(input: FruitClassifierInput): FruitClassifierOutput | undefined {
     const { fruit, label } = input;
     const inputText = fruit.description;
-    const output = this.data.find(
+    const output = data.find(
       (d) => d.inputText === inputText && d.label === label
     );
     return output;

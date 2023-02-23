@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
@@ -24,15 +25,15 @@ import {
 } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Classifier, ClassifierInput, ClassifierOutput } from "../classifier";
-import { SimulationOutput, Simulator } from "../simulator";
+import { Simulation } from "../simulator";
 import { EventSystem } from "../event-system";
-import { FruitSimulationOutput } from "../games/fruit-picker/simulator";
+import { Game } from "../games";
+import { FruitSimulation } from "../games/fruit-picker/simulator";
 
 const SPEEDS = [1, 2, 4, 10];
 
-function Summary(props: { simulation: SimulationOutput }): JSX.Element {
-  const simulation = props.simulation as FruitSimulationOutput;
+function Summary(props: { simulation: Simulation }): JSX.Element {
+  const simulation = props.simulation as FruitSimulation;
   return (
     <TableContainer component={Paper}>
       <TableHead>
@@ -56,12 +57,8 @@ function Summary(props: { simulation: SimulationOutput }): JSX.Element {
 }
 
 function GamePlayer(props: {
-  game: Phaser.Types.Core.GameConfig;
-  simulator: Simulator<
-    SimulationOutput,
-    Classifier<ClassifierInput, ClassifierOutput>
-  >;
-  simulations: SimulationOutput[];
+  game: Game;
+  simulations: Simulation[];
   simulation: number;
   toNotebook: () => void;
   toSummary: () => void;
@@ -83,7 +80,7 @@ function GamePlayer(props: {
     EventSystem.on("gameOver", endSimulation);
     setGame(
       new Phaser.Game({
-        ...props.game,
+        ...props.game.config,
         parent: gameContainerElement.current as HTMLElement,
       })
     );
@@ -95,7 +92,7 @@ function GamePlayer(props: {
     }
     game.scene.start("MainGame", {
       playManually: false,
-      simulator: props.simulator,
+      simulator: props.game.simulator,
       simulation: simulations[simulation],
     });
   }, [game, simulation]);

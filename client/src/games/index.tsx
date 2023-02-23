@@ -4,41 +4,14 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import Phaser from "phaser";
-import MainMenu from "./MainMenu";
-import MainGame from "./MainGame";
-import { FruitSimulation, FruitSimulator } from "./simulator";
-import { Game } from "..";
 
-const GameConfig: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  title: "Fruit Picker",
-  parent: "phaser-container",
-  width: 800,
-  height: 600,
-  backgroundColor: "#282c34",
-  scale: {
-    mode: Phaser.Scale.ScaleModes.RESIZE,
-  },
-  physics: {
-    default: "arcade",
-    arcade: {
-      gravity: { y: 150 },
-    },
-  },
-  scene: [MainMenu, MainGame],
-};
+import { Simulator, Simulation } from "../simulator";
+import FruitPicker from "./fruit-picker";
 
-export interface GameParams {
-  playManually: boolean;
-  simulator: FruitSimulator;
-  simulation?: FruitSimulation;
+export interface Game {
+  id: string;
+  config: Phaser.Types.Core.GameConfig;
+  simulator: Simulator<Simulation>;
 }
 
-export const FruitPicker: Game = {
-  id: "fruitpicker",
-  config: GameConfig,
-  simulator: new FruitSimulator(),
-};
-
-export default FruitPicker;
+export const Games: Game[] = [FruitPicker]

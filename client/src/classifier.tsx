@@ -5,21 +5,6 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-export interface ClassifierInput {}
-
-export interface ClassifierOutput {}
-
-export class Classifier<
-  Input extends ClassifierInput,
-  Output extends ClassifierOutput
-> {
-  data: Output[];
-
-  constructor(data?: Output[]) {
-    this.data = data || [];
-  }
-
-  classify(input: Input): Output | undefined {
-    return undefined;
-  }
+export interface Classifier {
+  classify: (input: any) => any;
 }

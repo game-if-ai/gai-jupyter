@@ -4,9 +4,11 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import { Fruit, Fruits, FruitTrait } from "./types";
-import FruitClassifier, { FruitClassifierOutput } from "./classifier";
-import { SimulationOutput, Simulator } from "../../simulator";
+import { Classifier } from "../../classifier";
+import { FruitClassifierOutput } from "./classifier";
+import { Simulation, Simulator } from "../../simulator";
 import { randomInt } from "../../utils";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
@@ -15,7 +17,7 @@ export const POINTS_CORRECT = 2; // points given for a correct fruit
 export const POINTS_INCORRECT = -1; // points lost for a bad fruit
 export const CLASSIFIER_DELAY = 3000; // delay in ms for classifier catch speed at 0 confidence
 
-export interface FruitSimulationOutput extends SimulationOutput {
+export interface FruitSimulation extends Simulation {
   // score: number;
   // accuracy: number;
   label: FruitTrait;
@@ -29,13 +31,7 @@ export interface FruitSpawn {
   classifierOutput?: FruitClassifierOutput;
 }
 
-export class FruitSimulator extends Simulator<
-  FruitSimulationOutput,
-  FruitClassifier
-> {
-  constructor(classifier: FruitClassifier) {
-    super(classifier);
-  }
+export class FruitSimulator extends Simulator<FruitSimulation> {
 
   play() {
     const traits = Object.values(FruitTrait);
@@ -57,12 +53,12 @@ export class FruitSimulator extends Simulator<
     };
   }
 
-  simulate(numRuns: number) {
-    super.simulate(numRuns);
+  simulate(numRuns: number, classifier: Classifier) {
+    super.simulate(numRuns, classifier);
     for (let i = 0; i < numRuns; i++) {
       const sim = this.play();
       for (const spawn of sim.spawnedFruits) {
-        const classifierOutput = this.classifier.classify({
+        const classifierOutput = classifier.classify({
           fruit: spawn.fruit,
           label: sim.label,
         });

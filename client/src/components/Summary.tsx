@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import React from "react";
 import {
   Button,
@@ -15,12 +16,11 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-
-import { SimulationOutput, SimulationSummary } from "../simulator";
+import { Simulation, SimulationSummary } from "../simulator";
 
 function Summary(props: {
   summary: SimulationSummary;
-  simulations: SimulationOutput[];
+  simulations: Simulation[];
   runSimulation: (i: number) => void;
 }): JSX.Element {
   const { summary, simulations, runSimulation } = props;
@@ -36,9 +36,16 @@ function Summary(props: {
         {Math.round(summary.lowAccuracy * 100)}% average=
         {Math.round(summary.averageAccuracy * 100)}%
       </Typography>
+      <Button
+        variant="contained"
+        onClick={() => runSimulation(0)}
+        style={{ marginTop: 10, marginBottom: 10 }}
+      >
+        Watch Simulations
+      </Button>
       <TableContainer
         component={Paper}
-        style={{ width: "100%", marginTop: 10, marginBottom: 10 }}
+        style={{ width: "100%" }}
       >
         <TableHead>
           <TableRow>
@@ -66,9 +73,6 @@ function Summary(props: {
           ))}
         </TableBody>
       </TableContainer>
-      <Button variant="contained" onClick={() => runSimulation(0)}>
-        Watch Simulations
-      </Button>
     </div>
   );
 }

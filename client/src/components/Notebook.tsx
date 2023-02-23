@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import React, { useState } from "react";
 import {
   Jupyter,
@@ -14,13 +15,25 @@ import { ICodeCell, IMarkdownCell } from "@jupyterlab/nbformat/lib/index";
 import { TextField, Button } from "@mui/material";
 import { Send } from "@mui/icons-material";
 
-import { Classifier, ClassifierInput, ClassifierOutput } from "../classifier";
+import { Classifier } from "../classifier";
+import { Game } from "../games";
+import FruitClassifier from "../games/fruit-picker/classifier";
 
 function NotebookComponent(props: {
-  classifier: Classifier<ClassifierInput, ClassifierOutput>;
-  simulate: (runs: number) => void;
+  game: Game,
+  classifier?: Classifier;
+  simulate: (c: Classifier) => void;
 }): JSX.Element {
+  const [classifier, setClassifier] = useState<Classifier | undefined>(FruitClassifier);
   const [numSimulations, setNumSimulations] = useState<number>(5);
+
+  function simulate(): void {
+    if (!classifier) {
+      return;
+    }
+    props.game.simulator.simulate(numSimulations, classifier);
+    props.simulate(classifier);
+  }
 
   return (
     <div style={{ alignItems: "center" }}>
@@ -32,7 +45,7 @@ function NotebookComponent(props: {
         inputProps={{ inputMode: "numeric", pattern: "[0-9]+" }}
         InputLabelProps={{ shrink: true }}
       />
-      <Button endIcon={<Send />} onClick={() => props.simulate(numSimulations)}>
+      <Button disabled={!classifier} endIcon={<Send />} onClick={simulate}>
         Run
       </Button>
       <Jupyter terminals={true} startDefaultKernel={true}>
