@@ -29,7 +29,7 @@ export const ReviewClassifier: Classifier = {
       classifierLabel: randomInt(1, 0),
       confidence: random(1, 0),
     };
-  }
-}
+  },
+};
 
 export default ReviewClassifier;

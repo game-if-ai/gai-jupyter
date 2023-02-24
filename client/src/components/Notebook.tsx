@@ -20,11 +20,13 @@ import { Game } from "../games";
 import FruitClassifier from "../games/fruit-picker/classifier";
 
 function NotebookComponent(props: {
-  game: Game,
+  game: Game;
   classifier?: Classifier;
   simulate: (c: Classifier) => void;
 }): JSX.Element {
-  const [classifier, setClassifier] = useState<Classifier | undefined>(FruitClassifier);
+  const [classifier, setClassifier] = useState<Classifier | undefined>(
+    FruitClassifier
+  );
   const [numSimulations, setNumSimulations] = useState<number>(5);
 
   function simulate(): void {

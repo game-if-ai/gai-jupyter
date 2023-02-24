@@ -39,8 +39,8 @@ const labelFont = {
   },
 };
 
-const BEARS = ["brown", "panda", "polar", "redpanda", "pink"]
-const FOOD = ["egg", "dumpling", "riceball", "sushi", "flan"]
+const BEARS = ["brown", "panda", "polar", "redpanda", "pink"];
+const FOOD = ["egg", "dumpling", "riceball", "sushi", "flan"];
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
@@ -79,12 +79,12 @@ export default class MainGame extends Phaser.Scene {
 
   preload() {
     this.load.setPath("assets/cafe/sprites");
-    this.load.atlas('bg_kitchen', 'bg_kitchen.png', 'bg_kitchen.json');
-    this.load.atlas('char_bears', 'char_bears.png', 'char_bears.json');
-    this.load.atlas('char_speech', 'char_speech.png', 'char_speech.json');
-    this.load.atlas('food', 'food.png', 'food.json');
+    this.load.atlas("bg_kitchen", "bg_kitchen.png", "bg_kitchen.json");
+    this.load.atlas("char_bears", "char_bears.png", "char_bears.json");
+    this.load.atlas("char_speech", "char_speech.png", "char_speech.json");
+    this.load.atlas("food", "food.png", "food.json");
     this.load.setPath("assets/cafe/sprites/items");
-    
+
     this.load.setPath("assets/cafe/sounds");
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
@@ -93,7 +93,8 @@ export default class MainGame extends Phaser.Scene {
     this.config = data;
     // upper bg
     this.add.image(320, 180, "bg_kitchen", "top").setScale(2);
-    this.add.image(250, 40, "bg_kitchen", "hanging_plant").setScale(2).flipX = true;
+    this.add.image(250, 40, "bg_kitchen", "hanging_plant").setScale(2).flipX =
+      true;
     this.add.image(390, 40, "bg_kitchen", "hanging_plant").setScale(2);
     this.add.image(150, 22, "bg_kitchen", "hanging_light").setScale(2);
     this.add.image(490, 22, "bg_kitchen", "hanging_light").setScale(2);
@@ -165,14 +166,17 @@ export default class MainGame extends Phaser.Scene {
       loop: true,
       callback: () => {
         if (this.bear!.frame.name.endsWith("2")) {
-          this.bear!.setTexture("char_bears", this.bear!.frame.name.split("2")[0]);
+          this.bear!.setTexture(
+            "char_bears",
+            this.bear!.frame.name.split("2")[0]
+          );
         } else {
           this.bear!.setTexture("char_bears", `${this.bear!.frame.name}2`);
         }
       },
       callbackScope: this,
     });
-    
+
     this.time.addEvent({
       delay: 500,
       timeScale: this.speed,
@@ -284,7 +288,7 @@ export default class MainGame extends Phaser.Scene {
   }
 
   trashItem() {
-    const cur = this.items.find(i => i.state !== "deleted")
+    const cur = this.items.find((i) => i.state !== "deleted");
     if (cur) {
       if (cur.data.list["rating"] === 0) {
         this.speech?.setTexture("char_speech", "good");
@@ -311,7 +315,9 @@ export default class MainGame extends Phaser.Scene {
     this.numTotal++;
     item.state = "deleted";
     item.destroy();
-    this.text?.setText(this.items.find(i => i.state !== "deleted")?.data.list["review"] || "");
+    this.text?.setText(
+      this.items.find((i) => i.state !== "deleted")?.data.list["review"] || ""
+    );
   }
 
   gameOver() {

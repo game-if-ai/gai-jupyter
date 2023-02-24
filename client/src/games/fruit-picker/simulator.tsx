@@ -32,7 +32,6 @@ export interface FruitSpawn {
 }
 
 export class FruitSimulator extends Simulator<FruitSimulation> {
-
   play() {
     const traits = Object.values(FruitTrait);
     const numFruitSpawned = Math.floor((GAME_TIME * 1000) / SPAWN_TIME);

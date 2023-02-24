@@ -16,4 +16,4 @@ export interface Game {
   summaryPanel: (props: { simulation: Simulation }) => JSX.Element;
 }
 
-export const Games: Game[] = [FruitPicker, Cafe]
+export const Games: Game[] = [FruitPicker, Cafe];

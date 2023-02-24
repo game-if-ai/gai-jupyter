@@ -28,13 +28,12 @@ export interface CafeSimulation extends Simulation {
 }
 
 export class CafeSimulator extends Simulator<CafeSimulation> {
-
   play() {
     const shuffled = [...Reviews].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 30);
-    const spawns: FoodSpawn[] = selected.map(s => ({
+    const spawns: FoodSpawn[] = selected.map((s) => ({
       review: s,
-    }))
+    }));
     return {
       spawns: spawns,
       score: 0,

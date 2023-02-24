@@ -5,7 +5,14 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { TableContainer, Paper, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
+import {
+  TableContainer,
+  Paper,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+} from "@mui/material";
 import { Simulation } from "../../simulator";
 import { CafeSimulation } from "./simulator";
 
@@ -23,8 +30,8 @@ export function Summary(props: { simulation: Simulation }): JSX.Element {
         <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
           <TableCell align="center">{simulation.score}</TableCell>
           <TableCell align="center">{simulation.accuracy * 100}%</TableCell>
-      </TableRow>
-    </TableBody>
-  </TableContainer>
+        </TableRow>
+      </TableBody>
+    </TableContainer>
   );
 }

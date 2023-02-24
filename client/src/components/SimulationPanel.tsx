@@ -6,11 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Button,
-  IconButton,
-  Typography,
-} from "@mui/material";
+import { Button, IconButton, Typography } from "@mui/material";
 import {
   PlayCircleOutline,
   PauseCircleOutline,

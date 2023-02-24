@@ -30,7 +30,8 @@ export const Fruits: Fruit[] = [
   {
     name: "perfect apple",
     sprite: "apple2",
-    description: "A crisp and delicious, round and red apple. Very juicy and sweet.",
+    description:
+      "A crisp and delicious, round and red apple. Very juicy and sweet.",
     traits: {
       fruit: "apple",
       color: "red",
@@ -84,7 +85,8 @@ export const Fruits: Fruit[] = [
   {
     name: "lemon",
     sprite: "lemon",
-    description: "An oblong, green lemon. A little ripe so it looks like a lime. Very sour.",
+    description:
+      "An oblong, green lemon. A little ripe so it looks like a lime. Very sour.",
     traits: {
       fruit: "lemon",
       color: "green",
@@ -129,7 +131,8 @@ export const Fruits: Fruit[] = [
   {
     name: "perfect orange",
     sprite: "orange2",
-    description: "A round and orange orange. Larger and sweeter than normal oranges.",
+    description:
+      "A round and orange orange. Larger and sweeter than normal oranges.",
     traits: {
       fruit: "orange",
       color: "orange",

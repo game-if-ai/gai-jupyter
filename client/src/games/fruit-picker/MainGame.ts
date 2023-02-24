@@ -75,10 +75,7 @@ export default class MainGame extends Phaser.Scene {
     }
     this.load.setPath("assets/fruit-picker/sounds");
     this.load.audio("music", ["music.ogg", "music.mp3"]);
-    this.load.audio("countdown", [
-      "countdown.ogg",
-      "countdown.mp3",
-    ]);
+    this.load.audio("countdown", ["countdown.ogg", "countdown.mp3"]);
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
@@ -155,8 +152,10 @@ export default class MainGame extends Phaser.Scene {
     for (const fruit of this.fruit) {
       if (fruit.y >= 600) {
         fruit.state = "deleted";
-        if (fruit.data.list[this.config!.simulation!.label] !==
-          this.config!.simulation!.matchLabel) {
+        if (
+          fruit.data.list[this.config!.simulation!.label] !==
+          this.config!.simulation!.matchLabel
+        ) {
           this.numCorrect++;
         }
         this.numTotal++;
@@ -254,8 +253,10 @@ export default class MainGame extends Phaser.Scene {
     this.input.off("gameobjectdown", this.selectFruit, this);
     // remove remaining fruit
     for (const fruit of this.fruit) {
-      if (fruit.data.list[this.config!.simulation!.label] !==
-        this.config!.simulation!.matchLabel) {
+      if (
+        fruit.data.list[this.config!.simulation!.label] !==
+        this.config!.simulation!.matchLabel
+      ) {
         this.numCorrect++;
       }
       this.numTotal++;
