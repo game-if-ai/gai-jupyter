@@ -9,6 +9,7 @@ import MainMenu from "./MainMenu";
 import MainGame from "./MainGame";
 import { FruitSimulation, FruitSimulator } from "./simulator";
 import { Game } from "..";
+import { Summary } from "./Summary";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -39,6 +40,7 @@ export const FruitPicker: Game = {
   id: "fruitpicker",
   config: GameConfig,
   simulator: new FruitSimulator(),
+  summaryPanel: Summary,
 };
 
 export default FruitPicker;

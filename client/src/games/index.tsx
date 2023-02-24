@@ -6,12 +6,14 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { Simulator, Simulation } from "../simulator";
+import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
 
 export interface Game {
   id: string;
   config: Phaser.Types.Core.GameConfig;
   simulator: Simulator<Simulation>;
+  summaryPanel: (props: { simulation: Simulation }) => JSX.Element;
 }
 
-export const Games: Game[] = [FruitPicker]
+export const Games: Game[] = [FruitPicker, Cafe]

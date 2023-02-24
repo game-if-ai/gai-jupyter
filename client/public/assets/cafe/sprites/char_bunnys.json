@@ -1,0 +1,130 @@
+{
+	"textures": [
+		{
+			"image": "char_bunnys.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 64,
+				"h": 160
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "pink",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 7,
+						"y": 5,
+						"w": 19,
+						"h": 23
+					}
+				},
+				{
+					"filename": "pink2",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 39,
+						"y": 7,
+						"w": 19,
+						"h": 21
+					}
+				},
+				{
+					"filename": "blue",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 7,
+						"y": 37,
+						"w": 19,
+						"h": 23
+					}
+				},
+				{
+					"filename": "blue2",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 39,
+						"y": 39,
+						"w": 19,
+						"h": 21
+					}
+				},
+				{
+					"filename": "yellow",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 7,
+						"y": 69,
+						"w": 19,
+						"h": 23
+					}
+				},
+				{
+					"filename": "yellow2",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 39,
+						"y": 71,
+						"w": 19,
+						"h": 21
+					}
+				},
+				{
+					"filename": "white",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 7,
+						"y": 101,
+						"w": 19,
+						"h": 23
+					}
+				},
+				{
+					"filename": "white2",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 39,
+						"y": 103,
+						"w": 19,
+						"h": 21
+					}
+				},
+				{
+					"filename": "black",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 7,
+						"y": 133,
+						"w": 19,
+						"h": 23
+					}
+				},
+				{
+					"filename": "black2",
+					"rotated": false,
+					"trimmed": false,
+					"frame": {
+						"x": 39,
+						"y": 135,
+						"w": 19,
+						"h": 21
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:b08d7fb08a68db8ab0dbc9bb53737779:d1f07ecb06f169e44fe6f83912571180:0ce9fea2ab65d7f4526bcec13162fb8f$"
+	}
+}

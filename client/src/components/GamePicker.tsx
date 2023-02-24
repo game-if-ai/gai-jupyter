@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import React, { useRef, useState } from "react";
 import {
   Button,
@@ -24,18 +25,19 @@ function GamePicker(props: { loadGame: (g: Game) => void }): JSX.Element {
       phaserGame.destroy(true);
     }
     const game = Games.find(g => g.id === id);
-    if (game) {
-      const pg = new Phaser.Game({
-        ...game.config,
-        parent: gameContainerElement.current as HTMLElement,
-      })
-      pg.scene.start("MainMenu", {
-        playManually: true,
-        simulator: game.simulator,
-      });
-      setGame(game);
-      setPhaserGame(pg);
+    if (!game) {
+      return;
     }
+    const pg = new Phaser.Game({
+      ...game.config,
+      parent: gameContainerElement.current as HTMLElement,
+    })
+    pg.scene.start("MainMenu", {
+      playManually: true,
+      simulator: game.simulator,
+    });
+    setGame(game);
+    setPhaserGame(pg);
   }
 
   function confirm(): void {

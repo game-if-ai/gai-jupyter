@@ -10,6 +10,9 @@ export default class MainMenu extends Phaser.Scene {
     this.load.setPath("assets/fruit-picker");
     this.load.image("background", "background.png");
     this.load.image("logo", "logo.png");
+    this.load.image("logo2", "logo2.png");
+    this.load.setPath("assets/fruit-picker/sounds");
+    this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
   create(data: GameParams) {
@@ -46,7 +49,23 @@ export default class MainMenu extends Phaser.Scene {
       duration: 1200,
     });
     this.input.once("pointerdown", () => {
-      this.scene.start("MainGame", data);
+      this.sound.play("match");
+      let logo2 = this.add.image(400, 300, "logo2");
+      this.tweens.add({
+        targets: logo2,
+        alpha: { from: 0, to: 1 },
+        duration: 250,
+        onComplete: () => {
+          this.tweens.add({
+            targets: logo2,
+            alpha: { from: 1, to: 0 },
+            duration: 250,
+            onComplete: () => {
+              this.scene.start("MainGame", data);
+            },
+          });
+        },
+      });
     });
   }
 }
