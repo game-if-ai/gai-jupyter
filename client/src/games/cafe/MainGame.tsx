@@ -10,7 +10,12 @@ import { GameParams } from ".";
 import { Review, Reviews } from "./types";
 import { EventSystem } from "../../event-system";
 import { randomInt } from "../../utils";
-import { ITEM_TIME, GAME_TIME, SPAWN_TIME } from "./simulator";
+import {
+  ITEM_TIME,
+  GAME_TIME,
+  SPAWN_TIME,
+  CLASSIFIER_DELAY,
+} from "./simulator";
 
 const fontStyle = {
   fontFamily: "Arial",
@@ -38,9 +43,6 @@ const labelFont = {
     blur: 4,
   },
 };
-
-const BEARS = ["brown", "panda", "polar", "redpanda", "pink"];
-const FOOD = ["egg", "dumpling", "riceball", "sushi", "flan"];
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
@@ -107,8 +109,7 @@ export default class MainGame extends Phaser.Scene {
     this.add.image(605, 90, "bg_kitchen", "painting2").setScale(2);
     this.add.image(35, 37, "bg_kitchen", "clock").setScale(2);
     // character sprites
-    const sprite = BEARS[randomInt(BEARS.length)];
-    this.bear = this.add.image(320, 145, "char_bears", sprite).setScale(2);
+    this.bear = this.add.image(320, 145, "char_bears", "brown").setScale(2);
     this.speech = this.add.image(320, 110, "char_speech", "...").setScale(2);
     // lower bg
     this.add.image(320, 260, "bg_kitchen", "bottom").setScale(2);
@@ -139,27 +140,12 @@ export default class MainGame extends Phaser.Scene {
     this.numTotal = 0;
     this.items = [];
     this.itemIdx = 0;
-
     this.timerText?.setText(`Time: ${GAME_TIME}:00`);
     this.scoreText?.setText("Score: 0");
     this.accuracyText?.setText("Accuracy: 100%");
     this.text?.setText("");
-
-    this.timerEvent = this.time.addEvent({
-      delay: GAME_TIME * 1000,
-      timeScale: this.speed,
-      callback: this.gameOver,
-      callbackScope: this,
-    });
-
-    this.spawnEvent = this.time.addEvent({
-      delay: SPAWN_TIME,
-      timeScale: this.speed,
-      loop: true,
-      callback: this.spawn,
-      callbackScope: this,
-    });
-
+    // animations
+    this.bear?.setTexture("char_bears", this.config?.simulation?.customer);
     this.time.addEvent({
       delay: 200,
       timeScale: this.speed,
@@ -176,7 +162,6 @@ export default class MainGame extends Phaser.Scene {
       },
       callbackScope: this,
     });
-
     this.time.addEvent({
       delay: 500,
       timeScale: this.speed,
@@ -191,7 +176,20 @@ export default class MainGame extends Phaser.Scene {
       },
       callbackScope: this,
     });
-
+    // spawn and timer events
+    this.timerEvent = this.time.addEvent({
+      delay: GAME_TIME * 1000,
+      timeScale: this.speed,
+      callback: this.gameOver,
+      callbackScope: this,
+    });
+    this.spawnEvent = this.time.addEvent({
+      delay: SPAWN_TIME,
+      timeScale: this.speed,
+      loop: true,
+      callback: this.spawn,
+      callbackScope: this,
+    });
     this.spawn();
   }
 
@@ -216,15 +214,30 @@ export default class MainGame extends Phaser.Scene {
     if (!this.config || !this.config.simulation) {
       return;
     }
-    const review = Reviews[randomInt(Reviews.length)];
-    const sprite = FOOD[randomInt(FOOD.length)];
-    const item = this.add.sprite(0, 200, "food", sprite).setScale(2);
-    item.setData("review", review.review);
-    item.setData("rating", review.rating);
+    const simulation = this.config.simulation;
+    const spawn = simulation.spawns[this.itemIdx];
+    const item = this.add.sprite(0, 200, "food", spawn.item).setScale(2);
+    item.setData("review", spawn.review.review);
+    item.setData("rating", spawn.review.rating);
     item.setData("idx", this.itemIdx);
-    item.setData("food", sprite);
     if (this.config.playManually) {
       item.setInteractive();
+    } else {
+      const response = spawn.classifierOutput;
+      if (response) {
+        this.time.addEvent({
+          delay: CLASSIFIER_DELAY - response.confidence * CLASSIFIER_DELAY,
+          timeScale: this.speed,
+          callback: () => {
+            if (response.classifierLabel === 1) {
+              this.selectItem(undefined, item);
+            } else {
+              this.trashItem();
+            }
+          },
+          callbackScope: this,
+        });
+      }
     }
     this.tweens.add({
       targets: item,
@@ -237,7 +250,7 @@ export default class MainGame extends Phaser.Scene {
       },
     });
     if (this.items.length === 0) {
-      this.text?.setText(review.review);
+      this.text?.setText(spawn.review.review);
     }
     this.items.push(item);
     this.itemIdx++;

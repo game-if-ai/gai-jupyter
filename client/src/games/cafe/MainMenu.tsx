@@ -95,7 +95,6 @@ export default class MainMenu extends Phaser.Scene {
     this.add.image(320, 260, "bg_kitchen", "bottom").setScale(2);
     this.add.image(485, 330, "bg_kitchen", "divider").setScale(2);
     this.add.image(568, 330, "bg_kitchen", "shelf").setScale(2);
-
     this.add.image(570, 345, "bg_kitchen", "trash").setScale(2);
 
     this.add.text(5, 5, "Time: 120:00", fontStyle);

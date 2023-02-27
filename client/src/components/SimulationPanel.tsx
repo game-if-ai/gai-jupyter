@@ -135,7 +135,13 @@ function GamePlayer(props: {
           Summary
         </Button>
       </div>
-      <div className={classes.gameContainer}>
+      <div
+        className={classes.gameContainer}
+        style={{
+          height: props.game.config.height,
+          width: props.game.config.width,
+        }}
+      >
         <div id="game-container" ref={gameContainerElement} />
         <div
           className={classes.summary}
@@ -178,8 +184,6 @@ function GamePlayer(props: {
 const useStyles = makeStyles(() => ({
   gameContainer: {
     position: "relative",
-    height: 600,
-    width: 800,
   },
   controls: {
     display: "flex",
