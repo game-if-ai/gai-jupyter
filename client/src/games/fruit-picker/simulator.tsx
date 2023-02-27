@@ -15,7 +15,7 @@ export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
 export const POINTS_CORRECT = 2; // points given for a correct fruit
 export const POINTS_INCORRECT = -1; // points lost for a bad fruit
-export const CLASSIFIER_DELAY = 3000; // delay in ms for classifier catch speed at 0 confidence
+export const CLASSIFIER_DELAY = 2000; // delay in ms for classifier catch speed at 0 confidence
 
 export interface FruitSimulation extends Simulation {
   // score: number;
@@ -32,7 +32,6 @@ export interface FruitSpawn {
 }
 
 export class FruitSimulator extends Simulator<FruitSimulation> {
-
   play() {
     const traits = Object.values(FruitTrait);
     const numFruitSpawned = Math.floor((GAME_TIME * 1000) / SPAWN_TIME);

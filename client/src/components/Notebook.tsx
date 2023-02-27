@@ -17,56 +17,25 @@ import { Send } from "@mui/icons-material";
 
 import { Classifier } from "../classifier";
 import { Game } from "../games";
-import FruitClassifier from "../games/fruit-picker/classifier";
 
 function NotebookComponent(props: {
-  game: Game,
+  game: Game;
   classifier?: Classifier;
   simulate: (c: Classifier) => void;
 }): JSX.Element {
-  const [classifier, setClassifier] = useState<Classifier | undefined>(FruitClassifier);
   const [numSimulations, setNumSimulations] = useState<number>(5);
 
   function simulate(): void {
-    if (!classifier) {
-      return;
-    }
-    props.game.simulator.simulate(numSimulations, classifier);
-    props.simulate(classifier);
+    props.game.simulator.simulate(numSimulations, props.game.classifier);
+    props.simulate(props.game.classifier);
   }
 
   return (
     <div style={{ alignItems: "center" }}>
-      <TextField
-        variant="outlined"
-        label="Number of Simulations"
-        value={numSimulations}
-        onChange={(e) => setNumSimulations(Number(e.target.value) || 0)}
-        inputProps={{ inputMode: "numeric", pattern: "[0-9]+" }}
-        InputLabelProps={{ shrink: true }}
-      />
-      <Button disabled={!classifier} endIcon={<Send />} onClick={simulate}>
-        Run
-      </Button>
       <Jupyter terminals={true} startDefaultKernel={true}>
         <Notebook
           model={{
             cells: [
-              {
-                source: "x=2",
-                cell_type: "code",
-                metadata: {
-                  trusted: true,
-                  editable: false,
-                  deletable: false,
-                },
-                outputs: [],
-                execution_count: 0,
-              } as ICodeCell,
-              {
-                source: "Markdown Cell Example",
-                cell_type: "markdown",
-              } as IMarkdownCell,
               {
                 source: 'print("Hello, world!")',
                 cell_type: "code",
@@ -80,6 +49,22 @@ function NotebookComponent(props: {
           CellSidebar={CellSidebarDefault}
         />
       </Jupyter>
+
+      <TextField
+        variant="outlined"
+        label="Number of Simulations"
+        value={numSimulations}
+        onChange={(e) => setNumSimulations(Number(e.target.value) || 0)}
+        inputProps={{ inputMode: "numeric", pattern: "[0-9]+" }}
+        InputLabelProps={{ shrink: true }}
+      />
+      <Button
+        disabled={!props.game.classifier}
+        endIcon={<Send />}
+        onClick={simulate}
+      >
+        Run
+      </Button>
     </div>
   );
 }

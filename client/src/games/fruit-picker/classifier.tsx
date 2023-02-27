@@ -45,7 +45,7 @@ export const FruitClassifier: Classifier = {
       (d) => d.inputText === inputText && d.label === label
     );
     return output;
-  }
-}
+  },
+};
 
 export default FruitClassifier;

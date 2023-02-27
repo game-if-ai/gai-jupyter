@@ -43,10 +43,7 @@ function Summary(props: {
       >
         Watch Simulations
       </Button>
-      <TableContainer
-        component={Paper}
-        style={{ width: "100%" }}
-      >
+      <TableContainer component={Paper} style={{ width: "100%" }}>
         <TableHead>
           <TableRow>
             <TableCell>Run #</TableCell>

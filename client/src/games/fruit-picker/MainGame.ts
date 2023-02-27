@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import Phaser from "phaser";
 import { GameParams } from ".";
 import { EventSystem } from "../../event-system";
@@ -34,8 +35,10 @@ export default class MainGame extends Phaser.Scene {
   highscore: number;
   speed: number;
   isPaused: boolean;
+  isMuted: boolean;
   score: number;
-  accuracy: number;
+  numCorrect: number;
+  numTotal: number;
   fruit: Phaser.GameObjects.Sprite[];
   fruitIdx: number;
 
@@ -54,8 +57,10 @@ export default class MainGame extends Phaser.Scene {
     this.highscore = 0;
     this.speed = 1;
     this.isPaused = false;
+    this.isMuted = false;
     this.score = 0;
-    this.accuracy = 1;
+    this.numCorrect = 0;
+    this.numTotal = 0;
     this.fruit = [];
     this.fruitIdx = 0;
   }
@@ -69,13 +74,9 @@ export default class MainGame extends Phaser.Scene {
       this.load.image(f.name, `${f.sprite}.png`);
     }
     this.load.setPath("assets/fruit-picker/sounds");
-    this.load.audio("music", ["music.ogg", "music.m4a", "music.mp3"]);
-    this.load.audio("countdown", [
-      "countdown.ogg",
-      "countdown.m4a",
-      "countdown.mp3",
-    ]);
-    this.load.audio("match", ["match.ogg", "match.m4a", "match.mp3"]);
+    this.load.audio("music", ["music.ogg", "music.mp3"]);
+    this.load.audio("countdown", ["countdown.ogg", "countdown.mp3"]);
+    this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
   create(data: GameParams) {
@@ -94,9 +95,10 @@ export default class MainGame extends Phaser.Scene {
     this.scoreText = this.add.text(600, 20, "Score: 0", fontStyle);
     this.accuracyText = this.add.text(680, 20, "Accuracy: 100%", fontStyle);
     this.matchText = this.add.text(350, 550, "Catch the fruits!", fontStyle);
-    // this.sound.play("music", { loop: true });
-    EventSystem.on("changeSpeed", this.changeSpeed, this);
+    this.sound.play("music", { loop: true });
     EventSystem.on("pause", this.pause, this);
+    EventSystem.on("mute", this.mute, this);
+    EventSystem.on("changeSpeed", this.changeSpeed, this);
     this.start();
   }
 
@@ -106,7 +108,8 @@ export default class MainGame extends Phaser.Scene {
       this.input.on("gameobjectdown", this.selectFruit, this);
     }
     this.score = 0;
-    this.accuracy = 1;
+    this.numCorrect = 0;
+    this.numTotal = 0;
     this.fruit = [];
     this.fruitIdx = 0;
     this.timerText?.setText(`${GAME_TIME}:00`);
@@ -128,7 +131,7 @@ export default class MainGame extends Phaser.Scene {
       callback: this.spawnFruit,
       callbackScope: this,
     });
-    // this.sound.play("countdown", { delay: GAME_TIME - 3 });
+    // this.sound.play("countdown", { delay: (GAME_TIME - 3) / this.speed });
   }
 
   update() {
@@ -149,8 +152,17 @@ export default class MainGame extends Phaser.Scene {
     for (const fruit of this.fruit) {
       if (fruit.y >= 600) {
         fruit.state = "deleted";
+        if (
+          fruit.data.list[this.config!.simulation!.label] !==
+          this.config!.simulation!.matchLabel
+        ) {
+          this.numCorrect++;
+        }
+        this.numTotal++;
       }
     }
+    const acc = Math.round((this.numCorrect / this.numTotal) * 100);
+    this.accuracyText?.setText(`Accuracy: ${acc}%`);
     this.fruit = this.fruit.filter((f) => f.state !== "deleted");
   }
 
@@ -200,6 +212,7 @@ export default class MainGame extends Phaser.Scene {
       this.config.simulation.matchLabel
     ) {
       this.score += POINTS_CORRECT;
+      this.numCorrect++;
       this.tweens.add({
         targets: fruit,
         scale: 1.4,
@@ -229,12 +242,27 @@ export default class MainGame extends Phaser.Scene {
         },
       });
     }
+    this.numTotal++;
     this.scoreText?.setText("Score: " + this.score);
+    const acc = Math.round((this.numCorrect / this.numTotal) * 100);
+    this.accuracyText?.setText(`Accuracy: ${acc}%`);
   }
 
   gameOver() {
     this.spawnEvent?.remove();
     this.input.off("gameobjectdown", this.selectFruit, this);
+    // remove remaining fruit
+    for (const fruit of this.fruit) {
+      if (
+        fruit.data.list[this.config!.simulation!.label] !==
+        this.config!.simulation!.matchLabel
+      ) {
+        this.numCorrect++;
+      }
+      this.numTotal++;
+    }
+    const acc = Math.round((this.numCorrect / this.numTotal) * 100);
+    this.accuracyText?.setText(`Accuracy: ${acc}%`);
     this.tweens.add({
       targets: [...this.fruit],
       alpha: 0,
@@ -250,6 +278,11 @@ export default class MainGame extends Phaser.Scene {
         }
       },
     });
+  }
+
+  mute(muted: boolean) {
+    this.isMuted = muted;
+    this.sound.mute = muted;
   }
 
   pause(paused: boolean) {

@@ -63,18 +63,10 @@ function App(): JSX.Element {
 
   function getComponent(): JSX.Element {
     if (step === STEP.PICK_GAME) {
-      return (
-        <GamePicker
-          loadGame={loadGame}
-        />
-      );
+      return <GamePicker loadGame={loadGame} />;
     } else if (step === STEP.NOTEBOOK) {
       return (
-        <Notebook
-          game={game!}
-          classifier={classifier}
-          simulate={onSimulate}
-        />
+        <Notebook game={game!} classifier={classifier} simulate={onSimulate} />
       );
     } else if (step === STEP.SUMMARY) {
       return (

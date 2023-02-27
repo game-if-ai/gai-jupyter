@@ -6,55 +6,23 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Button,
-  IconButton,
-  Paper,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
+import { Button, IconButton, Typography } from "@mui/material";
 import {
   PlayCircleOutline,
   PauseCircleOutline,
   NavigateBefore,
   NavigateNext,
+  VolumeOff,
+  VolumeUp,
+  FastForward,
 } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Simulation } from "../simulator";
 import { EventSystem } from "../event-system";
 import { Game } from "../games";
-import { FruitSimulation } from "../games/fruit-picker/simulator";
 
 const SPEEDS = [1, 2, 4, 10];
-
-function Summary(props: { simulation: Simulation }): JSX.Element {
-  const simulation = props.simulation as FruitSimulation;
-  return (
-    <TableContainer component={Paper}>
-      <TableHead>
-        <TableRow>
-          <TableCell align="right">Score</TableCell>
-          <TableCell align="right">Accuracy</TableCell>
-          <TableCell align="right">Label</TableCell>
-          <TableCell align="right">Match Label</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-          <TableCell align="center">{simulation.score}</TableCell>
-          <TableCell align="center">{simulation.accuracy * 100}%</TableCell>
-          <TableCell align="center">{simulation.label}</TableCell>
-          <TableCell align="center">{simulation.matchLabel}</TableCell>
-        </TableRow>
-      </TableBody>
-    </TableContainer>
-  );
-}
 
 function GamePlayer(props: {
   game: Game;
@@ -68,29 +36,23 @@ function GamePlayer(props: {
   const [simulation, setSimulation] = useState<number>(props.simulation);
   const [speed, setSpeed] = useState<number>(1);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showSummary, setShowSummary] = useState<boolean>(false);
 
   const { simulations } = props;
   const gameContainerElement = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (game) {
-      return;
-    }
-    EventSystem.on("gameOver", endSimulation);
-    setGame(
-      new Phaser.Game({
+    let g: Phaser.Game | undefined = game;
+    if (!g) {
+      g = new Phaser.Game({
         ...props.game.config,
         parent: gameContainerElement.current as HTMLElement,
-      })
-    );
-  }, [gameContainerElement]);
-
-  useEffect(() => {
-    if (!game) {
-      return;
+      });
+      EventSystem.on("gameOver", endSimulation);
+      setGame(g);
     }
-    game.scene.start("MainGame", {
+    g.scene.start("MainGame", {
       playManually: false,
       simulator: props.game.simulator,
       simulation: simulations[simulation],
@@ -98,12 +60,18 @@ function GamePlayer(props: {
   }, [game, simulation]);
 
   function toNotebook(): void {
-    pause(true);
+    if (game) {
+      game.destroy(true);
+      setGame(undefined);
+    }
     props.toNotebook();
   }
 
   function toSummary(): void {
-    pause(true);
+    if (game) {
+      game.destroy(true);
+      setGame(undefined);
+    }
     props.toSummary();
   }
 
@@ -118,10 +86,12 @@ function GamePlayer(props: {
     setShowSummary(true);
   }
 
+  function mute(muted: boolean): void {
+    setIsMuted(muted);
+    EventSystem.emit("mute", muted);
+  }
+
   function pause(paused: boolean): void {
-    if (!game) {
-      return;
-    }
     setIsPaused(paused);
     EventSystem.emit("pause", paused);
   }
@@ -165,19 +135,30 @@ function GamePlayer(props: {
           Summary
         </Button>
       </div>
-      <div style={{ position: "relative", height: 600, width: 800 }}>
+      <div
+        className={classes.gameContainer}
+        style={{
+          height: props.game.config.height,
+          width: props.game.config.width,
+        }}
+      >
         <div id="game-container" ref={gameContainerElement} />
         <div
           className={classes.summary}
           style={{ display: showSummary ? "block" : "none" }}
         >
-          <Summary simulation={simulations[simulation]} />
+          <props.game.summaryPanel simulation={simulations[simulation]} />
         </div>
       </div>
       <div className={classes.controls}>
+        <IconButton onClick={() => mute(!isMuted)}>
+          {isMuted ? <VolumeOff /> : <VolumeUp />}
+        </IconButton>
         <IconButton onClick={() => pause(!isPaused)}>
           {isPaused ? <PlayCircleOutline /> : <PauseCircleOutline />}
         </IconButton>
+        <div style={{ width: 50 }} />
+        <FastForward color="disabled" />
         {SPEEDS.map((s) => (
           <Button
             className={classes.button}
@@ -187,6 +168,7 @@ function GamePlayer(props: {
             x{s}
           </Button>
         ))}
+        <div style={{ width: 50 }} />
         <Button
           className={classes.button}
           disabled={showSummary}
@@ -200,6 +182,9 @@ function GamePlayer(props: {
 }
 
 const useStyles = makeStyles(() => ({
+  gameContainer: {
+    position: "relative",
+  },
   controls: {
     display: "flex",
     flexFlow: "row",
