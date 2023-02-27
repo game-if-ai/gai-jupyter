@@ -10,5 +10,7 @@ echo
 
 export CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+${CURR_DIR}/kill-jupyter-server.sh
+
 jupyter server \
   --config=${CURR_DIR}/../config/jupyter_server_config.py

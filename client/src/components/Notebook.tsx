@@ -11,7 +11,7 @@ import {
   Notebook,
   CellSidebarDefault,
 } from "@datalayer/jupyter-react";
-import { ICodeCell, IMarkdownCell } from "@jupyterlab/nbformat/lib/index";
+import { ICodeCell } from "@jupyterlab/nbformat/lib/index";
 import { TextField, Button } from "@mui/material";
 import { Send } from "@mui/icons-material";
 
@@ -32,24 +32,6 @@ function NotebookComponent(props: {
 
   return (
     <div style={{ alignItems: "center" }}>
-      <Jupyter terminals={true} startDefaultKernel={true}>
-        <Notebook
-          model={{
-            cells: [
-              {
-                source: 'print("Hello, world!")',
-                cell_type: "code",
-              } as ICodeCell,
-            ],
-            metadata: {},
-            nbformat_minor: 1,
-            nbformat: 1,
-          }}
-          uid="123"
-          CellSidebar={CellSidebarDefault}
-        />
-      </Jupyter>
-
       <TextField
         variant="outlined"
         label="Number of Simulations"
@@ -65,6 +47,9 @@ function NotebookComponent(props: {
       >
         Run
       </Button>
+      <Jupyter startDefaultKernel={true}>
+        <Notebook path="/ping.ipynb" CellSidebar={CellSidebarDefault} />
+      </Jupyter>
     </div>
   );
 }

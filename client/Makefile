@@ -1,10 +1,10 @@
 .PHONY: clean
 clean:
-	rm -rf .cache public
+	rm -rf .cache
 
 .PHONY: develop
 develop:
-	npm start
+	yarn run start
 
 .PHONY: format
 format:
@@ -12,4 +12,4 @@ format:
 
 .PHONY: test-lint
 test-lint:
-	npm run test:lint
+	yarn run test:lint
