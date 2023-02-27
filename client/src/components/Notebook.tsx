@@ -11,7 +11,6 @@ import {
   Notebook,
   CellSidebarDefault,
 } from "@datalayer/jupyter-react";
-import { ICodeCell } from "@jupyterlab/nbformat/lib/index";
 import { TextField, Button } from "@mui/material";
 import { Send } from "@mui/icons-material";
 
