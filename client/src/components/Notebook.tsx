@@ -6,16 +6,17 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import React, { useState } from "react";
-import {
-  Jupyter,
-  Notebook,
-  CellSidebarDefault,
-} from "@datalayer/jupyter-react";
+import { Notebook } from "@datalayer/jupyter-react";
+
 import { TextField, Button } from "@mui/material";
 import { Send } from "@mui/icons-material";
 
 import { Classifier } from "../classifier";
 import { Game } from "../games";
+
+import { useWithNotebookModifications } from "../hooks/use-with-notebook-modifications";
+import { useWithCellOutputs } from "../hooks/use-with-cell-outputs";
+import { NOTEBOOK_UID } from "../local-constants";
 
 function NotebookComponent(props: {
   game: Game;
@@ -24,13 +25,16 @@ function NotebookComponent(props: {
 }): JSX.Element {
   const [numSimulations, setNumSimulations] = useState<number>(5);
 
+  useWithNotebookModifications({ greyOutUneditableBlocks: true });
+  useWithCellOutputs();
+
   function simulate(): void {
     props.game.simulator.simulate(numSimulations, props.game.classifier);
     props.simulate(props.game.classifier);
   }
 
   return (
-    <div style={{ alignItems: "center" }}>
+    <div style={{ width: "100%", alignItems: "center" }}>
       <TextField
         variant="outlined"
         label="Number of Simulations"
@@ -46,9 +50,12 @@ function NotebookComponent(props: {
       >
         Run
       </Button>
-      <Jupyter startDefaultKernel={true}>
-        <Notebook path="/ping.ipynb" CellSidebar={CellSidebarDefault} />
-      </Jupyter>
+      <div
+        id="jupyter-notebook-container"
+        style={{ width: "100%", alignItems: "left", textAlign: "left" }}
+      >
+        <Notebook path={"/test.ipynb"} uid={NOTEBOOK_UID} />
+      </div>
     </div>
   );
 }

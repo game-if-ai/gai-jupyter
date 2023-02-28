@@ -4,24 +4,40 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import ReactDOM from "react-dom/client";
-import App from "./App";
-import reportWebVitals from "./reportWebVitals";
+import React from "react";
 
-import "./index.css";
-import { Jupyter } from "@datalayer/jupyter-react";
+interface CancellableFunc {
+  (isCancelled: () => boolean): void;
+}
 
-const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
-);
+export function useInterval(
+  callback: CancellableFunc,
+  delay: number | null
+): void {
+  const savedCallback = React.useRef<CancellableFunc>();
+  React.useEffect(() => {
+    savedCallback.current = callback;
+  });
+  React.useEffect(() => {
+    let mounted = true;
+    function tick() {
+      if (!mounted) {
+        return;
+      }
+      if (savedCallback.current) {
+        savedCallback.current(() => {
+          return !mounted;
+        });
+      }
+    }
+    if (delay) {
+      const id = setInterval(tick, delay);
+      return () => clearInterval(id);
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [delay]);
+}
 
-root.render(
-  <Jupyter terminals={true} startDefaultKernel={true}>
-    <App />
-  </Jupyter>
-);
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+export default useInterval;

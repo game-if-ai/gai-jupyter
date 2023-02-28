@@ -15,7 +15,6 @@ import GamePicker from "./components/GamePicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
-import "./App.css";
 
 enum STEP {
   PICK_GAME,
