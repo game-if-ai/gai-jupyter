@@ -49,7 +49,7 @@ export const FruitClassifier: Classifier = {
     const { fruit, label } = input;
     const inputText = fruit.description;
     const output = classifierOutput.find(
-      (d) => d.inputText == inputText && d.label == label
+      (d) => d.inputText === inputText && d.label === label
     );
     return output;
   },

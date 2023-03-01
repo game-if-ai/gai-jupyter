@@ -5,11 +5,10 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import React, { useState } from "react";
+import React from "react";
 import { Notebook } from "@datalayer/jupyter-react";
 
-import { TextField, Button } from "@mui/material";
-import { Send } from "@mui/icons-material";
+import { Button } from "@mui/material";
 
 import { Classifier } from "../classifier";
 import { Game } from "../games";
@@ -24,6 +23,7 @@ function NotebookComponent(props: {
   simulate: () => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
+  setClassifier: (c: Classifier) => void;
 }): JSX.Element {
   useWithNotebookModifications({ greyOutUneditableBlocks: true });
   const { fruitEvaluationOutput } = useWithCellOutputs();
@@ -34,6 +34,7 @@ function NotebookComponent(props: {
       props.game.classifier,
       fruitEvaluationOutput
     );
+    props.setClassifier(props.game.classifier);
     props.runSimulation(0);
   }
 
@@ -43,6 +44,7 @@ function NotebookComponent(props: {
       props.game.classifier,
       fruitEvaluationOutput
     );
+    props.setClassifier(props.game.classifier);
     props.viewSummary();
   }
 

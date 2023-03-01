@@ -80,6 +80,7 @@ function App(): JSX.Element {
           classifier={classifier}
           simulate={onSimulate}
           viewSummary={viewSummary}
+          setClassifier={setClassifier}
         />
       );
     } else if (step === STEP.SUMMARY) {
