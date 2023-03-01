@@ -49,6 +49,9 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
       spawnedFruits,
       score: 0,
       accuracy: 0,
+      precision: 0,
+      recall: 0,
+      f1Score: 0,
     };
   }
 
@@ -59,7 +62,8 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
   ) {
     super.simulate(numRuns, classifier, classifierOutputData);
     for (let i = 0; i < numRuns; i++) {
-      const simClassifierData = classifierOutputData[i];
+      const simClassifierData: FruitClassifierOutput[] =
+        classifierOutputData[i];
       const sim = this.play();
       for (const spawn of sim.spawnedFruits) {
         const classifierOutput = classifier.classify(
@@ -81,6 +85,71 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
         spawn.classifierOutput = classifierOutput;
       }
       sim.accuracy = sim.accuracy / sim.spawnedFruits.length;
+
+      const allPossibleLabels: string[] = Array.from(
+        new Set([
+          ...simClassifierData.map((output) => output.realLabel),
+          ...simClassifierData.map((output) => output.classifierLabel),
+        ])
+      );
+      const labelsConfusionMatrixDict = allPossibleLabels.reduce(
+        (acc: Record<string, any>, label: string) => {
+          const numTruePositive = simClassifierData.filter(
+            (output) =>
+              output.classifierLabel == label && output.realLabel == label
+          ).length;
+          const numTrueNegative = simClassifierData.filter(
+            (output) =>
+              output.classifierLabel !== label && output.realLabel !== label
+          ).length;
+          const numFalsePositive = simClassifierData.filter(
+            (output) =>
+              output.classifierLabel == label && output.realLabel !== label
+          ).length;
+          const numFalseNegative = simClassifierData.filter(
+            (output) =>
+              output.classifierLabel !== label && output.realLabel == label
+          ).length;
+          acc[label] = {
+            numTruePositive,
+            numTrueNegative,
+            numFalsePositive,
+            numFalseNegative,
+          };
+          return acc;
+        },
+        {} as Record<string, any>
+      );
+      const sumTruePositives = Object.keys(labelsConfusionMatrixDict).reduce(
+        (acc: number, label: string) => {
+          return acc + labelsConfusionMatrixDict[label]["numTruePositive"];
+        },
+        0
+      );
+      const sumTrueNegatives = Object.keys(labelsConfusionMatrixDict).reduce(
+        (acc: number, label: string) => {
+          return acc + labelsConfusionMatrixDict[label]["numTrueNegative"];
+        },
+        0
+      );
+      const sumFalsePositives = Object.keys(labelsConfusionMatrixDict).reduce(
+        (acc: number, label: string) => {
+          return acc + labelsConfusionMatrixDict[label]["numFalsePositive"];
+        },
+        0
+      );
+      const sumFalseNegatives = Object.keys(labelsConfusionMatrixDict).reduce(
+        (acc: number, label: string) => {
+          return acc + labelsConfusionMatrixDict[label]["numFalseNegative"];
+        },
+        0
+      );
+      sim.precision = sumTruePositives / (sumTruePositives + sumFalsePositives);
+      sim.recall = sumTruePositives / (sumTruePositives + sumFalseNegatives);
+      sim.f1Score =
+        (2 * sim.precision * sim.recall) / (sim.precision + sim.recall);
+      // sim.accuracy = (sumTruePositives + sumTrueNegatives) / (sumTruePositives + sumTrueNegatives + sumFalseNegatives + sumFalsePositives)
+      console.log(sim);
       this.simulations.push(sim);
     }
     this.updateSummary();

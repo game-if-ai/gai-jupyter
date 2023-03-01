@@ -11,6 +11,9 @@ import { average } from "./utils";
 export interface Simulation {
   score: number;
   accuracy: number;
+  precision: number;
+  recall: number;
+  f1Score: number;
 }
 
 export interface SimulationSummary {
