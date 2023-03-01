@@ -5,8 +5,10 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { Classifier } from "./classifier";
-import { average } from "./utils";
+import { INotebookState } from "@datalayer/jupyter-react";
+import { average } from "../utils";
+
+export interface ClassifierOutput {}
 
 export interface Simulation {
   score: number;
@@ -44,21 +46,25 @@ export class Simulator<S extends Simulation> {
     const o: any = {};
     o.score = 0;
     o.accuracy = 0;
+    o.classifierInput = "";
     return o;
   }
 
-  simulate(runs: number, classifier: Classifier) {
+  simulate(runs: number, notebook: INotebookState, cb: () => void) {
     this.summary.numRuns += runs;
   }
 
   protected updateSummary() {
     const scores = this.simulations.map((s) => s.score);
     const accuracies = this.simulations.map((s) => s.accuracy);
-    this.summary.lowScore = Math.min(...scores);
-    this.summary.highScore = Math.max(...scores);
-    this.summary.averageScore = average(scores);
-    this.summary.lowAccuracy = Math.min(...accuracies);
-    this.summary.highAccuracy = Math.max(...accuracies);
-    this.summary.averageAccuracy = average(accuracies);
+    this.summary = {
+      numRuns: this.summary.numRuns,
+      lowScore: Math.min(...scores),
+      highScore: Math.max(...scores),
+      averageScore: average(scores),
+      lowAccuracy: Math.min(...accuracies),
+      highAccuracy: Math.max(...accuracies),
+      averageAccuracy: average(accuracies),
+    };
   }
 }

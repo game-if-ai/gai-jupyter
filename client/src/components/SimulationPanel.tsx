@@ -18,8 +18,8 @@ import {
 } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Simulation } from "../simulator";
-import { EventSystem } from "../event-system";
+import { Simulation } from "../games/simulator";
+import { EventSystem } from "../games/event-system";
 import { Game } from "../games";
 
 const SPEEDS = [1, 2, 4, 10];

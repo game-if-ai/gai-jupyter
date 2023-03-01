@@ -7,6 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 
 // gai cell types
 export enum GaiCellTypes {
+  INPUT = "INPUT",
   EVALUATION = "EVALUATION",
 }
 

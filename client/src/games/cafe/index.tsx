@@ -6,7 +6,6 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { ReviewClassifier } from "./classifier";
 import { CafeSimulation, CafeSimulator } from "./simulator";
 import MainMenu from "./MainMenu";
 import MainGame from "./MainGame";
@@ -36,8 +35,19 @@ export const Cafe: Game = {
   id: "cafe",
   config: GameConfig,
   simulator: new CafeSimulator(),
-  classifier: ReviewClassifier,
   summaryPanel: Summary,
+
+  notebookInit: [
+    `filename = "amazon_reviews_us_Kitchen_v1_00.csv"`,
+    'input = [{"review": "good", "rating": 1 }, {"review": "bad", "rating": 0}]',
+  ],
+  notebookStartingCode: [
+    "import json",
+    "outputs = []",
+    "for review in input:",
+    `  outputs.append({'inputText': review['review'], 'realLabel': review['rating'], 'classifierLabel': 1, 'confidence': 0})`,
+    "\nprint(json.dumps(outputs))",
+  ],
 };
 
 export default Cafe;

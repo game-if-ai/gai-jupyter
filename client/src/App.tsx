@@ -8,8 +8,7 @@ The full terms of this copyright and license should always be found in the root 
 import React, { useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Classifier } from "./classifier";
-import { Simulation, SimulationSummary } from "./simulator";
+import { Simulation, SimulationSummary } from "./games/simulator";
 import { Game } from "./games";
 import GamePicker from "./components/GamePicker";
 import Notebook from "./components/Notebook";
@@ -27,7 +26,6 @@ function App(): JSX.Element {
   const classes = useStyles();
   const [step, setStep] = useState<STEP>(STEP.PICK_GAME);
   const [game, setGame] = useState<Game>();
-  const [classifier, setClassifier] = useState<Classifier>();
   const [summary, setSummary] = useState<SimulationSummary>();
   const [simulations, setSimulations] = useState<Simulation[]>([]);
   const [simulation, setSimulation] = useState<number>(0);
@@ -37,11 +35,10 @@ function App(): JSX.Element {
     setStep(STEP.NOTEBOOK);
   }
 
-  function onSimulate(c: Classifier): void {
+  function onSimulate(): void {
     if (!game) {
       return;
     }
-    setClassifier(c);
     setSimulations([...game.simulator.simulations]);
     setSummary({ ...game.simulator.summary });
     setStep(STEP.SUMMARY);
@@ -64,9 +61,7 @@ function App(): JSX.Element {
     if (step === STEP.PICK_GAME) {
       return <GamePicker loadGame={loadGame} />;
     } else if (step === STEP.NOTEBOOK) {
-      return (
-        <Notebook game={game!} classifier={classifier} simulate={onSimulate} />
-      );
+      return <Notebook game={game!} simulate={onSimulate} />;
     } else if (step === STEP.SUMMARY) {
       return (
         <Summary

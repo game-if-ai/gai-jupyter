@@ -7,7 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 
 import Phaser from "phaser";
 import { GameParams } from ".";
-import { EventSystem } from "../../event-system";
+import { EventSystem } from "../event-system";
 import {
   ITEM_TIME,
   GAME_TIME,

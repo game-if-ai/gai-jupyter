@@ -5,32 +5,58 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import React, { useState } from "react";
-import { Notebook } from "@datalayer/jupyter-react";
-
+import React, { useEffect, useState } from "react";
+import { Notebook, selectNotebook } from "@datalayer/jupyter-react";
+import { INotebookContent } from "@jupyterlab/nbformat";
 import { TextField, Button } from "@mui/material";
 import { Send } from "@mui/icons-material";
 
-import { Classifier } from "../classifier";
 import { Game } from "../games";
-
 import { useWithNotebookModifications } from "../hooks/use-with-notebook-modifications";
-import { useWithCellOutputs } from "../hooks/use-with-cell-outputs";
-import { NOTEBOOK_UID } from "../local-constants";
+import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 
 function NotebookComponent(props: {
   game: Game;
-  classifier?: Classifier;
-  simulate: (c: Classifier) => void;
+  simulate: () => void;
 }): JSX.Element {
   const [numSimulations, setNumSimulations] = useState<number>(5);
-
+  const [init, setInit] = useState<boolean>(false);
+  const notebook = selectNotebook(NOTEBOOK_UID);
   useWithNotebookModifications({ greyOutUneditableBlocks: true });
-  useWithCellOutputs();
+
+  useEffect(() => {
+    if (init || !notebook || !notebook.model || !notebook.adapter) {
+      return;
+    }
+    setInit(true);
+    const source = notebook.model.toJSON() as INotebookContent;
+    for (let c = 0; c < notebook.model.cells.length; c++) {
+      const cellModel = notebook.model.cells.get(c);
+      if (
+        cellModel.getMetadata("gai_cell_type") === GaiCellTypes.INPUT &&
+        props.game.notebookInit
+      ) {
+        source.cells[c].source = source.cells[c].source.concat(
+          ...props.game.notebookInit.map((s) => `\n${s}`)
+        );
+      }
+      if (
+        cellModel.getMetadata("gai_cell_type") === GaiCellTypes.EVALUATION &&
+        props.game.notebookStartingCode
+      ) {
+        source.cells[c].source = source.cells[c].source.concat(
+          ...props.game.notebookStartingCode.map((s) => `\n${s}`)
+        );
+      }
+    }
+    notebook.adapter.setNotebookModel(source);
+  }, [notebook, notebook?.model, notebook?.adapter]);
 
   function simulate(): void {
-    props.game.simulator.simulate(numSimulations, props.game.classifier);
-    props.simulate(props.game.classifier);
+    if (!notebook || !notebook.model || !notebook.adapter) {
+      return;
+    }
+    props.game.simulator.simulate(numSimulations, notebook, props.simulate);
   }
 
   return (
@@ -43,18 +69,14 @@ function NotebookComponent(props: {
         inputProps={{ inputMode: "numeric", pattern: "[0-9]+" }}
         InputLabelProps={{ shrink: true }}
       />
-      <Button
-        disabled={!props.game.classifier}
-        endIcon={<Send />}
-        onClick={simulate}
-      >
+      <Button endIcon={<Send />} onClick={simulate}>
         Run
       </Button>
       <div
         id="jupyter-notebook-container"
         style={{ width: "100%", alignItems: "left", textAlign: "left" }}
       >
-        <Notebook path={"/test.ipynb"} uid={NOTEBOOK_UID} />
+        <Notebook path={"/test2.ipynb"} uid={NOTEBOOK_UID} />
       </div>
     </div>
   );

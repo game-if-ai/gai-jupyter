@@ -13,7 +13,7 @@ import {
   TableCell,
   TableBody,
 } from "@mui/material";
-import { Simulation } from "../../simulator";
+import { Simulation } from "../simulator";
 import { CafeSimulation } from "./simulator";
 
 export function Summary(props: { simulation: Simulation }): JSX.Element {
