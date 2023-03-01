@@ -47,7 +47,7 @@ export class Simulator<S extends Simulation> {
     return o;
   }
 
-  simulate(runs: number, classifier: Classifier) {
+  simulate(runs: number, classifier: Classifier, classifierOutput?: any) {
     this.summary.numRuns += runs;
   }
 

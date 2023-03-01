@@ -37,22 +37,31 @@ function App(): JSX.Element {
     setStep(STEP.NOTEBOOK);
   }
 
-  function onSimulate(c: Classifier): void {
+  function onSimulate(): void {
     if (!game) {
       return;
     }
-    setClassifier(c);
     setSimulations([...game.simulator.simulations]);
     setSummary({ ...game.simulator.summary });
     setStep(STEP.SUMMARY);
   }
 
   function viewSimulation(i: number): void {
+    if (!game) {
+      return;
+    }
+    setSimulations([...game.simulator.simulations]);
+    setSummary({ ...game.simulator.summary });
     setSimulation(i);
     setStep(STEP.SIMULATION);
   }
 
   function viewSummary(): void {
+    if (!game) {
+      return;
+    }
+    setSimulations([...game.simulator.simulations]);
+    setSummary({ ...game.simulator.summary });
     setStep(STEP.SUMMARY);
   }
 
@@ -65,7 +74,13 @@ function App(): JSX.Element {
       return <GamePicker loadGame={loadGame} />;
     } else if (step === STEP.NOTEBOOK) {
       return (
-        <Notebook game={game!} classifier={classifier} simulate={onSimulate} />
+        <Notebook
+          runSimulation={viewSimulation}
+          game={game!}
+          classifier={classifier}
+          simulate={onSimulate}
+          viewSummary={viewSummary}
+        />
       );
     } else if (step === STEP.SUMMARY) {
       return (
@@ -73,6 +88,7 @@ function App(): JSX.Element {
           summary={summary!}
           simulations={simulations}
           runSimulation={viewSimulation}
+          goToNotebook={viewNotebook}
         />
       );
     } else if (step === STEP.SIMULATION) {

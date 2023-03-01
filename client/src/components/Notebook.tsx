@@ -21,41 +21,50 @@ import { NOTEBOOK_UID } from "../local-constants";
 function NotebookComponent(props: {
   game: Game;
   classifier?: Classifier;
-  simulate: (c: Classifier) => void;
+  simulate: () => void;
+  viewSummary: () => void;
+  runSimulation: (i: number) => void;
 }): JSX.Element {
-  const [numSimulations, setNumSimulations] = useState<number>(5);
-
   useWithNotebookModifications({ greyOutUneditableBlocks: true });
-  useWithCellOutputs();
+  const { fruitEvaluationOutput } = useWithCellOutputs();
 
   function simulate(): void {
-    props.game.simulator.simulate(numSimulations, props.game.classifier);
-    props.simulate(props.game.classifier);
+    props.game.simulator.simulate(
+      fruitEvaluationOutput.length,
+      props.game.classifier,
+      fruitEvaluationOutput
+    );
+    props.runSimulation(0);
+  }
+
+  function summary(): void {
+    props.game.simulator.simulate(
+      fruitEvaluationOutput.length,
+      props.game.classifier,
+      fruitEvaluationOutput
+    );
+    props.viewSummary();
   }
 
   return (
     <div style={{ width: "100%", alignItems: "center" }}>
-      <TextField
-        variant="outlined"
-        label="Number of Simulations"
-        value={numSimulations}
-        onChange={(e) => setNumSimulations(Number(e.target.value) || 0)}
-        inputProps={{ inputMode: "numeric", pattern: "[0-9]+" }}
-        InputLabelProps={{ shrink: true }}
-      />
-      <Button
-        disabled={!props.game.classifier}
-        endIcon={<Send />}
-        onClick={simulate}
-      >
-        Run
-      </Button>
       <div
         id="jupyter-notebook-container"
-        style={{ width: "100%", alignItems: "left", textAlign: "left" }}
+        style={{
+          width: "100%",
+          alignItems: "left",
+          textAlign: "left",
+          height: "100%",
+        }}
       >
         <Notebook path={"/test.ipynb"} uid={NOTEBOOK_UID} />
       </div>
+      <Button onClick={simulate} disabled={!fruitEvaluationOutput.length}>
+        Run Simulation
+      </Button>
+      <Button disabled={!fruitEvaluationOutput.length} onClick={summary}>
+        View Results Summary
+      </Button>
     </div>
   );
 }

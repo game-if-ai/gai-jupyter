@@ -22,8 +22,9 @@ function Summary(props: {
   summary: SimulationSummary;
   simulations: Simulation[];
   runSimulation: (i: number) => void;
+  goToNotebook: () => void;
 }): JSX.Element {
-  const { summary, simulations, runSimulation } = props;
+  const { summary, simulations, runSimulation, goToNotebook } = props;
 
   return (
     <div>
@@ -36,6 +37,9 @@ function Summary(props: {
         {Math.round(summary.lowAccuracy * 100)}% average=
         {Math.round(summary.averageAccuracy * 100)}%
       </Typography>
+      <Button variant="contained" onClick={goToNotebook} style={{ margin: 10 }}>
+        Notebook
+      </Button>
       <Button
         variant="contained"
         onClick={() => runSimulation(0)}

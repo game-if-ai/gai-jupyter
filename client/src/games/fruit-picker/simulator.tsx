@@ -52,15 +52,23 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
     };
   }
 
-  simulate(numRuns: number, classifier: Classifier) {
-    super.simulate(numRuns, classifier);
+  simulate(
+    numRuns: number,
+    classifier: Classifier,
+    classifierOutputData: any[][]
+  ) {
+    super.simulate(numRuns, classifier, classifierOutputData);
     for (let i = 0; i < numRuns; i++) {
+      const simClassifierData = classifierOutputData[i];
       const sim = this.play();
       for (const spawn of sim.spawnedFruits) {
-        const classifierOutput = classifier.classify({
-          fruit: spawn.fruit,
-          label: sim.label,
-        });
+        const classifierOutput = classifier.classify(
+          {
+            fruit: spawn.fruit,
+            label: sim.label,
+          },
+          simClassifierData
+        );
         if (classifierOutput?.classifierLabel === sim.matchLabel) {
           sim.score +=
             spawn.fruit.traits[sim.label] === sim.matchLabel

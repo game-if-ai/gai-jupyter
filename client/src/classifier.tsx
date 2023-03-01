@@ -6,5 +6,5 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 export interface Classifier {
-  classify: (input: any) => any;
+  classify: (input: any, classifierOutput?: any) => any;
 }

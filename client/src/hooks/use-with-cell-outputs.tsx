@@ -9,8 +9,10 @@ import { selectNotebookModel } from "@datalayer/jupyter-react";
 import { useEffect, useState } from "react";
 import { IOutput } from "@jupyterlab/nbformat";
 import { INotebookModel } from "@jupyterlab/notebook";
+import { ICellModel } from "@jupyterlab/cells";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
+import { FruitClassifierOutput } from "../games/fruit-picker/classifier";
 
 export function useWithCellOutputs() {
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
@@ -18,8 +20,21 @@ export function useWithCellOutputs() {
     console.log(changedModel.cells);
   });
 
-  const [evaluationOutput, setEvaluationOutput] = useState<IOutput[]>([]);
+  const [fruitEvaluationOutput, setFruitEvaluationOutput] = useState<
+    FruitClassifierOutput[][]
+  >([]);
   const [notebookConnectionSetup, setNotebookConnectionSetup] = useState(false);
+
+  function extractFruitClassifierOutputFromCell(
+    cell: ICellModel
+  ): FruitClassifierOutput[][] {
+    const cellData = cell.toJSON();
+    const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
+    const fruitClassifierData: FruitClassifierOutput[][] = JSON.parse(
+      (cellOutput?.text as string) || "{}"
+    );
+    return fruitClassifierData;
+  }
 
   function extractEvaluationOutput(activeNotebookModel: INotebookModel) {
     const notebookCells = activeNotebookModel.cells;
@@ -31,12 +46,13 @@ export function useWithCellOutputs() {
       const isEvaluationCell =
         cellData.getMetadata("gai_cell_type") === GaiCellTypes.EVALUATION;
       if (isEvaluationCell) {
-        setEvaluationOutput(cellData.toJSON().outputs as IOutput[]);
+        setFruitEvaluationOutput(
+          extractFruitClassifierOutputFromCell(cellData)
+        );
         cellData.stateChanged.connect((changedCell) => {
-          setEvaluationOutput((prevValue) => [
-            ...prevValue,
-            ...(changedCell.toJSON().outputs as IOutput[]),
-          ]);
+          setFruitEvaluationOutput(
+            extractFruitClassifierOutputFromCell(changedCell)
+          );
           console.log("evaluation cell changed");
         });
       }
@@ -54,5 +70,8 @@ export function useWithCellOutputs() {
     setNotebookConnectionSetup(true);
     extractEvaluationOutput(activeNotebookModel.model);
   }, [activeNotebookModel, notebookConnectionSetup]);
-  console.log(evaluationOutput);
+
+  return {
+    fruitEvaluationOutput,
+  };
 }

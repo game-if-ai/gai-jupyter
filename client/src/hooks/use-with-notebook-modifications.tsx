@@ -13,7 +13,6 @@ export function useWithNotebookModifications(props: {
   const { greyOutUneditableBlocks } = props;
   const [cellsGreyedOut, setCellsGreyedOut] = useState(false);
 
-  // When start recording is pressed, this interval begins
   useInterval(
     (isCancelled) => {
       if (isCancelled()) {

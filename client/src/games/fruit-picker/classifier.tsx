@@ -22,27 +22,34 @@ export interface FruitClassifierOutput {
   confidence: number; // how confident the classifier was (0 to 1)
 }
 
-export const FruitClassifier: Classifier = {
-  classify(input: FruitClassifierInput): FruitClassifierOutput | undefined {
-    const data = [];
-    for (const label of Object.values(FruitTrait)) {
-      for (const fruit of Fruits) {
-        const correctAnswer = random(1, 0) < 0.85; // chance to pick right answer
-        data.push({
-          inputText: fruit.description,
-          label: label,
-          realLabel: fruit.traits[label],
-          classifierLabel: correctAnswer
-            ? fruit.traits[label]
-            : Fruits[randomInt(Fruits.length)].traits[label],
-          confidence: random(1, 0),
-        });
-      }
+export function generateRandomFruitClassifierOutpout(): FruitClassifierOutput[] {
+  const data: FruitClassifierOutput[] = [];
+  for (const label of Object.values(FruitTrait)) {
+    for (const fruit of Fruits) {
+      const correctAnswer = random(1, 0) < 0.85; // chance to pick right answer
+      data.push({
+        inputText: fruit.description,
+        label: label,
+        realLabel: fruit.traits[label],
+        classifierLabel: correctAnswer
+          ? fruit.traits[label]
+          : Fruits[randomInt(Fruits.length)].traits[label],
+        confidence: random(1, 0),
+      });
     }
+  }
+  return data;
+}
+
+export const FruitClassifier: Classifier = {
+  classify(
+    input: FruitClassifierInput,
+    classifierOutput: FruitClassifierOutput[]
+  ): FruitClassifierOutput | undefined {
     const { fruit, label } = input;
     const inputText = fruit.description;
-    const output = data.find(
-      (d) => d.inputText === inputText && d.label === label
+    const output = classifierOutput.find(
+      (d) => d.inputText == inputText && d.label == label
     );
     return output;
   },
