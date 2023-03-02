@@ -6,7 +6,6 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { ReviewClassifier } from "./classifier";
 import { CafeSimulation, CafeSimulator } from "./simulator";
 import MainMenu from "./MainMenu";
 import MainGame from "./MainGame";
@@ -15,7 +14,7 @@ import { Game } from "..";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  title: "Product Reviews",
+  title: "Cafe Reviews",
   parent: "phaser-container",
   width: 640,
   height: 360,
@@ -36,7 +35,6 @@ export const Cafe: Game = {
   id: "cafe",
   config: GameConfig,
   simulator: new CafeSimulator(),
-  classifier: ReviewClassifier,
   summaryPanel: Summary,
 };
 

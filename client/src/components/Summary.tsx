@@ -16,7 +16,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { Simulation, SimulationSummary } from "../simulator";
+import { Simulation, SimulationSummary } from "../games/simulator";
 
 function Summary(props: {
   summary: SimulationSummary;

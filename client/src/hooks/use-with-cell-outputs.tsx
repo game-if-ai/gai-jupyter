@@ -14,22 +14,30 @@ import { ICellModel } from "@jupyterlab/cells";
 import { JSONObject, PartialJSONObject, Token } from '@lumino/coreutils';
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
-import { FruitClassifierOutput } from "../games/fruit-picker/classifier";
+import { FruitClassifierOutput } from "../games/fruit-picker/simulator";
 
 export function useWithCellOutputs() {
-  const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
-  activeNotebookModel?.model?.stateChanged.connect((changedModel) => {
-    console.log(changedModel.cells);
-  });
-
-  const [fruitEvaluationOutput, setFruitEvaluationOutput] = useState<
-    FruitClassifierOutput[][]
-  >([]);
+  const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
   const [notebookConnectionSetup, setNotebookConnectionSetup] = useState(false);
+  const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
 
-  function extractFruitClassifierOutputFromCell(
-    cell: ICellModel
-  ): FruitClassifierOutput[][] {
+  useEffect(() => {
+    if (
+      !activeNotebookModel ||
+      !activeNotebookModel.model ||
+      notebookConnectionSetup
+    ) {
+      return;
+    }
+    setNotebookConnectionSetup(true);
+    extractEvaluationOutput(activeNotebookModel.model);
+  }, [activeNotebookModel, notebookConnectionSetup]);
+
+  function reconnectCell(): void {
+    setNotebookConnectionSetup(false);
+  }
+
+  function extractClassifierOutputFromCell(cell: ICellModel): any[][] {
     const cellData = cell.toJSON();
     
     const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
@@ -45,34 +53,19 @@ export function useWithCellOutputs() {
     for (let i = 0; i < notebookCells.length; i++) {
       const cellData = notebookCells.get(i);
       const isEvaluationCell =
-        cellData.getMetadata("gai_cell_type") === GaiCellTypes.EVALUATION;
+        cellData.getMetadata("gai_cell_type") === GaiCellTypes.OUTPUT;
       if (isEvaluationCell) {
-        setFruitEvaluationOutput(
-          extractFruitClassifierOutputFromCell(cellData)
-        );
+        setEvaluationOutput(extractClassifierOutputFromCell(cellData));
         cellData.stateChanged.connect((changedCell) => {
-          setFruitEvaluationOutput(
-            extractFruitClassifierOutputFromCell(changedCell)
-          );
-          console.log("evaluation cell changed");
+          setEvaluationOutput(extractClassifierOutputFromCell(changedCell));
+          console.log("output cell changed");
         });
       }
     }
   }
 
-  useEffect(() => {
-    if (
-      !activeNotebookModel ||
-      !activeNotebookModel.model ||
-      notebookConnectionSetup
-    ) {
-      return;
-    }
-    setNotebookConnectionSetup(true);
-    extractEvaluationOutput(activeNotebookModel.model);
-  }, [activeNotebookModel, notebookConnectionSetup]);
-
   return {
-    fruitEvaluationOutput,
+    evaluationOutput,
+    reconnectCell,
   };
 }
