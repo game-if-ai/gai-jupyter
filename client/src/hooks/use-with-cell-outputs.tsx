@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { IOutput } from "@jupyterlab/nbformat";
 import { INotebookModel } from "@jupyterlab/notebook";
 import { ICellModel } from "@jupyterlab/cells";
+import { JSONObject, PartialJSONObject, Token } from '@lumino/coreutils';
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { FruitClassifierOutput } from "../games/fruit-picker/classifier";
@@ -30,10 +31,9 @@ export function useWithCellOutputs() {
     cell: ICellModel
   ): FruitClassifierOutput[][] {
     const cellData = cell.toJSON();
+    
     const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
-    const fruitClassifierData: FruitClassifierOutput[][] = JSON.parse(
-      (cellOutput?.text as string) || "{}"
-    );
+    const fruitClassifierData: FruitClassifierOutput[][] = (cellOutput?.data && ((cellOutput?.data as PartialJSONObject)["application/json"]) as any) || []
     return fruitClassifierData;
   }
 
