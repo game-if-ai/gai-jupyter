@@ -9,12 +9,20 @@ import React, { useEffect, useState } from "react";
 import { Game } from "../games";
 import { Simulation } from "../games/simulator";
 
-export function useWithPhaserGame(gameContainerRef: React.MutableRefObject<HTMLDivElement | null>) {
+export function useWithPhaserGame(
+  gameContainerRef: React.MutableRefObject<HTMLDivElement | null>
+) {
   const [game, setGame] = useState<Game>();
   const [simulation, setSimulation] = useState<Simulation>();
   const [phaserGame, setPhaserGame] = useState<Phaser.Game>();
-  const [eventSystem, setEventSystem] = useState<Phaser.Events.EventEmitter>(new Phaser.Events.EventEmitter());
-  const hasGame = Boolean(gameContainerRef.current?.firstChild)
+  const [eventSystem, setEventSystem] = useState<Phaser.Events.EventEmitter>(
+    new Phaser.Events.EventEmitter()
+  );
+  const [speed, setSpeed] = useState<number>(1);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+
+  const hasGame = Boolean(gameContainerRef.current?.firstChild);
 
   useEffect(() => {
     if (!game || phaserGame || hasGame) {
@@ -25,12 +33,14 @@ export function useWithPhaserGame(gameContainerRef: React.MutableRefObject<HTMLD
       parent: gameContainerRef.current as HTMLElement,
     });
     const playManually = simulation === undefined;
-    const scene = playManually ? "MainMenu" : "MainGame"
+    const scene = playManually ? "MainMenu" : "MainGame";
     pg.scene.start(scene, {
-      eventSystem,
       playManually,
+      isMuted,
+      speed,
+      eventSystem,
       simulator: game.simulator,
-      simulation
+      simulation,
     });
     setPhaserGame(pg);
   }, [phaserGame, game, hasGame]);
@@ -47,6 +57,10 @@ export function useWithPhaserGame(gameContainerRef: React.MutableRefObject<HTMLD
     if (!phaserGame) {
       return;
     }
+    eventSystem.removeListener("mute");
+    eventSystem.removeListener("pause");
+    eventSystem.removeListener("changeSpeed");
+    setIsPaused(false);
     setSimulation(undefined);
     setGame(undefined);
     phaserGame.destroy(false);
@@ -54,11 +68,32 @@ export function useWithPhaserGame(gameContainerRef: React.MutableRefObject<HTMLD
     setPhaserGame(undefined);
   }
 
+  function mute(muted: boolean): void {
+    setIsMuted(muted);
+    eventSystem.emit("mute", muted);
+  }
+
+  function pause(paused: boolean): void {
+    setIsPaused(paused);
+    eventSystem.emit("pause", paused);
+  }
+
+  function changeSpeed(speed: number): void {
+    setSpeed(speed);
+    eventSystem.emit("changeSpeed", speed);
+  }
+
   return {
+    speed,
+    isPaused,
+    isMuted,
     hasGame,
     phaserGame,
     eventSystem,
     loadPhaserGame,
     destroyPhaserGame,
-  }
+    mute,
+    pause,
+    changeSpeed,
+  };
 }

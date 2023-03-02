@@ -34,18 +34,25 @@ function GamePlayer(props: {
 }): JSX.Element {
   const classes = useStyles();
   const [simulation, setSimulation] = useState<number>(props.simulation);
-  const [speed, setSpeed] = useState<number>(1);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showSummary, setShowSummary] = useState<boolean>(false);
 
   const { simulations } = props;
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
-  const { eventSystem, loadPhaserGame, destroyPhaserGame } = useWithPhaserGame(gameContainerRef);
+  const {
+    eventSystem,
+    speed,
+    isPaused,
+    isMuted,
+    loadPhaserGame,
+    destroyPhaserGame,
+    pause,
+    mute,
+    changeSpeed,
+  } = useWithPhaserGame(gameContainerRef);
 
   useEffect(() => {
     eventSystem.on("gameOver", endSimulation);
-  }, [eventSystem])
+  }, [eventSystem]);
 
   useEffect(() => {
     loadPhaserGame(props.game, simulations[simulation]);
@@ -62,7 +69,6 @@ function GamePlayer(props: {
   }
 
   function toSimulation(i: number): void {
-    pause(false);
     setShowSummary(false);
     setSimulation(i);
   }
@@ -70,21 +76,6 @@ function GamePlayer(props: {
   function endSimulation(): void {
     pause(true);
     setShowSummary(true);
-  }
-
-  function mute(muted: boolean): void {
-    setIsMuted(muted);
-    eventSystem.emit("mute", muted);
-  }
-
-  function pause(paused: boolean): void {
-    setIsPaused(paused);
-    eventSystem.emit("pause", paused);
-  }
-
-  function changeSpeed(speed: number): void {
-    setSpeed(speed);
-    eventSystem.emit("changeSpeed", speed);
   }
 
   return (

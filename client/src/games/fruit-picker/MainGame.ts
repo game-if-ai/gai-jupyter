@@ -83,7 +83,9 @@ export default class MainGame extends Phaser.Scene {
   create(data: GameParams<FruitSimulation>) {
     this.config = data;
     this.eventSystem = data.eventSystem;
-    // 
+    this.mute(data.isMuted);
+    this.changeSpeed(data.speed);
+    //
     this.add.image(400, 300, "background");
     this.highscore = this.config.playManually
       ? 0

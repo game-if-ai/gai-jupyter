@@ -17,8 +17,10 @@ export interface Game {
 }
 
 export interface GameParams<S extends Simulation> {
-  eventSystem: Phaser.Events.EventEmitter;
   playManually: boolean;
+  isMuted: boolean;
+  speed: number;
+  eventSystem: Phaser.Events.EventEmitter;
   simulator: Simulator<S>;
   simulation?: S;
 }

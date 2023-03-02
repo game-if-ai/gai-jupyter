@@ -84,8 +84,6 @@ export default class MainGame extends Phaser.Scene {
     this.load.atlas("char_bears", "char_bears.png", "char_bears.json");
     this.load.atlas("char_speech", "char_speech.png", "char_speech.json");
     this.load.atlas("food", "food.png", "food.json");
-    this.load.setPath("assets/cafe/sprites/items");
-
     this.load.setPath("assets/cafe/sounds");
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
@@ -93,6 +91,8 @@ export default class MainGame extends Phaser.Scene {
   create(data: GameParams<CafeSimulation>) {
     this.config = data;
     this.eventSystem = data.eventSystem;
+    this.mute(data.isMuted);
+    this.changeSpeed(data.speed);
     // upper bg
     this.add.image(320, 180, "bg_kitchen", "top").setScale(2);
     this.add.image(250, 40, "bg_kitchen", "hanging_plant").setScale(2).flipX =

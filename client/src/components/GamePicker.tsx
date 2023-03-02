@@ -19,7 +19,8 @@ import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 function GamePicker(props: { loadGame: (g: Game) => void }): JSX.Element {
   const [game, setGame] = useState<Game>();
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
-  const { loadPhaserGame, destroyPhaserGame } = useWithPhaserGame(gameContainerRef);
+  const { loadPhaserGame, destroyPhaserGame } =
+    useWithPhaserGame(gameContainerRef);
 
   function selectGame(id: string): void {
     const game = Games.find((g) => g.id === id);
