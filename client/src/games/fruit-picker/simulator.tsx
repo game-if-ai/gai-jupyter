@@ -11,7 +11,7 @@ import { INotebookContent, IOutput } from "@jupyterlab/nbformat";
 import { Fruit, Fruits, FruitTrait } from "./types";
 import { GaiCellTypes } from "../../local-constants";
 import { Simulation, Simulator } from "../simulator";
-import { randomInt } from "../../utils";
+import { extractClassifierOutputFromCell, randomInt } from "../../utils";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
@@ -97,11 +97,11 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
     }
     notebook.adapter.setNotebookModel(source);
     notebook.model.cells.get(outputCell).stateChanged.connect((changedCell) => {
-      const outputs = changedCell.toJSON().outputs as IOutput[];
-      if (outputs.length === 0) {
+      const classifierOutputs =
+        extractClassifierOutputFromCell<FruitClassifierOutput>(changedCell);
+      if (classifierOutputs.length === 0) {
         return;
       }
-      const classifierOutputs = JSON.parse(outputs[0].text as string);
       for (const [s, sim] of sims.entries()) {
         const simClassifierData: FruitClassifierOutput[] = classifierOutputs[s];
         for (const [i, spawn] of sim.spawns.entries()) {

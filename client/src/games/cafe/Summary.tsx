@@ -24,12 +24,24 @@ export function Summary(props: { simulation: Simulation }): JSX.Element {
         <TableRow>
           <TableCell align="right">Score</TableCell>
           <TableCell align="right">Accuracy</TableCell>
+          <TableCell align="right">Precision</TableCell>
+          <TableCell align="right">Recall</TableCell>
+          <TableCell align="right">F1 Score</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
         <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
           <TableCell align="center">{simulation.score}</TableCell>
           <TableCell align="center">{simulation.accuracy * 100}%</TableCell>
+          <TableCell align="center">{`${
+            Math.round(simulation.precision * 100 * 100) / 100
+          }%`}</TableCell>
+          <TableCell align="center">{`${
+            Math.round(simulation.recall * 100 * 100) / 100
+          }%`}</TableCell>
+          <TableCell align="center">{`${
+            Math.round(simulation.f1Score * 100 * 100) / 100
+          }%`}</TableCell>
         </TableRow>
       </TableBody>
     </TableContainer>

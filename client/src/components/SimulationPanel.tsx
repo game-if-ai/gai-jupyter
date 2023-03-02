@@ -199,7 +199,7 @@ const useStyles = makeStyles(() => ({
     position: "absolute",
     left: 0,
     right: 0,
-    top: 250,
+    top: 150,
     marginLeft: "auto",
     marginRight: "auto",
     width: "fit-content",
