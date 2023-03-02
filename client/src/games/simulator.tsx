@@ -20,10 +20,13 @@ export interface SimulationSummary {
   numRuns: number;
   lowScore: number;
   highScore: number;
-  averageScore: number;
   lowAccuracy: number;
   highAccuracy: number;
+  averageScore: number;
   averageAccuracy: number;
+  averagePrecision: number;
+  averageRecall: number;
+  averageF1Score: number;
 }
 
 export class Simulator<S extends Simulation> {
@@ -40,6 +43,9 @@ export class Simulator<S extends Simulation> {
       lowAccuracy: 0,
       highAccuracy: 0,
       averageAccuracy: 0,
+      averagePrecision: 0,
+      averageRecall: 0,
+      averageF1Score: 0,
     };
   }
 
@@ -57,11 +63,17 @@ export class Simulator<S extends Simulation> {
   protected updateSummary() {
     const scores = this.simulations.map((s) => s.score);
     const accuracies = this.simulations.map((s) => s.accuracy);
+    const precisions = this.simulations.map((s) => s.precision);
+    const recalls = this.simulations.map((s) => s.recall);
+    const f1Scores = this.simulations.map((s) => s.f1Score);
     this.summary.lowScore = Math.min(...scores);
     this.summary.highScore = Math.max(...scores);
     this.summary.averageScore = average(scores);
     this.summary.lowAccuracy = Math.min(...accuracies);
     this.summary.highAccuracy = Math.max(...accuracies);
     this.summary.averageAccuracy = average(accuracies);
+    this.summary.averagePrecision = average(precisions);
+    this.summary.averageRecall = average(recalls);
+    this.summary.averageF1Score = average(f1Scores);
   }
 }

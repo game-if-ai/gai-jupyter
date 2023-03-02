@@ -6,7 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { INotebookState } from "@datalayer/jupyter-react";
-import { INotebookContent, IOutput } from "@jupyterlab/nbformat";
+import { INotebookContent } from "@jupyterlab/nbformat";
 
 import { Fruit, Fruits, FruitTrait } from "./types";
 import { GaiCellTypes } from "../../local-constants";
@@ -131,7 +131,7 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
           (acc: Record<string, any>, label: string) => {
             const numTruePositive = simClassifierData.filter(
               (output) =>
-                output.classifierLabel == label && output.realLabel == label
+                output.classifierLabel === label && output.realLabel === label
             ).length;
             const numTrueNegative = simClassifierData.filter(
               (output) =>
@@ -139,11 +139,11 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
             ).length;
             const numFalsePositive = simClassifierData.filter(
               (output) =>
-                output.classifierLabel == label && output.realLabel !== label
+                output.classifierLabel === label && output.realLabel !== label
             ).length;
             const numFalseNegative = simClassifierData.filter(
               (output) =>
-                output.classifierLabel !== label && output.realLabel == label
+                output.classifierLabel !== label && output.realLabel === label
             ).length;
             acc[label] = {
               numTruePositive,
@@ -158,12 +158,6 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
         const sumTruePositives = Object.keys(labelsConfusionMatrixDict).reduce(
           (acc: number, label: string) => {
             return acc + labelsConfusionMatrixDict[label]["numTruePositive"];
-          },
-          0
-        );
-        const sumTrueNegatives = Object.keys(labelsConfusionMatrixDict).reduce(
-          (acc: number, label: string) => {
-            return acc + labelsConfusionMatrixDict[label]["numTrueNegative"];
           },
           0
         );

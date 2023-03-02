@@ -32,7 +32,9 @@ export function Summary(props: { simulation: Simulation }): JSX.Element {
       <TableBody>
         <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
           <TableCell align="center">{simulation.score}</TableCell>
-          <TableCell align="center">{simulation.accuracy * 100}%</TableCell>
+          <TableCell align="center">
+            {Math.round(simulation.accuracy * 100 * 100) / 100}%
+          </TableCell>
           <TableCell align="center">{`${
             Math.round(simulation.precision * 100 * 100) / 100
           }%`}</TableCell>

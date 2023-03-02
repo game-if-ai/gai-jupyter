@@ -6,7 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { INotebookState } from "@datalayer/jupyter-react";
-import { INotebookContent, IOutput } from "@jupyterlab/nbformat";
+import { INotebookContent } from "@jupyterlab/nbformat";
 
 import { GaiCellTypes } from "../../local-constants";
 import { Simulation, Simulator } from "../simulator";
@@ -101,16 +101,13 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
           spawn.classifierOutput = classifierOutput;
         }
         const numTruePositive = simClassifierOutput.filter(
-          (output) => output.classifierLabel == 1 && output.realLabel == 1
-        ).length;
-        const numTrueNegative = simClassifierOutput.filter(
-          (output) => output.classifierLabel == 0 && output.realLabel == 0
+          (output) => output.classifierLabel === 1 && output.realLabel === 1
         ).length;
         const numFalsePositive = simClassifierOutput.filter(
-          (output) => output.classifierLabel == 1 && output.realLabel == 0
+          (output) => output.classifierLabel === 1 && output.realLabel === 0
         ).length;
         const numFalseNegative = simClassifierOutput.filter(
-          (output) => output.classifierLabel == 0 && output.realLabel == 1
+          (output) => output.classifierLabel === 0 && output.realLabel === 1
         ).length;
         sim.precision = numTruePositive / (numTruePositive + numFalsePositive);
         sim.recall = numTruePositive / (numTruePositive + numFalseNegative);
