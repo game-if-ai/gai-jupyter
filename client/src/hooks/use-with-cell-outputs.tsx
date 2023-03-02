@@ -8,13 +8,10 @@ The full terms of this copyright and license should always be found in the root 
 
 import { selectNotebookModel } from "@datalayer/jupyter-react";
 import { useEffect, useState } from "react";
-import { IOutput } from "@jupyterlab/nbformat";
 import { INotebookModel } from "@jupyterlab/notebook";
-import { ICellModel } from "@jupyterlab/cells";
-import { JSONObject, PartialJSONObject, Token } from '@lumino/coreutils';
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
-import { FruitClassifierOutput } from "../games/fruit-picker/simulator";
+import { extractClassifierOutputFromCell } from "../utils";
 
 export function useWithCellOutputs() {
   const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
@@ -35,14 +32,6 @@ export function useWithCellOutputs() {
 
   function reconnectCell(): void {
     setNotebookConnectionSetup(false);
-  }
-
-  function extractClassifierOutputFromCell(cell: ICellModel): any[][] {
-    const cellData = cell.toJSON();
-    
-    const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
-    const fruitClassifierData: FruitClassifierOutput[][] = (cellOutput?.data && ((cellOutput?.data as PartialJSONObject)["application/json"]) as any) || []
-    return fruitClassifierData;
   }
 
   function extractEvaluationOutput(activeNotebookModel: INotebookModel) {

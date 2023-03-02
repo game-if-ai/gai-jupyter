@@ -16,7 +16,7 @@ import { INotebookContent, IOutput } from "@jupyterlab/nbformat";
 import { GaiCellTypes } from "../../local-constants";
 import { Simulation, Simulator } from "../simulator";
 import { Review, Reviews } from "./types";
-import { randomInt } from "../../utils";
+import { extractClassifierOutputFromCell, randomInt } from "../../utils";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
@@ -91,15 +91,13 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
     }
     notebook.adapter.setNotebookModel(source);
     notebook.model.cells.get(outputCell).stateChanged.connect((changedCell) => {
-      const outputs = changedCell.toJSON().outputs as IOutput[];
-      if (outputs.length === 0) {
-        return;
-      }
-      const classifierOutputs = JSON.parse(outputs[0].text as string);
+      const classifierOutputs =
+        extractClassifierOutputFromCell<ClassifierOutput>(changedCell);
       console.log(classifierOutputs);
       for (const [s, sim] of sims.entries()) {
+        const simClassifierOutput = classifierOutputs[s];
         for (const [i, spawn] of sim.spawns.entries()) {
-          const classifierOutput = classifierOutputs[s][i];
+          const classifierOutput = simClassifierOutput[i];
           if (
             classifierOutput?.classifierLabel === classifierOutput?.realLabel
           ) {
@@ -110,9 +108,26 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
           }
           spawn.classifierOutput = classifierOutput;
         }
+        const numTruePositive = simClassifierOutput.filter(
+          (output) => output.classifierLabel == 1 && output.realLabel == 1
+        ).length;
+        const numTrueNegative = simClassifierOutput.filter(
+          (output) => output.classifierLabel == 0 && output.realLabel == 0
+        ).length;
+        const numFalsePositive = simClassifierOutput.filter(
+          (output) => output.classifierLabel == 1 && output.realLabel == 0
+        ).length;
+        const numFalseNegative = simClassifierOutput.filter(
+          (output) => output.classifierLabel == 0 && output.realLabel == 1
+        ).length;
+        sim.precision = numTruePositive / (numTruePositive + numFalsePositive);
+        sim.recall = numTruePositive / (numTruePositive + numFalseNegative);
+        sim.f1Score =
+          (2 * sim.precision * sim.recall) / (sim.precision + sim.recall);
         sim.accuracy = sim.accuracy / sim.spawns.length;
         this.simulations.push(sim);
       }
+
       this.updateSummary();
     });
     notebook.adapter.commands.execute("notebook:run-all");
