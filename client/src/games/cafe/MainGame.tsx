@@ -6,13 +6,13 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { GameParams } from ".";
-import { EventSystem } from "../event-system";
+import { GameParams } from "..";
 import {
   ITEM_TIME,
   GAME_TIME,
   SPAWN_TIME,
   CLASSIFIER_DELAY,
+  CafeSimulation,
 } from "./simulator";
 
 const fontStyle = {
@@ -63,7 +63,8 @@ export default class MainGame extends Phaser.Scene {
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
 
-  config?: GameParams;
+  config?: GameParams<CafeSimulation>;
+  eventSystem?: Phaser.Events.EventEmitter;
 
   constructor() {
     super("MainGame");
@@ -89,8 +90,9 @@ export default class MainGame extends Phaser.Scene {
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: GameParams) {
+  create(data: GameParams<CafeSimulation>) {
     this.config = data;
+    this.eventSystem = data.eventSystem;
     // upper bg
     this.add.image(320, 180, "bg_kitchen", "top").setScale(2);
     this.add.image(250, 40, "bg_kitchen", "hanging_plant").setScale(2).flipX =
@@ -121,9 +123,9 @@ export default class MainGame extends Phaser.Scene {
     this.accuracyText = this.add.text(565, 20, "Accuracy: 100%", fontStyle);
     this.text = this.add.text(5, 290, "", labelFont);
     // start
-    EventSystem.on("pause", this.pause, this);
-    EventSystem.on("mute", this.mute, this);
-    EventSystem.on("changeSpeed", this.changeSpeed, this);
+    this.eventSystem.on("pause", this.pause, this);
+    this.eventSystem.on("mute", this.mute, this);
+    this.eventSystem.on("changeSpeed", this.changeSpeed, this);
     this.start();
   }
 
@@ -334,7 +336,7 @@ export default class MainGame extends Phaser.Scene {
   gameOver() {
     this.spawnEvent?.remove();
     this.input.off("gameobjectdown", this.selectItem, this);
-    EventSystem.emit("gameOver");
+    this.eventSystem?.emit("gameOver");
   }
 
   mute(muted: boolean) {

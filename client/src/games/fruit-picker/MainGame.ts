@@ -6,10 +6,10 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { GameParams } from ".";
-import { EventSystem } from "../event-system";
+import { GameParams } from "..";
 import {
   CLASSIFIER_DELAY,
+  FruitSimulation,
   GAME_TIME,
   POINTS_CORRECT,
   POINTS_INCORRECT,
@@ -50,7 +50,8 @@ export default class MainGame extends Phaser.Scene {
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
 
-  config?: GameParams;
+  config?: GameParams<FruitSimulation>;
+  eventSystem?: Phaser.Events.EventEmitter;
 
   constructor() {
     super("MainGame");
@@ -79,8 +80,10 @@ export default class MainGame extends Phaser.Scene {
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: GameParams) {
+  create(data: GameParams<FruitSimulation>) {
     this.config = data;
+    this.eventSystem = data.eventSystem;
+    // 
     this.add.image(400, 300, "background");
     this.highscore = this.config.playManually
       ? 0
@@ -96,9 +99,9 @@ export default class MainGame extends Phaser.Scene {
     this.accuracyText = this.add.text(680, 20, "Accuracy: 100%", fontStyle);
     this.matchText = this.add.text(350, 550, "Catch the fruits!", fontStyle);
     this.sound.play("music", { loop: true });
-    EventSystem.on("pause", this.pause, this);
-    EventSystem.on("mute", this.mute, this);
-    EventSystem.on("changeSpeed", this.changeSpeed, this);
+    this.eventSystem.on("pause", this.pause, this);
+    this.eventSystem.on("mute", this.mute, this);
+    this.eventSystem.on("changeSpeed", this.changeSpeed, this);
     this.start();
   }
 
@@ -274,7 +277,7 @@ export default class MainGame extends Phaser.Scene {
         if (this.config?.playManually) {
           this.input.once("pointerdown", () => this.start(), this);
         } else {
-          EventSystem.emit("gameOver");
+          this.eventSystem?.emit("gameOver");
         }
       },
     });

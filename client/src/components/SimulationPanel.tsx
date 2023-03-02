@@ -20,8 +20,8 @@ import {
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Simulation } from "../games/simulator";
-import { EventSystem } from "../games/event-system";
 import { Game } from "../games";
+import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 
 const SPEEDS = [1, 2, 4, 10];
 
@@ -33,7 +33,6 @@ function GamePlayer(props: {
   toSummary: () => void;
 }): JSX.Element {
   const classes = useStyles();
-  const [game, setGame] = useState<Phaser.Game>();
   const [simulation, setSimulation] = useState<number>(props.simulation);
   const [speed, setSpeed] = useState<number>(1);
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -41,38 +40,24 @@ function GamePlayer(props: {
   const [showSummary, setShowSummary] = useState<boolean>(false);
 
   const { simulations } = props;
-  const gameContainerElement = useRef<HTMLDivElement | null>(null);
+  const gameContainerRef = useRef<HTMLDivElement | null>(null);
+  const { eventSystem, loadPhaserGame, destroyPhaserGame } = useWithPhaserGame(gameContainerRef);
 
   useEffect(() => {
-    let g: Phaser.Game | undefined = game;
-    if (!g) {
-      g = new Phaser.Game({
-        ...props.game.config,
-        parent: gameContainerElement.current as HTMLElement,
-      });
-      EventSystem.on("gameOver", endSimulation);
-      setGame(g);
-    }
-    g.scene.start("MainGame", {
-      playManually: false,
-      simulator: props.game.simulator,
-      simulation: simulations[simulation],
-    });
-  }, [game, simulation]);
+    eventSystem.on("gameOver", endSimulation);
+  }, [eventSystem])
+
+  useEffect(() => {
+    loadPhaserGame(props.game, simulations[simulation]);
+  }, [simulation]);
 
   function toNotebook(): void {
-    if (game) {
-      game.destroy(true);
-      setGame(undefined);
-    }
+    destroyPhaserGame();
     props.toNotebook();
   }
 
   function toSummary(): void {
-    if (game) {
-      game.destroy(true);
-      setGame(undefined);
-    }
+    destroyPhaserGame();
     props.toSummary();
   }
 
@@ -89,17 +74,17 @@ function GamePlayer(props: {
 
   function mute(muted: boolean): void {
     setIsMuted(muted);
-    EventSystem.emit("mute", muted);
+    eventSystem.emit("mute", muted);
   }
 
   function pause(paused: boolean): void {
     setIsPaused(paused);
-    EventSystem.emit("pause", paused);
+    eventSystem.emit("pause", paused);
   }
 
   function changeSpeed(speed: number): void {
     setSpeed(speed);
-    EventSystem.emit("changeSpeed", speed);
+    eventSystem.emit("changeSpeed", speed);
   }
 
   return (
@@ -143,7 +128,7 @@ function GamePlayer(props: {
           width: props.game.config.width,
         }}
       >
-        <div id="game-container" ref={gameContainerElement} />
+        <div id="game-container" ref={gameContainerRef} />
         <div
           className={classes.summary}
           style={{ display: showSummary ? "block" : "none" }}

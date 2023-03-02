@@ -6,14 +6,14 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { CafeSimulation, CafeSimulator } from "./simulator";
+import { CafeSimulator } from "./simulator";
 import MainMenu from "./MainMenu";
 import MainGame from "./MainGame";
 import { Summary } from "./Summary";
 import { Game } from "..";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
+  type: Phaser.CANVAS,
   title: "Cafe Reviews",
   parent: "phaser-container",
   width: 640,
@@ -24,12 +24,6 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
   },
   scene: [MainMenu, MainGame],
 };
-
-export interface GameParams {
-  playManually: boolean;
-  simulator: CafeSimulator;
-  simulation?: CafeSimulation;
-}
 
 export const Cafe: Game = {
   id: "cafe",
