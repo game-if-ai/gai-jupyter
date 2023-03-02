@@ -224,8 +224,8 @@ export default class MainGame extends Phaser.Scene {
         angle: "-=30",
         yoyo: true,
         ease: "sine.inout",
-        duration: 200,
-        completeDelay: 200,
+        duration: 200 / this.speed,
+        completeDelay: 200 / this.speed,
         onComplete: () => {
           fruit.state = "deleted";
           fruit.destroy();
@@ -239,7 +239,7 @@ export default class MainGame extends Phaser.Scene {
         alpha: 0,
         yoyo: true,
         repeat: 2,
-        duration: 250,
+        duration: 250 / this.speed,
         ease: "sine.inout",
         onComplete: () => {
           fruit.state = "deleted";
@@ -256,16 +256,6 @@ export default class MainGame extends Phaser.Scene {
   gameOver() {
     this.spawnEvent?.remove();
     this.input.off("gameobjectdown", this.selectFruit, this);
-    // remove remaining fruit
-    for (const fruit of this.fruit) {
-      if (
-        fruit.data.list[this.config!.simulation!.label] !==
-        this.config!.simulation!.matchLabel
-      ) {
-        this.numCorrect++;
-      }
-      this.numTotal++;
-    }
     const acc = Math.round((this.numCorrect / this.numTotal) * 100);
     this.accuracyText?.setText(`Accuracy: ${acc}%`);
     this.tweens.add({
@@ -273,7 +263,7 @@ export default class MainGame extends Phaser.Scene {
       alpha: 0,
       yoyo: true,
       repeat: 2,
-      duration: 250,
+      duration: 250 / this.speed,
       ease: "sine.inout",
       onComplete: () => {
         if (this.config?.playManually) {

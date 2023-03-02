@@ -22,6 +22,12 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
   scale: {
     mode: Phaser.Scale.ScaleModes.RESIZE,
   },
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 150 },
+    },
+  },
   scene: [MainMenu, MainGame],
 };
 

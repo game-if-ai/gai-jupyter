@@ -17,6 +17,7 @@ import {
 
 const fontStyle = {
   fontFamily: "Arial",
+  fontSize: "48",
   color: "#ffffff",
   fontStyle: "bold",
   shadow: {
@@ -242,7 +243,7 @@ export default class MainGame extends Phaser.Scene {
     this.tweens.add({
       targets: item,
       x: 800,
-      duration: ITEM_TIME * 1000,
+      duration: (ITEM_TIME * 1000) / this.speed,
       onComplete: () => {
         if (item.state !== "deleted") {
           this.deleteItem(item);
@@ -274,7 +275,7 @@ export default class MainGame extends Phaser.Scene {
         angle: "-=30",
         yoyo: true,
         ease: "sine.inout",
-        duration: 100,
+        duration: 100 / this.speed,
         onComplete: () => {
           this.speech?.setTexture("char_speech", "...");
           this.deleteItem(item);
@@ -289,7 +290,7 @@ export default class MainGame extends Phaser.Scene {
         alpha: 0,
         yoyo: true,
         repeat: 2,
-        duration: 100,
+        duration: 100 / this.speed,
         ease: "sine.inout",
         onComplete: () => {
           this.speech?.setTexture("char_speech", "...");
@@ -314,7 +315,7 @@ export default class MainGame extends Phaser.Scene {
         targets: cur,
         x: 570,
         y: 345,
-        duration: 200,
+        duration: 200 / this.speed,
         ease: "sine.inout",
         onComplete: () => {
           this.speech?.setTexture("char_speech", "...");
@@ -351,6 +352,7 @@ export default class MainGame extends Phaser.Scene {
 
   changeSpeed(speed: number) {
     this.speed = speed;
+    this.physics.config.timeScale = this.speed;
     this.time.timeScale = this.speed;
   }
 }

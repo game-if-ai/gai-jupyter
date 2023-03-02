@@ -47,7 +47,6 @@ export function useWithCellOutputs() {
         setEvaluationOutput(extractClassifierOutputFromCell(cellData));
         cellData.stateChanged.connect((changedCell) => {
           setEvaluationOutput(extractClassifierOutputFromCell(changedCell));
-          console.log("output cell changed");
         });
       }
     }

@@ -185,7 +185,6 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
         sim.f1Score =
           (2 * sim.precision * sim.recall) / (sim.precision + sim.recall);
         // sim.accuracy = (sumTruePositives + sumTrueNegatives) / (sumTruePositives + sumTrueNegatives + sumFalseNegatives + sumFalsePositives)
-        console.log(sim);
         this.simulations.push(sim);
       }
       this.updateSummary();
