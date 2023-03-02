@@ -5,8 +5,8 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { Classifier } from "./classifier";
-import { average } from "./utils";
+import { INotebookState } from "@datalayer/jupyter-react";
+import { average } from "../utils";
 
 export interface Simulation {
   score: number;
@@ -47,7 +47,7 @@ export class Simulator<S extends Simulation> {
     return o;
   }
 
-  simulate(runs: number, classifier: Classifier, classifierOutput?: any) {
+  simulate(runs: number, notebook: INotebookState) {
     this.summary.numRuns += runs;
   }
 

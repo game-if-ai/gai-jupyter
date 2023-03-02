@@ -6,45 +6,36 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import React from "react";
-import { Notebook } from "@datalayer/jupyter-react";
-
+import { Notebook, selectNotebook } from "@datalayer/jupyter-react";
 import { Button } from "@mui/material";
 
-import { Classifier } from "../classifier";
 import { Game } from "../games";
-
 import { useWithNotebookModifications } from "../hooks/use-with-notebook-modifications";
 import { useWithCellOutputs } from "../hooks/use-with-cell-outputs";
 import { NOTEBOOK_UID } from "../local-constants";
 
 function NotebookComponent(props: {
   game: Game;
-  classifier?: Classifier;
-  simulate: () => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
-  setClassifier: (c: Classifier) => void;
 }): JSX.Element {
+  const notebook = selectNotebook(NOTEBOOK_UID);
   useWithNotebookModifications({ greyOutUneditableBlocks: true });
-  const { fruitEvaluationOutput } = useWithCellOutputs();
+  const { evaluationOutput, reconnectCell } = useWithCellOutputs();
 
   function simulate(): void {
-    props.game.simulator.simulate(
-      fruitEvaluationOutput.length,
-      props.game.classifier,
-      fruitEvaluationOutput
-    );
-    props.setClassifier(props.game.classifier);
+    if (!notebook || !notebook.model || !notebook.adapter) {
+      return;
+    }
+    props.game.simulator.simulate(5, notebook);
+    reconnectCell();
+  }
+
+  function toSimulation(): void {
     props.runSimulation(0);
   }
 
-  function summary(): void {
-    props.game.simulator.simulate(
-      fruitEvaluationOutput.length,
-      props.game.classifier,
-      fruitEvaluationOutput
-    );
-    props.setClassifier(props.game.classifier);
+  function toSummary(): void {
     props.viewSummary();
   }
 
@@ -56,15 +47,16 @@ function NotebookComponent(props: {
           width: "100%",
           alignItems: "left",
           textAlign: "left",
-          height: "100%",
+          height: "90%",
         }}
       >
-        <Notebook path={"/test.ipynb"} uid={NOTEBOOK_UID} />
+        <Notebook path={`${props.game.id}/test.ipynb`} uid={NOTEBOOK_UID} />
       </div>
-      <Button onClick={simulate} disabled={!fruitEvaluationOutput.length}>
-        Run Simulation
+      <Button onClick={simulate}>Run 5 Simulations</Button>
+      <Button onClick={toSimulation} disabled={!evaluationOutput.length}>
+        View Simulations
       </Button>
-      <Button disabled={!fruitEvaluationOutput.length} onClick={summary}>
+      <Button disabled={!evaluationOutput.length} onClick={toSummary}>
         View Results Summary
       </Button>
     </div>

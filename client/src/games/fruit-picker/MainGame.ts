@@ -7,7 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 
 import Phaser from "phaser";
 import { GameParams } from ".";
-import { EventSystem } from "../../event-system";
+import { EventSystem } from "../event-system";
 import {
   CLASSIFIER_DELAY,
   GAME_TIME,
@@ -171,7 +171,7 @@ export default class MainGame extends Phaser.Scene {
       return;
     }
     const simulation = this.config.simulation;
-    const fruit = simulation.spawnedFruits[this.fruitIdx];
+    const fruit = simulation.spawns[this.fruitIdx];
     const fruitObj = this.physics.add.sprite(fruit.xPos, 0, fruit.fruit.name);
     fruitObj.setData("name", fruit.fruit.name);
     fruitObj.setData("description", fruit.fruit.description);
