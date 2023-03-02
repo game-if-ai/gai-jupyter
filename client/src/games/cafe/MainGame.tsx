@@ -49,7 +49,6 @@ export default class MainGame extends Phaser.Scene {
   isMuted: boolean;
   score: number;
   numCorrect: number;
-  numTotal: number;
 
   items: Phaser.GameObjects.Sprite[];
   itemIdx: number;
@@ -74,7 +73,6 @@ export default class MainGame extends Phaser.Scene {
     this.isMuted = false;
     this.score = 0;
     this.numCorrect = 0;
-    this.numTotal = 0;
     this.items = [];
     this.itemIdx = 0;
   }
@@ -121,7 +119,9 @@ export default class MainGame extends Phaser.Scene {
     // text
     this.timerText = this.add.text(5, 5, `Time: ${GAME_TIME}:00`, fontStyle);
     this.scoreText = this.add.text(565, 5, "Score: 0", fontStyle);
-    this.accuracyText = this.add.text(565, 20, "Accuracy: 100%", fontStyle);
+    if (!this.config.playManually) {
+      this.accuracyText = this.add.text(565, 20, "Accuracy: 100%", fontStyle);
+    }
     this.text = this.add.text(5, 290, "", labelFont);
     // start
     this.eventSystem.on("pause", this.pause, this);
@@ -138,7 +138,6 @@ export default class MainGame extends Phaser.Scene {
     }
     this.score = 0;
     this.numCorrect = 0;
-    this.numTotal = 0;
     this.items = [];
     this.itemIdx = 0;
     this.timerText?.setText(`Time: ${GAME_TIME}:00`);
@@ -226,6 +225,11 @@ export default class MainGame extends Phaser.Scene {
     } else {
       const response = spawn.classifierOutput;
       if (response) {
+        if (response.classifierLabel === response.realLabel) {
+          this.numCorrect++;
+          const acc = Math.round((this.numCorrect / (this.itemIdx + 1)) * 100);
+          this.accuracyText?.setText(`Accuracy: ${acc}%`);
+        }
         this.time.addEvent({
           delay: CLASSIFIER_DELAY - response.confidence * CLASSIFIER_DELAY,
           timeScale: this.speed,
@@ -268,7 +272,6 @@ export default class MainGame extends Phaser.Scene {
     if (item.data.list["rating"] === 1) {
       this.speech?.setTexture("char_speech", "good");
       this.score++;
-      this.numCorrect++;
       this.tweens.add({
         targets: item,
         scale: 1.4,
@@ -306,7 +309,6 @@ export default class MainGame extends Phaser.Scene {
     if (cur) {
       if (cur.data.list["rating"] === 0) {
         this.speech?.setTexture("char_speech", "good");
-        this.numCorrect++;
         this.sound.play("match");
       } else {
         this.speech?.setTexture("char_speech", "bad");
@@ -326,7 +328,6 @@ export default class MainGame extends Phaser.Scene {
   }
 
   deleteItem(item: Phaser.GameObjects.Sprite) {
-    this.numTotal++;
     item.state = "deleted";
     item.destroy();
     this.text?.setText(
