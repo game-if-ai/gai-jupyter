@@ -6,7 +6,8 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { GameParams } from ".";
+import { GameParams } from "..";
+import { CafeSimulation } from "./simulator";
 
 const fontStyle = {
   fontFamily: "Arial",
@@ -48,7 +49,7 @@ export default class MainMenu extends Phaser.Scene {
     this.load.atlas("food", "food.png", "food.json");
   }
 
-  create(data: GameParams) {
+  create(data: GameParams<CafeSimulation>) {
     this.add.image(320, 180, "bg_kitchen", "top").setScale(2);
     this.add.image(250, 40, "bg_kitchen", "hanging_plant").setScale(2).flipX =
       true;

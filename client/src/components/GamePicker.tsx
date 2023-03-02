@@ -14,40 +14,28 @@ import {
   Select,
 } from "@mui/material";
 import { Game, Games } from "../games";
+import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 
 function GamePicker(props: { loadGame: (g: Game) => void }): JSX.Element {
   const [game, setGame] = useState<Game>();
-  const [phaserGame, setPhaserGame] = useState<Phaser.Game>();
-  const gameContainerElement = useRef<HTMLDivElement | null>(null);
+  const gameContainerRef = useRef<HTMLDivElement | null>(null);
+  const { loadPhaserGame, destroyPhaserGame } =
+    useWithPhaserGame(gameContainerRef);
 
-  function select(id: string): void {
-    if (phaserGame) {
-      phaserGame.destroy(true);
-    }
+  function selectGame(id: string): void {
     const game = Games.find((g) => g.id === id);
     if (!game) {
       return;
     }
-    const pg = new Phaser.Game({
-      ...game.config,
-      parent: gameContainerElement.current as HTMLElement,
-    });
-    pg.scene.start("MainMenu", {
-      playManually: true,
-      simulator: game.simulator,
-    });
     setGame(game);
-    setPhaserGame(pg);
+    loadPhaserGame(game);
   }
 
   function confirm(): void {
     if (!game) {
       return;
     }
-    if (phaserGame) {
-      phaserGame.destroy(true);
-      setPhaserGame(undefined);
-    }
+    destroyPhaserGame();
     props.loadGame(game);
   }
 
@@ -58,7 +46,7 @@ function GamePicker(props: { loadGame: (g: Game) => void }): JSX.Element {
         <Select
           value={game?.id}
           label="Select Game"
-          onChange={(e) => select(e.target.value)}
+          onChange={(e) => selectGame(e.target.value)}
         >
           {Games.map((g) => (
             <MenuItem key={g.id} value={g.id}>
@@ -67,10 +55,10 @@ function GamePicker(props: { loadGame: (g: Game) => void }): JSX.Element {
           ))}
         </Select>
       </FormControl>
-      <Button disabled={!phaserGame} onClick={confirm}>
+      <Button disabled={!game} onClick={confirm}>
         Confirm
       </Button>
-      <div id="game-container" ref={gameContainerElement} />
+      <div id="game-container" ref={gameContainerRef} />
     </div>
   );
 }

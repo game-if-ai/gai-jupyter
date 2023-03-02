@@ -16,4 +16,13 @@ export interface Game {
   summaryPanel: (props: { simulation: Simulation }) => JSX.Element;
 }
 
+export interface GameParams<S extends Simulation> {
+  playManually: boolean;
+  isMuted: boolean;
+  speed: number;
+  eventSystem: Phaser.Events.EventEmitter;
+  simulator: Simulator<S>;
+  simulation?: S;
+}
+
 export const Games: Game[] = [FruitPicker, Cafe];
