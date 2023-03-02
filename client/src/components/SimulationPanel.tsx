@@ -197,8 +197,12 @@ const useStyles = makeStyles(() => ({
   },
   summary: {
     position: "absolute",
+    left: 0,
+    right: 0,
     top: 250,
-    left: 250,
+    marginLeft: "auto",
+    marginRight: "auto",
+    width: "fit-content",
   },
   button: {
     textTransform: "none",

@@ -60,6 +60,9 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
       spawns: spawns,
       score: 0,
       accuracy: 0,
+      precision: 0,
+      recall: 0,
+      f1Score: 0,
     };
   }
 

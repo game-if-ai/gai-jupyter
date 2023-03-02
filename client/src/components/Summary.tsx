@@ -53,6 +53,9 @@ function Summary(props: {
             <TableCell>Run #</TableCell>
             <TableCell align="right">Score</TableCell>
             <TableCell align="right">Accuracy</TableCell>
+            <TableCell align="right">Precision</TableCell>
+            <TableCell align="right">Recall</TableCell>
+            <TableCell align="right">F1 Score</TableCell>
             <TableCell align="right">View Simulation</TableCell>
           </TableRow>
         </TableHead>
@@ -66,7 +69,18 @@ function Summary(props: {
                 {i + 1}
               </TableCell>
               <TableCell align="center">{s.score}</TableCell>
-              <TableCell align="center">{`${s.accuracy * 100}%`}</TableCell>
+              <TableCell align="center">{`${
+                Math.round(s.accuracy * 100 * 100) / 100
+              }%`}</TableCell>
+              <TableCell align="center">{`${
+                Math.round(s.precision * 100 * 100) / 100
+              }%`}</TableCell>
+              <TableCell align="center">{`${
+                Math.round(s.recall * 100 * 100) / 100
+              }%`}</TableCell>
+              <TableCell align="center">{`${
+                Math.round(s.f1Score * 100 * 100) / 100
+              }%`}</TableCell>
               <TableCell align="center">
                 <Button onClick={() => runSimulation(i)}>Run</Button>
               </TableCell>
