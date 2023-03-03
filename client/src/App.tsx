@@ -8,7 +8,7 @@ The full terms of this copyright and license should always be found in the root 
 import React, { useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Simulation, SimulationSummary } from "./games/simulator";
+import { Experiment, Simulation } from "./games/simulator";
 import { Game } from "./games";
 import GamePicker from "./components/GamePicker";
 import Notebook from "./components/Notebook";
@@ -18,16 +18,16 @@ import Summary from "./components/Summary";
 enum STEP {
   PICK_GAME,
   NOTEBOOK,
-  SIMULATION,
-  SUMMARY,
+  SIMULATION, // for current experiment
+  SUMMARY, // for current experiment
+  EXPERIMENTS, // experiment history
 }
 
 function App(): JSX.Element {
   const classes = useStyles();
   const [step, setStep] = useState<STEP>(STEP.PICK_GAME);
   const [game, setGame] = useState<Game>();
-  const [summary, setSummary] = useState<SimulationSummary>();
-  const [simulations, setSimulations] = useState<Simulation[]>([]);
+  const [experiment, setExperiment] = useState<Experiment<Simulation>>();
   const [simulation, setSimulation] = useState<number>(0);
 
   function loadGame(game: Game): void {
@@ -35,12 +35,17 @@ function App(): JSX.Element {
     setStep(STEP.NOTEBOOK);
   }
 
+  function viewExperiment(e: number): void {
+    if (!game || game.simulator.experiments.length < e - 1) {
+      return;
+    }
+    setExperiment(game.simulator.experiments[e]);
+  }
+
   function viewSimulation(i: number): void {
     if (!game) {
       return;
     }
-    setSimulations([...game.simulator.simulations]);
-    setSummary({ ...game.simulator.summary });
     setSimulation(i);
     setStep(STEP.SIMULATION);
   }
@@ -49,8 +54,6 @@ function App(): JSX.Element {
     if (!game) {
       return;
     }
-    setSimulations([...game.simulator.simulations]);
-    setSummary({ ...game.simulator.summary });
     setStep(STEP.SUMMARY);
   }
 
@@ -65,6 +68,7 @@ function App(): JSX.Element {
       return (
         <Notebook
           game={game!}
+          setExperiment={viewExperiment}
           viewSummary={viewSummary}
           runSimulation={viewSimulation}
         />
@@ -72,8 +76,7 @@ function App(): JSX.Element {
     } else if (step === STEP.SUMMARY) {
       return (
         <Summary
-          summary={summary!}
-          simulations={simulations}
+          experiment={experiment!}
           runSimulation={viewSimulation}
           goToNotebook={viewNotebook}
         />
@@ -82,7 +85,7 @@ function App(): JSX.Element {
       return (
         <SimulationPanel
           game={game!}
-          simulations={simulations}
+          experiment={experiment!}
           simulation={simulation}
           toNotebook={viewNotebook}
           toSummary={viewSummary}

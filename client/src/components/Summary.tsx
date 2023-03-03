@@ -16,15 +16,15 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { Simulation, SimulationSummary } from "../games/simulator";
+import { Experiment, Simulation } from "../games/simulator";
 
 function Summary(props: {
-  summary: SimulationSummary;
-  simulations: Simulation[];
+  experiment: Experiment<Simulation>;
   runSimulation: (i: number) => void;
   goToNotebook: () => void;
 }): JSX.Element {
-  const { summary, simulations, runSimulation, goToNotebook } = props;
+  const { experiment, runSimulation, goToNotebook } = props;
+  const { simulations, summary } = experiment;
 
   return (
     <div>
@@ -40,7 +40,7 @@ function Summary(props: {
         }}
       >
         <Typography variant="h5">Experiment Averages</Typography>
-        <Typography>({summary.numRuns} Runs)</Typography>
+        <Typography>({simulations.length} Runs)</Typography>
         <TableHead>
           <TableRow>
             <TableCell align="right">Train Instances</TableCell>
@@ -54,8 +54,8 @@ function Summary(props: {
         </TableHead>
         <TableBody>
           <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-            <TableCell align="center">80</TableCell>
-            <TableCell align="center">20</TableCell>
+            <TableCell align="center">{experiment.trainInstances}</TableCell>
+            <TableCell align="center">{experiment.testInstances}</TableCell>
             <TableCell align="center">{summary.averageScore}</TableCell>
             <TableCell align="center">{`${
               Math.round(summary.averageAccuracy * 100 * 100) / 100

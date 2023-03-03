@@ -21,13 +21,22 @@ export function average(arr: number[]) {
   return total / arr.length;
 }
 
-export function extractClassifierOutputFromCell<T>(cell: ICellModel): T[][] {
+export function extractInputFromCell(cell: ICellModel): number[] {
   const cellData = cell.toJSON();
-
   const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
-  const fruitClassifierData: T[][] =
+  const data = (cellOutput?.data &&
+    ((cellOutput?.data as PartialJSONObject)["application/json"] as any)) || [
+    0, 0,
+  ];
+  return data;
+}
+
+export function extractOutputFromCell<T>(cell: ICellModel): T[][] {
+  const cellData = cell.toJSON();
+  const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
+  const data: T[][] =
     (cellOutput?.data &&
       ((cellOutput?.data as PartialJSONObject)["application/json"] as any)) ||
     [];
-  return fruitClassifierData;
+  return data;
 }

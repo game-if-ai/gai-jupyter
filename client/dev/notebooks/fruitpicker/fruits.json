@@ -5,7 +5,8 @@
     "description": "A round and red apple.",
     "traits": {
       "fruit": "apple",
-      "color": "red"
+      "color": "red",
+      "shape": "round"
     }
   },
   {
@@ -14,7 +15,8 @@
     "description": "A crisp and delicious, round and red apple. Very juicy and sweet.",
     "traits": {
       "fruit": "apple",
-      "color": "red"
+      "color": "red",
+      "shape": "round"
     }
   },
   {
@@ -23,7 +25,8 @@
     "description": "A pair of red cherries.",
     "traits": {
       "fruit": "cherry",
-      "color": "red"
+      "color": "red",
+      "shape": "bunched"
     }
   },
   {
@@ -32,7 +35,8 @@
     "description": "A pair of sweet, fresh and red cherries.",
     "traits": {
       "fruit": "cherry",
-      "color": "red"
+      "color": "red",
+      "shape": "bunched"
     }
   },
   {
@@ -41,25 +45,28 @@
     "description": "A young coconut. Round and green.",
     "traits": {
       "fruit": "coconut",
-      "color": "green"
+      "color": "green",
+      "shape": "round"
     }
   },
   {
     "name": "grape",
     "sprite": "grape",
-    "description": "A bunch of purple grapes. A little sour.",
+    "description": "A bunched of purple grapes. A little sour.",
     "traits": {
       "fruit": "grape",
-      "color": "purple"
+      "color": "purple",
+      "shape": "bunched"
     }
   },
   {
     "name": "perfect grape",
     "sprite": "grape2",
-    "description": "A bunch of red grapes. Perfectly sweet.",
+    "description": "A bunched of red grapes. Perfectly sweet.",
     "traits": {
       "fruit": "grape",
-      "color": "red"
+      "color": "red",
+      "shape": "bunched"
     }
   },
   {
@@ -68,7 +75,8 @@
     "description": "An oblong, green lemon. A little ripe so it looks like a lime. Very sour.",
     "traits": {
       "fruit": "lemon",
-      "color": "green"
+      "color": "green",
+      "shape": "oblong"
     }
   },
   {
@@ -77,25 +85,28 @@
     "description": "An oblong, yellow lemon. Would make some great lemonade.",
     "traits": {
       "fruit": "lemon",
-      "color": "green"
+      "color": "green",
+      "shape": "oblong"
     }
   },
   {
     "name": "lychee",
     "sprite": "lychee",
-    "description": "A bunch of lychee. A little too ripe, so they're yellow",
+    "description": "A bunched of lychee. A little too ripe, so they're yellow",
     "traits": {
       "fruit": "lychee",
-      "color": "yellow"
+      "color": "yellow",
+      "shape": "bunched"
     }
   },
   {
     "name": "perfect lychee",
     "sprite": "lychee2",
-    "description": "A bunch of lychee. Sweet, fresh, and red.",
+    "description": "A bunched of lychee. Sweet, fresh, and red.",
     "traits": {
       "fruit": "lychee",
-      "color": "red"
+      "color": "red",
+      "shape": "bunched"
     }
   },
   {
@@ -104,16 +115,18 @@
     "description": "A round orange. Very orange.",
     "traits": {
       "fruit": "orange",
-      "color": "orange"
+      "color": "orange",
+      "shape": "round"
     }
   },
   {
     "name": "perfect orange",
     "sprite": "orange2",
-    "description": "A round and orange orange. Larger and sweeter than normal oranges.",
+    "description": "An oblong and orange orange. Larger and sweeter than normal oranges.",
     "traits": {
       "fruit": "orange",
-      "color": "orange"
+      "color": "orange",
+      "shape": "oblong"
     }
   },
   {
@@ -122,7 +135,8 @@
     "description": "A sweet, round, peach. Very pink.",
     "traits": {
       "fruit": "peach",
-      "color": "pink"
+      "color": "pink",
+      "shape": "round"
     }
   },
   {
@@ -131,7 +145,8 @@
     "description": "A sweet, round, peach. This peach is gold for some reason!",
     "traits": {
       "fruit": "peach",
-      "color": "yellow"
+      "color": "yellow",
+      "shape": "round"
     }
   },
   {
@@ -140,7 +155,8 @@
     "description": "An oblong, green pear.",
     "traits": {
       "fruit": "pear",
-      "color": "green"
+      "color": "green",
+      "shape": "oblong"
     }
   },
   {
@@ -149,7 +165,8 @@
     "description": "An perfect golden pear. Smells great and tastes great too.",
     "traits": {
       "fruit": "pear",
-      "color": "yellow"
+      "color": "yellow",
+      "shape": "oblong"
     }
   }
 ]
