@@ -5,7 +5,8 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import Phaser from "phaser";
-import { GameParams } from ".";
+import { GameParams } from "..";
+import { FruitSimulation } from "./simulator";
 
 export default class MainMenu extends Phaser.Scene {
   constructor() {
@@ -21,32 +22,13 @@ export default class MainMenu extends Phaser.Scene {
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: GameParams) {
+  create(data: GameParams<FruitSimulation>) {
     let background = this.add.image(400, 300, "background");
     this.tweens.add({
       targets: background,
       alpha: { from: 0, to: 1 },
       duration: 1000,
     });
-    const fontStyle = {
-      fontFamily: "Arial",
-      fontSize: "48",
-      color: "#ffffff",
-      fontStyle: "bold",
-      shadow: {
-        color: "#000000",
-        fill: true,
-        offsetX: 2,
-        offsetY: 2,
-        blur: 4,
-      },
-    };
-    this.add.text(
-      20,
-      20,
-      "High Score: " + data.simulator.summary.highScore,
-      fontStyle
-    );
     let logo = this.add.image(400, -200, "logo");
     this.tweens.add({
       targets: logo,

@@ -8,29 +8,26 @@ The full terms of this copyright and license should always be found in the root 
 import React, { useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Classifier } from "./classifier";
-import { Simulation, SimulationSummary } from "./simulator";
+import { Experiment, Simulation } from "./games/simulator";
 import { Game } from "./games";
 import GamePicker from "./components/GamePicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
-import "./App.css";
 
 enum STEP {
   PICK_GAME,
   NOTEBOOK,
-  SIMULATION,
-  SUMMARY,
+  SIMULATION, // for current experiment
+  SUMMARY, // for current experiment
+  EXPERIMENTS, // experiment history
 }
 
 function App(): JSX.Element {
   const classes = useStyles();
   const [step, setStep] = useState<STEP>(STEP.PICK_GAME);
   const [game, setGame] = useState<Game>();
-  const [classifier, setClassifier] = useState<Classifier>();
-  const [summary, setSummary] = useState<SimulationSummary>();
-  const [simulations, setSimulations] = useState<Simulation[]>([]);
+  const [experiment, setExperiment] = useState<Experiment<Simulation>>();
   const [simulation, setSimulation] = useState<number>(0);
 
   function loadGame(game: Game): void {
@@ -38,22 +35,25 @@ function App(): JSX.Element {
     setStep(STEP.NOTEBOOK);
   }
 
-  function onSimulate(c: Classifier): void {
-    if (!game) {
+  function viewExperiment(e: number): void {
+    if (!game || game.simulator.experiments.length < e - 1) {
       return;
     }
-    setClassifier(c);
-    setSimulations([...game.simulator.simulations]);
-    setSummary({ ...game.simulator.summary });
-    setStep(STEP.SUMMARY);
+    setExperiment(game.simulator.experiments[e]);
   }
 
   function viewSimulation(i: number): void {
+    if (!game) {
+      return;
+    }
     setSimulation(i);
     setStep(STEP.SIMULATION);
   }
 
   function viewSummary(): void {
+    if (!game) {
+      return;
+    }
     setStep(STEP.SUMMARY);
   }
 
@@ -66,21 +66,36 @@ function App(): JSX.Element {
       return <GamePicker loadGame={loadGame} />;
     } else if (step === STEP.NOTEBOOK) {
       return (
-        <Notebook game={game!} classifier={classifier} simulate={onSimulate} />
+        <Notebook
+          game={game!}
+          setExperiment={viewExperiment}
+          viewSummary={viewSummary}
+          runSimulation={viewSimulation}
+        />
       );
     } else if (step === STEP.SUMMARY) {
+      if (!game) {
+        throw Error("No game available for summary");
+      }
+      if (!experiment) {
+        throw Error("No experiment available for summary");
+      }
       return (
         <Summary
-          summary={summary!}
-          simulations={simulations}
+          experiment={experiment}
+          previousExperiments={game.simulator.experiments.filter(
+            (prevExperiment) => prevExperiment.id !== experiment.id
+          )}
           runSimulation={viewSimulation}
+          goToNotebook={viewNotebook}
+          setExperiment={setExperiment}
         />
       );
     } else if (step === STEP.SIMULATION) {
       return (
         <SimulationPanel
           game={game!}
-          simulations={simulations}
+          experiment={experiment!}
           simulation={simulation}
           toNotebook={viewNotebook}
           toSummary={viewSummary}

@@ -6,16 +6,15 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { ReviewClassifier } from "./classifier";
-import { CafeSimulation, CafeSimulator } from "./simulator";
+import { CafeSimulator } from "./simulator";
 import MainMenu from "./MainMenu";
 import MainGame from "./MainGame";
 import { Summary } from "./Summary";
 import { Game } from "..";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  title: "Product Reviews",
+  type: Phaser.CANVAS,
+  title: "Cafe Reviews",
   parent: "phaser-container",
   width: 640,
   height: 360,
@@ -23,20 +22,19 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
   scale: {
     mode: Phaser.Scale.ScaleModes.RESIZE,
   },
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 150 },
+    },
+  },
   scene: [MainMenu, MainGame],
 };
-
-export interface GameParams {
-  playManually: boolean;
-  simulator: CafeSimulator;
-  simulation?: CafeSimulation;
-}
 
 export const Cafe: Game = {
   id: "cafe",
   config: GameConfig,
   simulator: new CafeSimulator(),
-  classifier: ReviewClassifier,
   summaryPanel: Summary,
 };
 

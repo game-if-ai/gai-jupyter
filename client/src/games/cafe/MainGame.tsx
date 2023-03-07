@@ -6,17 +6,18 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { GameParams } from ".";
-import { EventSystem } from "../../event-system";
+import { GameParams } from "..";
 import {
   ITEM_TIME,
   GAME_TIME,
   SPAWN_TIME,
   CLASSIFIER_DELAY,
+  CafeSimulation,
 } from "./simulator";
 
 const fontStyle = {
   fontFamily: "Arial",
+  fontSize: "48",
   color: "#ffffff",
   fontStyle: "bold",
   shadow: {
@@ -48,7 +49,6 @@ export default class MainGame extends Phaser.Scene {
   isMuted: boolean;
   score: number;
   numCorrect: number;
-  numTotal: number;
 
   items: Phaser.GameObjects.Sprite[];
   itemIdx: number;
@@ -63,7 +63,8 @@ export default class MainGame extends Phaser.Scene {
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
 
-  config?: GameParams;
+  config?: GameParams<CafeSimulation>;
+  eventSystem?: Phaser.Events.EventEmitter;
 
   constructor() {
     super("MainGame");
@@ -72,7 +73,6 @@ export default class MainGame extends Phaser.Scene {
     this.isMuted = false;
     this.score = 0;
     this.numCorrect = 0;
-    this.numTotal = 0;
     this.items = [];
     this.itemIdx = 0;
   }
@@ -83,14 +83,15 @@ export default class MainGame extends Phaser.Scene {
     this.load.atlas("char_bears", "char_bears.png", "char_bears.json");
     this.load.atlas("char_speech", "char_speech.png", "char_speech.json");
     this.load.atlas("food", "food.png", "food.json");
-    this.load.setPath("assets/cafe/sprites/items");
-
     this.load.setPath("assets/cafe/sounds");
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: GameParams) {
+  create(data: GameParams<CafeSimulation>) {
     this.config = data;
+    this.eventSystem = data.eventSystem;
+    this.mute(data.isMuted);
+    this.changeSpeed(data.speed);
     // upper bg
     this.add.image(320, 180, "bg_kitchen", "top").setScale(2);
     this.add.image(250, 40, "bg_kitchen", "hanging_plant").setScale(2).flipX =
@@ -118,12 +119,14 @@ export default class MainGame extends Phaser.Scene {
     // text
     this.timerText = this.add.text(5, 5, `Time: ${GAME_TIME}:00`, fontStyle);
     this.scoreText = this.add.text(565, 5, "Score: 0", fontStyle);
-    this.accuracyText = this.add.text(565, 20, "Accuracy: 100%", fontStyle);
+    if (!this.config.playManually) {
+      this.accuracyText = this.add.text(565, 20, "Accuracy: 100%", fontStyle);
+    }
     this.text = this.add.text(5, 290, "", labelFont);
     // start
-    EventSystem.on("pause", this.pause, this);
-    EventSystem.on("mute", this.mute, this);
-    EventSystem.on("changeSpeed", this.changeSpeed, this);
+    this.eventSystem.on("pause", this.pause, this);
+    this.eventSystem.on("mute", this.mute, this);
+    this.eventSystem.on("changeSpeed", this.changeSpeed, this);
     this.start();
   }
 
@@ -135,7 +138,6 @@ export default class MainGame extends Phaser.Scene {
     }
     this.score = 0;
     this.numCorrect = 0;
-    this.numTotal = 0;
     this.items = [];
     this.itemIdx = 0;
     this.timerText?.setText(`Time: ${GAME_TIME}:00`);
@@ -223,6 +225,11 @@ export default class MainGame extends Phaser.Scene {
     } else {
       const response = spawn.classifierOutput;
       if (response) {
+        if (response.classifierLabel === response.realLabel) {
+          this.numCorrect++;
+          const acc = Math.round((this.numCorrect / (this.itemIdx + 1)) * 100);
+          this.accuracyText?.setText(`Accuracy: ${acc}%`);
+        }
         this.time.addEvent({
           delay: CLASSIFIER_DELAY - response.confidence * CLASSIFIER_DELAY,
           timeScale: this.speed,
@@ -240,7 +247,7 @@ export default class MainGame extends Phaser.Scene {
     this.tweens.add({
       targets: item,
       x: 800,
-      duration: ITEM_TIME * 1000,
+      duration: (ITEM_TIME * 1000) / this.speed,
       onComplete: () => {
         if (item.state !== "deleted") {
           this.deleteItem(item);
@@ -265,14 +272,13 @@ export default class MainGame extends Phaser.Scene {
     if (item.data.list["rating"] === 1) {
       this.speech?.setTexture("char_speech", "good");
       this.score++;
-      this.numCorrect++;
       this.tweens.add({
         targets: item,
         scale: 1.4,
         angle: "-=30",
         yoyo: true,
         ease: "sine.inout",
-        duration: 100,
+        duration: 100 / this.speed,
         onComplete: () => {
           this.speech?.setTexture("char_speech", "...");
           this.deleteItem(item);
@@ -287,7 +293,7 @@ export default class MainGame extends Phaser.Scene {
         alpha: 0,
         yoyo: true,
         repeat: 2,
-        duration: 100,
+        duration: 100 / this.speed,
         ease: "sine.inout",
         onComplete: () => {
           this.speech?.setTexture("char_speech", "...");
@@ -303,7 +309,6 @@ export default class MainGame extends Phaser.Scene {
     if (cur) {
       if (cur.data.list["rating"] === 0) {
         this.speech?.setTexture("char_speech", "good");
-        this.numCorrect++;
         this.sound.play("match");
       } else {
         this.speech?.setTexture("char_speech", "bad");
@@ -312,7 +317,7 @@ export default class MainGame extends Phaser.Scene {
         targets: cur,
         x: 570,
         y: 345,
-        duration: 200,
+        duration: 200 / this.speed,
         ease: "sine.inout",
         onComplete: () => {
           this.speech?.setTexture("char_speech", "...");
@@ -323,7 +328,6 @@ export default class MainGame extends Phaser.Scene {
   }
 
   deleteItem(item: Phaser.GameObjects.Sprite) {
-    this.numTotal++;
     item.state = "deleted";
     item.destroy();
     this.text?.setText(
@@ -334,7 +338,7 @@ export default class MainGame extends Phaser.Scene {
   gameOver() {
     this.spawnEvent?.remove();
     this.input.off("gameobjectdown", this.selectItem, this);
-    EventSystem.emit("gameOver");
+    this.eventSystem?.emit("gameOver");
   }
 
   mute(muted: boolean) {
@@ -349,6 +353,7 @@ export default class MainGame extends Phaser.Scene {
 
   changeSpeed(speed: number) {
     this.speed = speed;
+    this.physics.config.timeScale = this.speed;
     this.time.timeScale = this.speed;
   }
 }

@@ -4,32 +4,40 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+import React from "react";
 
-import { Review } from "./types";
-import { Classifier } from "../../classifier";
-import { random, randomInt } from "../../utils";
-
-export interface ClassifierInput {
-  review: Review;
+interface CancellableFunc {
+  (isCancelled: () => boolean): void;
 }
 
-export interface ClassifierOutput {
-  inputText: string; // review text
-  realLabel: number; // what the review's rating was
-  classifierLabel: number; // what the classifier thought it was
-  confidence: number; // how confident the classifier was (0 to 1)
-}
-
-export const ReviewClassifier: Classifier = {
-  classify(input: ClassifierInput): ClassifierOutput | undefined {
-    const { review } = input;
-    return {
-      inputText: review.review,
-      realLabel: review.rating,
-      classifierLabel: randomInt(1, 0),
-      confidence: random(1, 0),
+export function useInterval(
+  callback: CancellableFunc,
+  delay: number | null
+): void {
+  const savedCallback = React.useRef<CancellableFunc>();
+  React.useEffect(() => {
+    savedCallback.current = callback;
+  });
+  React.useEffect(() => {
+    let mounted = true;
+    function tick() {
+      if (!mounted) {
+        return;
+      }
+      if (savedCallback.current) {
+        savedCallback.current(() => {
+          return !mounted;
+        });
+      }
+    }
+    if (delay) {
+      const id = setInterval(tick, delay);
+      return () => clearInterval(id);
+    }
+    return () => {
+      mounted = false;
     };
-  },
-};
+  }, [delay]);
+}
 
-export default ReviewClassifier;
+export default useInterval;

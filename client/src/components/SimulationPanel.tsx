@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+/* eslint-disable */
 
 import React, { useEffect, useRef, useState } from "react";
 import { Button, IconButton, Typography } from "@mui/material";
@@ -18,65 +19,56 @@ import {
 } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Simulation } from "../simulator";
-import { EventSystem } from "../event-system";
+import { Experiment, Simulation } from "../games/simulator";
 import { Game } from "../games";
+import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 
 const SPEEDS = [1, 2, 4, 10];
 
 function GamePlayer(props: {
   game: Game;
-  simulations: Simulation[];
+  experiment: Experiment<Simulation>;
   simulation: number;
   toNotebook: () => void;
   toSummary: () => void;
 }): JSX.Element {
   const classes = useStyles();
-  const [game, setGame] = useState<Phaser.Game>();
   const [simulation, setSimulation] = useState<number>(props.simulation);
-  const [speed, setSpeed] = useState<number>(1);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showSummary, setShowSummary] = useState<boolean>(false);
 
-  const { simulations } = props;
-  const gameContainerElement = useRef<HTMLDivElement | null>(null);
+  const { simulations } = props.experiment;
+  const gameContainerRef = useRef<HTMLDivElement | null>(null);
+  const {
+    eventSystem,
+    speed,
+    isPaused,
+    isMuted,
+    loadPhaserGame,
+    destroyPhaserGame,
+    pause,
+    mute,
+    changeSpeed,
+  } = useWithPhaserGame(gameContainerRef);
 
   useEffect(() => {
-    let g: Phaser.Game | undefined = game;
-    if (!g) {
-      g = new Phaser.Game({
-        ...props.game.config,
-        parent: gameContainerElement.current as HTMLElement,
-      });
-      EventSystem.on("gameOver", endSimulation);
-      setGame(g);
-    }
-    g.scene.start("MainGame", {
-      playManually: false,
-      simulator: props.game.simulator,
-      simulation: simulations[simulation],
-    });
-  }, [game, simulation]);
+    eventSystem.on("gameOver", endSimulation);
+  }, [eventSystem]);
+
+  useEffect(() => {
+    loadPhaserGame(props.game, simulations[simulation]);
+  }, [simulation]);
 
   function toNotebook(): void {
-    if (game) {
-      game.destroy(true);
-      setGame(undefined);
-    }
+    destroyPhaserGame();
     props.toNotebook();
   }
 
   function toSummary(): void {
-    if (game) {
-      game.destroy(true);
-      setGame(undefined);
-    }
+    destroyPhaserGame();
     props.toSummary();
   }
 
   function toSimulation(i: number): void {
-    pause(false);
     setShowSummary(false);
     setSimulation(i);
   }
@@ -84,21 +76,6 @@ function GamePlayer(props: {
   function endSimulation(): void {
     pause(true);
     setShowSummary(true);
-  }
-
-  function mute(muted: boolean): void {
-    setIsMuted(muted);
-    EventSystem.emit("mute", muted);
-  }
-
-  function pause(paused: boolean): void {
-    setIsPaused(paused);
-    EventSystem.emit("pause", paused);
-  }
-
-  function changeSpeed(speed: number): void {
-    setSpeed(speed);
-    EventSystem.emit("changeSpeed", speed);
   }
 
   return (
@@ -142,7 +119,7 @@ function GamePlayer(props: {
           width: props.game.config.width,
         }}
       >
-        <div id="game-container" ref={gameContainerElement} />
+        <div id="game-container" ref={gameContainerRef} />
         <div
           className={classes.summary}
           style={{ display: showSummary ? "block" : "none" }}
@@ -196,8 +173,12 @@ const useStyles = makeStyles(() => ({
   },
   summary: {
     position: "absolute",
-    top: 250,
-    left: 250,
+    left: 0,
+    right: 0,
+    top: 150,
+    marginLeft: "auto",
+    marginRight: "auto",
+    width: "fit-content",
   },
   button: {
     textTransform: "none",

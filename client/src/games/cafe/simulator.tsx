@@ -5,20 +5,26 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { Classifier } from "../../classifier";
-import { ClassifierOutput } from "./classifier";
-import { Simulation, Simulator } from "../../simulator";
+import { Experiment, Simulation, Simulator } from "../simulator";
 import { Review, Reviews } from "./types";
 import { randomInt } from "../../utils";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
 export const ITEM_TIME = 5; // time each item stays in seconds
-export const CLASSIFIER_DELAY = 450; // delay in ms for classifier at 0 confidence
+export const CLASSIFIER_DELAY = 2500; // delay in ms for classifier at 0 confidence
 export const ITEMS = ["egg", "dumpling", "riceball", "sushi", "flan"];
 export const CUSTOMERS = ["brown", "panda", "polar", "redpanda", "pink"];
 
-export interface FoodSpawn {
+export interface ClassifierOutput {
+  review: Review;
+  inputText: string; // review text
+  realLabel: number; // what the review's rating was
+  classifierLabel: number; // what the classifier thought it was
+  confidence: number; // how confident the classifier was (0 to 1)
+}
+
+export interface ItemSpawn {
   item: string;
   review: Review;
   classifierOutput?: ClassifierOutput;
@@ -28,15 +34,16 @@ export interface CafeSimulation extends Simulation {
   // score: number;
   // accuracy: number;
   customer: string;
-  spawns: FoodSpawn[];
+  spawns: ItemSpawn[];
 }
 
 export class CafeSimulator extends Simulator<CafeSimulation> {
   play() {
-    const numSpawned = (GAME_TIME * 1000) / SPAWN_TIME;
-    const shuffled = [...Reviews].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, numSpawned);
-    const spawns: FoodSpawn[] = selected.map((s) => ({
+    const numItemsSpawned = (GAME_TIME * 1000) / SPAWN_TIME;
+    const reviews = [...Reviews]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, numItemsSpawned);
+    const spawns: ItemSpawn[] = reviews.map((s) => ({
       item: ITEMS[randomInt(ITEMS.length)],
       review: s,
     }));
@@ -45,28 +52,61 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
       spawns: spawns,
       score: 0,
       accuracy: 0,
+      precision: 0,
+      recall: 0,
+      f1Score: 0,
     };
   }
 
-  simulate(numRuns: number, classifier: Classifier) {
-    super.simulate(numRuns, classifier);
-    for (let i = 0; i < numRuns; i++) {
+  simulate(
+    outputs: ClassifierOutput[][],
+    trainInstances: number,
+    testInstances: number,
+    evaluationCode: string[]
+  ): Experiment<CafeSimulation> {
+    const experiment = super.simulate(
+      outputs,
+      trainInstances,
+      testInstances,
+      evaluationCode
+    );
+    for (let run = 0; run < outputs.length; run++) {
       const sim = this.play();
-      for (const spawn of sim.spawns) {
-        const classifierOutput = classifier.classify({
-          review: spawn.review,
-        });
-        if (classifierOutput?.classifierLabel === classifierOutput?.realLabel) {
-          sim.score++;
-          sim.accuracy++;
-        } else {
-          sim.score--;
+      const simClassifierOutput = outputs[run];
+      for (let i = 0; i < sim.spawns.length; i++) {
+        const classifierOutput = simClassifierOutput[i];
+        if (classifierOutput.classifierLabel) {
+          sim.score += classifierOutput.realLabel ? 1 : -1;
         }
-        spawn.classifierOutput = classifierOutput;
+        if (classifierOutput.classifierLabel === classifierOutput.realLabel) {
+          sim.accuracy++;
+        }
+        sim.spawns[i].review = outputs[run][i].review;
+        sim.spawns[i].classifierOutput = classifierOutput;
       }
+      const numTruePositive = simClassifierOutput.filter(
+        (output) => output.classifierLabel === 1 && output.realLabel === 1
+      ).length;
+      const numFalsePositive = simClassifierOutput.filter(
+        (output) => output.classifierLabel === 1 && output.realLabel === 0
+      ).length;
+      const numFalseNegative = simClassifierOutput.filter(
+        (output) => output.classifierLabel === 0 && output.realLabel === 1
+      ).length;
+      sim.precision = numTruePositive / (numTruePositive + numFalsePositive);
+      sim.recall = numTruePositive / (numTruePositive + numFalseNegative);
+      sim.f1Score =
+        (2 * sim.precision * sim.recall) / (sim.precision + sim.recall);
       sim.accuracy = sim.accuracy / sim.spawns.length;
-      this.simulations.push(sim);
+      experiment.simulations.push(sim);
     }
-    this.updateSummary();
+    experiment.summary = this.updateSummary(
+      experiment.simulations,
+      experiment.summary
+    );
+    if (experiment.simulations.length > 0) {
+      this.experiments.push(experiment);
+    }
+    return experiment;
   }
 }

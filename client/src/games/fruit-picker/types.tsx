@@ -15,6 +15,7 @@ export interface Fruit {
 export enum FruitTrait {
   fruit = "fruit",
   color = "color",
+  shape = "shape",
 }
 
 export const Fruits: Fruit[] = [
@@ -25,6 +26,7 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "apple",
       color: "red",
+      shape: "round",
     },
   },
   {
@@ -35,6 +37,7 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "apple",
       color: "red",
+      shape: "round",
     },
   },
   {
@@ -44,6 +47,7 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "cherry",
       color: "red",
+      shape: "bunched",
     },
   },
   {
@@ -53,6 +57,7 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "cherry",
       color: "red",
+      shape: "bunched",
     },
   },
   {
@@ -62,24 +67,27 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "coconut",
       color: "green",
+      shape: "round",
     },
   },
   {
     name: "grape",
     sprite: "grape",
-    description: "A bunch of purple grapes. A little sour.",
+    description: "A bunched of purple grapes. A little sour.",
     traits: {
       fruit: "grape",
       color: "purple",
+      shape: "bunched",
     },
   },
   {
     name: "perfect grape",
     sprite: "grape2",
-    description: "A bunch of red grapes. Perfectly sweet.",
+    description: "A bunched of red grapes. Perfectly sweet.",
     traits: {
       fruit: "grape",
       color: "red",
+      shape: "bunched",
     },
   },
   {
@@ -90,6 +98,7 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "lemon",
       color: "green",
+      shape: "oblong",
     },
   },
   {
@@ -99,24 +108,27 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "lemon",
       color: "green",
+      shape: "oblong",
     },
   },
   {
     name: "lychee",
     sprite: "lychee",
-    description: "A bunch of lychee. A little too ripe, so they're yellow",
+    description: "A bunched of lychee. A little too ripe, so they're yellow",
     traits: {
       fruit: "lychee",
       color: "yellow",
+      shape: "bunched",
     },
   },
   {
     name: "perfect lychee",
     sprite: "lychee2",
-    description: "A bunch of lychee. Sweet, fresh, and red.",
+    description: "A bunched of lychee. Sweet, fresh, and red.",
     traits: {
       fruit: "lychee",
       color: "red",
+      shape: "bunched",
     },
   },
   {
@@ -126,16 +138,18 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "orange",
       color: "orange",
+      shape: "round",
     },
   },
   {
     name: "perfect orange",
     sprite: "orange2",
     description:
-      "A round and orange orange. Larger and sweeter than normal oranges.",
+      "An oblong and orange orange. Larger and sweeter than normal oranges.",
     traits: {
       fruit: "orange",
       color: "orange",
+      shape: "oblong",
     },
   },
   {
@@ -145,6 +159,7 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "peach",
       color: "pink",
+      shape: "round",
     },
   },
   {
@@ -154,6 +169,7 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "peach",
       color: "yellow",
+      shape: "round",
     },
   },
   {
@@ -163,6 +179,7 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "pear",
       color: "green",
+      shape: "oblong",
     },
   },
   {
@@ -172,6 +189,7 @@ export const Fruits: Fruit[] = [
     traits: {
       fruit: "pear",
       color: "yellow",
+      shape: "oblong",
     },
   },
 ];

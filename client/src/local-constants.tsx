@@ -5,6 +5,11 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-export interface Classifier {
-  classify: (input: any) => any;
+// gai cell types
+export enum GaiCellTypes {
+  INPUT = "INPUT",
+  EVALUATION = "EVALUATION",
+  OUTPUT = "OUTPUT",
 }
+
+export const NOTEBOOK_UID = "123";

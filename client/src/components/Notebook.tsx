@@ -4,51 +4,75 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+/* eslint-disable */
 
-import React, { useState } from "react";
-import {
-  Jupyter,
-  Notebook,
-  CellSidebarDefault,
-} from "@datalayer/jupyter-react";
-import { TextField, Button } from "@mui/material";
-import { Send } from "@mui/icons-material";
+import React, { useEffect } from "react";
+import { Notebook, selectNotebook } from "@datalayer/jupyter-react";
+import { Button } from "@mui/material";
 
-import { Classifier } from "../classifier";
 import { Game } from "../games";
+import { useWithNotebookModifications } from "../hooks/use-with-notebook-modifications";
+import { useWithCellOutputs } from "../hooks/use-with-cell-outputs";
+import { NOTEBOOK_UID } from "../local-constants";
 
 function NotebookComponent(props: {
   game: Game;
-  classifier?: Classifier;
-  simulate: (c: Classifier) => void;
+  setExperiment: (e: number) => void;
+  viewSummary: () => void;
+  runSimulation: (i: number) => void;
 }): JSX.Element {
-  const [numSimulations, setNumSimulations] = useState<number>(5);
+  const notebook = selectNotebook(NOTEBOOK_UID);
+  const { evaluationOutput, evaluationInput, evaluationCode } =
+    useWithCellOutputs();
+  useWithNotebookModifications({ greyOutUneditableBlocks: true });
+
+  useEffect(() => {
+    if (evaluationOutput) {
+      props.game.simulator.simulate(
+        evaluationOutput,
+        evaluationInput[0],
+        evaluationInput[1],
+        evaluationCode
+      );
+      props.setExperiment(props.game.simulator.experiments.length - 1);
+    }
+  }, [evaluationOutput]);
 
   function simulate(): void {
-    props.game.simulator.simulate(numSimulations, props.game.classifier);
-    props.simulate(props.game.classifier);
+    if (!notebook || !notebook.model || !notebook.adapter) {
+      return;
+    }
+    notebook.adapter.commands.execute("notebook:run-all");
+  }
+
+  function toSimulation(): void {
+    props.runSimulation(0);
+  }
+
+  function toSummary(): void {
+    props.viewSummary();
   }
 
   return (
-    <div style={{ alignItems: "center" }}>
-      <TextField
-        variant="outlined"
-        label="Number of Simulations"
-        value={numSimulations}
-        onChange={(e) => setNumSimulations(Number(e.target.value) || 0)}
-        inputProps={{ inputMode: "numeric", pattern: "[0-9]+" }}
-        InputLabelProps={{ shrink: true }}
-      />
-      <Button
-        disabled={!props.game.classifier}
-        endIcon={<Send />}
-        onClick={simulate}
+    <div style={{ width: "100%", alignItems: "center" }}>
+      <div
+        id="jupyter-notebook-container"
+        style={{
+          width: "100%",
+          height: "100%",
+          alignItems: "left",
+          textAlign: "left",
+        }}
       >
-        Run
+        <Notebook path={`${props.game.id}/test.ipynb`} uid={NOTEBOOK_UID} />
+      </div>
+      <Button onClick={simulate}>Run</Button>
+      <Button onClick={toSimulation} disabled={!evaluationOutput.length}>
+        View Simulations
       </Button>
-      <Jupyter startDefaultKernel={true}>
-        <Notebook path="/ping.ipynb" CellSidebar={CellSidebarDefault} />
-      </Jupyter>
+      <Button disabled={!evaluationOutput.length} onClick={toSummary}>
+        View Results Summary
+      </Button>
     </div>
   );
 }
