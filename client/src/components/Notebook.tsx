@@ -6,14 +6,32 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import React, { useEffect } from "react";
-import { Notebook, selectNotebook } from "@datalayer/jupyter-react";
-import { Button } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Notebook, Output } from "@datalayer/jupyter-react";
+import {
+  AppBar,
+  Button,
+  IconButton,
+  MenuItem,
+  Select,
+  Switch,
+  Toolbar,
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
+import {
+  DarkMode,
+  LightMode,
+  PlayArrow,
+  Save,
+  Undo,
+} from "@mui/icons-material";
+import CodeEditor from "@uiw/react-textarea-code-editor";
 
 import { Game } from "../games";
 import { useWithNotebookModifications } from "../hooks/use-with-notebook-modifications";
 import { useWithCellOutputs } from "../hooks/use-with-cell-outputs";
-import { NOTEBOOK_UID } from "../local-constants";
+import { useWithWindowSize } from "../hooks/use-with-window-size";
+import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 
 function NotebookComponent(props: {
   game: Game;
@@ -21,60 +39,173 @@ function NotebookComponent(props: {
   viewSummary: () => void;
   runSimulation: (i: number) => void;
 }): JSX.Element {
-  const notebook = selectNotebook(NOTEBOOK_UID);
-  const { evaluationOutput, evaluationInput, evaluationCode } =
-    useWithCellOutputs();
+  const classes = useStyles();
+  const { height } = useWithWindowSize();
+  const {
+    cells,
+    curCell,
+    code,
+    isCodeEdited,
+    evaluationInput,
+    evaluationOutput,
+    evaluationCode,
+    selectCell,
+    run,
+    editCode,
+    saveCode,
+    undoCode,
+  } = useWithCellOutputs();
   useWithNotebookModifications({ greyOutUneditableBlocks: true });
+  const [mode, setMode] = useState<"dark" | "light">("light");
+  const [output, setOutput] = useState<JSX.Element>();
 
   useEffect(() => {
-    if (evaluationOutput) {
-      props.game.simulator.simulate(
-        evaluationOutput,
-        evaluationInput[0],
-        evaluationInput[1],
-        evaluationCode
-      );
-      props.setExperiment(props.game.simulator.experiments.length - 1);
+    if (output) {
+      setOutput(undefined);
+    } else if (cells[curCell]?.output?.length) {
+      setOutput(<Output outputs={cells[curCell].output} />);
     }
-  }, [evaluationOutput]);
+  }, [curCell, cells]);
 
-  function simulate(): void {
-    if (!notebook || !notebook.model || !notebook.adapter) {
-      return;
+  useEffect(() => {
+    if (!output && cells[curCell]?.output?.length) {
+      setOutput(<Output outputs={cells[curCell].output} />);
     }
-    notebook.adapter.commands.execute("notebook:run-all");
-  }
+  }, [output]);
 
   function toSimulation(): void {
+    props.game.simulator.simulate(
+      evaluationInput,
+      evaluationOutput,
+      evaluationCode
+    );
+    props.setExperiment(props.game.simulator.experiments.length - 1);
     props.runSimulation(0);
   }
 
   function toSummary(): void {
+    props.game.simulator.simulate(
+      evaluationInput,
+      evaluationOutput,
+      evaluationCode
+    );
+    props.setExperiment(props.game.simulator.experiments.length - 1);
     props.viewSummary();
   }
 
   return (
-    <div style={{ width: "100%", alignItems: "center" }}>
+    <div className={classes.root}>
+      <AppBar position="fixed">
+        <Toolbar>
+          <Select
+            variant="standard"
+            value={curCell as GaiCellTypes}
+            onChange={(e) => selectCell(e.target.value as GaiCellTypes)}
+            style={{ color: "white" }}
+          >
+            {Object.keys(cells).map((c, i) => (
+              <MenuItem key={i} value={c}>
+                {c.toLowerCase()}
+              </MenuItem>
+            ))}
+          </Select>
+          <div style={{ flexGrow: 1 }} />
+          <Switch
+            color="secondary"
+            checked={mode === "dark"}
+            icon={<LightMode className={classes.switchIcon} />}
+            checkedIcon={
+              <DarkMode
+                className={classes.switchIcon}
+                style={{ backgroundColor: "purple", color: "white" }}
+              />
+            }
+            onChange={() => setMode(mode === "dark" ? "light" : "dark")}
+          />
+          {curCell === GaiCellTypes.EVALUATION ? (
+            <div>
+              <IconButton disabled={!isCodeEdited} onClick={saveCode}>
+                <Save />
+              </IconButton>
+              <IconButton disabled={!isCodeEdited} onClick={undoCode}>
+                <Undo />
+              </IconButton>
+            </div>
+          ) : undefined}
+          <IconButton onClick={run}>
+            <PlayArrow />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+      <Toolbar />
+      <CodeEditor
+        className={classes.textEditor}
+        value={
+          curCell === GaiCellTypes.EVALUATION
+            ? code
+            : cells[curCell]?.cell.toJSON().source
+        }
+        language="python"
+        data-color-mode={mode}
+        disabled={curCell !== GaiCellTypes.EVALUATION}
+        onChange={(evn) => editCode(evn.target.value)}
+        padding={15}
+      />
       <div
-        id="jupyter-notebook-container"
         style={{
           width: "100%",
-          height: "100%",
-          alignItems: "left",
-          textAlign: "left",
+          padding: 5,
+          backgroundColor: mode === "dark" ? "#bbb" : "#f6f8fa",
         }}
       >
-        <Notebook path={`${props.game.id}/test.ipynb`} uid={NOTEBOOK_UID} />
+        {output}
       </div>
-      <Button onClick={simulate}>Run</Button>
-      <Button onClick={toSimulation} disabled={!evaluationOutput.length}>
-        View Simulations
-      </Button>
-      <Button disabled={!evaluationOutput.length} onClick={toSummary}>
-        View Results Summary
-      </Button>
+      <Toolbar
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          display:
+            evaluationOutput.length && evaluationInput.length ? "flex" : "none",
+        }}
+      >
+        <Button onClick={toSimulation}>View Simulation</Button>
+        <Button onClick={toSummary}>View Summary</Button>
+      </Toolbar>
+      <div style={{ display: "none" }}>
+        <Notebook
+          path={`${props.game.id}/test.ipynb`}
+          uid={NOTEBOOK_UID}
+          height={`${height - 200}px`}
+        />
+      </div>
     </div>
   );
 }
+
+const useStyles = makeStyles(() => ({
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    height: "100vh",
+    alignItems: "center",
+    textAlign: "left",
+  },
+  textEditor: {
+    width: "100%",
+    flexGrow: 1,
+    fontSize: 12,
+    fontFamily:
+      "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+  },
+  switchIcon: {
+    width: 16,
+    height: 16,
+    padding: 2,
+    borderRadius: 16,
+    backgroundColor: "white",
+    color: "red",
+  },
+}));
 
 export default NotebookComponent;

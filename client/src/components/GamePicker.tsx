@@ -15,9 +15,11 @@ import {
 } from "@mui/material";
 import { Game, Games } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
+import { useWithWindowSize } from "../hooks/use-with-window-size";
 
 function GamePicker(props: { loadGame: (g: Game) => void }): JSX.Element {
   const [game, setGame] = useState<Game>();
+  const { width, height } = useWithWindowSize();
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
   const { loadPhaserGame, destroyPhaserGame } =
     useWithPhaserGame(gameContainerRef);
@@ -41,24 +43,30 @@ function GamePicker(props: { loadGame: (g: Game) => void }): JSX.Element {
 
   return (
     <div>
-      <FormControl fullWidth>
-        <InputLabel>Select Game</InputLabel>
-        <Select
-          value={game?.id}
-          label="Select Game"
-          onChange={(e) => selectGame(e.target.value)}
-        >
-          {Games.map((g) => (
-            <MenuItem key={g.id} value={g.id}>
-              {g.config.title}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <Button disabled={!game} onClick={confirm}>
-        Confirm
-      </Button>
-      <div id="game-container" ref={gameContainerRef} />
+      <div style={{ paddingTop: 20, paddingLeft: 20, paddingRight: 20 }}>
+        <FormControl fullWidth>
+          <InputLabel>Select Game</InputLabel>
+          <Select
+            value={game?.id}
+            label="Select Game"
+            onChange={(e) => selectGame(e.target.value)}
+          >
+            {Games.map((g) => (
+              <MenuItem key={g.id} value={g.id}>
+                {g.config.title}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button disabled={!game} onClick={confirm}>
+          Confirm
+        </Button>
+      </div>
+      <div
+        id="game-container"
+        style={{ width, height: height - 125 }}
+        ref={gameContainerRef}
+      />
     </div>
   );
 }

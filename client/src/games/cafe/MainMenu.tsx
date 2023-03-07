@@ -11,7 +11,7 @@ import { CafeSimulation } from "./simulator";
 
 const fontStyle = {
   fontFamily: "Arial",
-  fontSize: "48",
+  fontSize: "24px",
   color: "#ffffff",
   fontStyle: "bold",
   shadow: {
@@ -24,8 +24,8 @@ const fontStyle = {
 };
 
 const labelFont = {
-  // font: "bold 15px Arial",
   color: "#ffffff",
+  fontSize: "18px",
   wordWrap: { width: 480 },
   shadow: {
     color: "#000000",
@@ -99,8 +99,16 @@ export default class MainMenu extends Phaser.Scene {
     this.add.image(570, 345, "bg_kitchen", "trash").setScale(2);
 
     this.add.text(5, 5, "Time: 120:00", fontStyle);
-    this.add.text(565, 5, "Score: 0", fontStyle);
-    this.add.text(565, 20, "Accuracy: 100%", fontStyle);
+    this.add.text(-5, 5, "Score: 0", {
+      ...fontStyle,
+      fixedWidth: Number(this.game.config.width),
+      align: "right",
+    });
+    this.add.text(-5, 25, "Accuracy: 100%", {
+      ...fontStyle,
+      fixedWidth: Number(this.game.config.width),
+      align: "right",
+    });
     this.add.text(5, 290, "", labelFont);
 
     this.input.once("pointerdown", () => {

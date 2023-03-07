@@ -110,11 +110,8 @@ function App(): JSX.Element {
 
 const useStyles = makeStyles(() => ({
   root: {
-    margin: 20,
     width: "100%",
     height: "100%",
-    display: "flex",
-    flexFlow: "column",
     textAlign: "center",
     alignContent: "center",
     alignItems: "center",

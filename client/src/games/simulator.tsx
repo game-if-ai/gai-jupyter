@@ -54,16 +54,15 @@ export class Simulator<S extends Simulation> {
   }
 
   simulate(
+    inputs: number[],
     outputs: any[][],
-    trainInstances: number,
-    testInstances: number,
     evaluationCode: MultilineString
   ): Experiment<S> {
     const experiment: Experiment<S> = {
       id: uuid(),
       time: new Date(),
-      trainInstances,
-      testInstances,
+      trainInstances: inputs[0],
+      testInstances: inputs[1],
       evaluationCode,
       simulations: [],
       summary: {

@@ -15,11 +15,11 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
   title: "Fruit Picker",
   parent: "phaser-container",
-  width: 800,
-  height: 600,
   backgroundColor: "#282c34",
   scale: {
-    mode: Phaser.Scale.ScaleModes.RESIZE,
+    mode: Phaser.Scale.ScaleModes.FIT,
+    width: 800,
+    height: 600,
   },
   physics: {
     default: "arcade",

@@ -4,38 +4,31 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+import { useEffect, useState } from "react";
 
-import Phaser from "phaser";
-import { CafeSimulator } from "./simulator";
-import MainMenu from "./MainMenu";
-import MainGame from "./MainGame";
-import { Summary } from "./Summary";
-import { Game } from "..";
+interface WindowSize {
+  width: number;
+  height: number;
+}
 
-const GameConfig: Phaser.Types.Core.GameConfig = {
-  type: Phaser.CANVAS,
-  title: "Cafe Reviews",
-  parent: "phaser-container",
-  backgroundColor: "#282c34",
-  scale: {
-    mode: Phaser.Scale.ScaleModes.FIT,
-    width: 640,
-    height: 360,
-  },
-  physics: {
-    default: "arcade",
-    arcade: {
-      gravity: { y: 150 },
-    },
-  },
-  scene: [MainMenu, MainGame],
-};
+export function useWithWindowSize(): WindowSize {
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
-export const Cafe: Game = {
-  id: "cafe",
-  config: GameConfig,
-  simulator: new CafeSimulator(),
-  summaryPanel: Summary,
-};
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const handleResize = () =>
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
-export default Cafe;
+  return {
+    width: windowSize.width,
+    height: windowSize.height,
+  };
+}
