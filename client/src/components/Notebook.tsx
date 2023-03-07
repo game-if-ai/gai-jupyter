@@ -4,8 +4,9 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+/* eslint-disable */
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Notebook, selectNotebook } from "@datalayer/jupyter-react";
 import { Button } from "@mui/material";
 
@@ -16,19 +17,32 @@ import { NOTEBOOK_UID } from "../local-constants";
 
 function NotebookComponent(props: {
   game: Game;
+  setExperiment: (e: number) => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
 }): JSX.Element {
   const notebook = selectNotebook(NOTEBOOK_UID);
+  const { evaluationOutput, evaluationInput, evaluationCode } =
+    useWithCellOutputs();
   useWithNotebookModifications({ greyOutUneditableBlocks: true });
-  const { evaluationOutput, reconnectCell } = useWithCellOutputs();
+
+  useEffect(() => {
+    if (evaluationOutput) {
+      props.game.simulator.simulate(
+        evaluationOutput,
+        evaluationInput[0],
+        evaluationInput[1],
+        evaluationCode
+      );
+      props.setExperiment(props.game.simulator.experiments.length - 1);
+    }
+  }, [evaluationOutput]);
 
   function simulate(): void {
     if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
-    props.game.simulator.simulate(5, notebook);
-    reconnectCell();
+    notebook.adapter.commands.execute("notebook:run-all");
   }
 
   function toSimulation(): void {
@@ -45,14 +59,14 @@ function NotebookComponent(props: {
         id="jupyter-notebook-container"
         style={{
           width: "100%",
+          height: "100%",
           alignItems: "left",
           textAlign: "left",
-          height: "90%",
         }}
       >
         <Notebook path={`${props.game.id}/test.ipynb`} uid={NOTEBOOK_UID} />
       </div>
-      <Button onClick={simulate}>Run 5 Simulations</Button>
+      <Button onClick={simulate}>Run</Button>
       <Button onClick={toSimulation} disabled={!evaluationOutput.length}>
         View Simulations
       </Button>

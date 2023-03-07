@@ -19,7 +19,7 @@ import {
 } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Simulation } from "../games/simulator";
+import { Experiment, Simulation } from "../games/simulator";
 import { Game } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 
@@ -27,7 +27,7 @@ const SPEEDS = [1, 2, 4, 10];
 
 function GamePlayer(props: {
   game: Game;
-  simulations: Simulation[];
+  experiment: Experiment<Simulation>;
   simulation: number;
   toNotebook: () => void;
   toSummary: () => void;
@@ -36,7 +36,7 @@ function GamePlayer(props: {
   const [simulation, setSimulation] = useState<number>(props.simulation);
   const [showSummary, setShowSummary] = useState<boolean>(false);
 
-  const { simulations } = props;
+  const { simulations } = props.experiment;
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
   const {
     eventSystem,

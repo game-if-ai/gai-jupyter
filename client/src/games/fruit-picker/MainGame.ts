@@ -32,7 +32,6 @@ const fontStyle = {
 };
 
 export default class MainGame extends Phaser.Scene {
-  highscore: number;
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
@@ -42,7 +41,6 @@ export default class MainGame extends Phaser.Scene {
   fruitIdx: number;
 
   timerText?: Phaser.GameObjects.Text;
-  highscoreText?: Phaser.GameObjects.Text;
   scoreText?: Phaser.GameObjects.Text;
   accuracyText?: Phaser.GameObjects.Text;
   matchText?: Phaser.GameObjects.Text;
@@ -54,7 +52,6 @@ export default class MainGame extends Phaser.Scene {
 
   constructor() {
     super("MainGame");
-    this.highscore = 0;
     this.speed = 1;
     this.isPaused = false;
     this.isMuted = false;
@@ -85,15 +82,6 @@ export default class MainGame extends Phaser.Scene {
     this.changeSpeed(data.speed);
     //
     this.add.image(400, 300, "background");
-    this.highscore = this.config.playManually
-      ? 0
-      : this.config.simulator.summary.highScore;
-    this.highscoreText = this.add.text(
-      60,
-      20,
-      `High Score: ${this.highscore}`,
-      fontStyle
-    );
     this.timerText = this.add.text(20, 20, `${GAME_TIME}:00`, fontStyle);
     this.scoreText = this.add.text(600, 20, "Score: 0", fontStyle);
     if (!this.config.playManually) {

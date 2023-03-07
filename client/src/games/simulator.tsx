@@ -5,8 +5,19 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { INotebookState } from "@datalayer/jupyter-react";
+import { MultilineString } from "@jupyterlab/nbformat";
 import { average } from "../utils";
+import { v4 as uuid } from "uuid";
+
+export interface Experiment<S extends Simulation> {
+  id: string;
+  time: Date;
+  trainInstances: number;
+  testInstances: number;
+  evaluationCode: MultilineString;
+  simulations: S[];
+  summary: SimulationSummary;
+}
 
 export interface Simulation {
   score: number;
@@ -17,7 +28,6 @@ export interface Simulation {
 }
 
 export interface SimulationSummary {
-  numRuns: number;
   lowScore: number;
   highScore: number;
   lowAccuracy: number;
@@ -30,23 +40,10 @@ export interface SimulationSummary {
 }
 
 export class Simulator<S extends Simulation> {
-  simulations: S[];
-  summary: SimulationSummary;
+  experiments: Experiment<S>[];
 
   constructor() {
-    this.simulations = [];
-    this.summary = {
-      numRuns: 0,
-      lowScore: 0,
-      highScore: 0,
-      averageScore: 0,
-      lowAccuracy: 0,
-      highAccuracy: 0,
-      averageAccuracy: 0,
-      averagePrecision: 0,
-      averageRecall: 0,
-      averageF1Score: 0,
-    };
+    this.experiments = [];
   }
 
   play(): S {
@@ -56,24 +53,52 @@ export class Simulator<S extends Simulation> {
     return o;
   }
 
-  simulate(runs: number, notebook: INotebookState) {
-    this.summary.numRuns += runs;
+  simulate(
+    outputs: any[][],
+    trainInstances: number,
+    testInstances: number,
+    evaluationCode: MultilineString
+  ): Experiment<S> {
+    const experiment: Experiment<S> = {
+      id: uuid(),
+      time: new Date(),
+      trainInstances,
+      testInstances,
+      evaluationCode,
+      simulations: [],
+      summary: {
+        lowScore: 0,
+        highScore: 0,
+        averageScore: 0,
+        lowAccuracy: 0,
+        highAccuracy: 0,
+        averageAccuracy: 0,
+        averagePrecision: 0,
+        averageRecall: 0,
+        averageF1Score: 0,
+      },
+    };
+    return experiment;
   }
 
-  protected updateSummary() {
-    const scores = this.simulations.map((s) => s.score);
-    const accuracies = this.simulations.map((s) => s.accuracy);
-    const precisions = this.simulations.map((s) => s.precision);
-    const recalls = this.simulations.map((s) => s.recall);
-    const f1Scores = this.simulations.map((s) => s.f1Score);
-    this.summary.lowScore = Math.min(...scores);
-    this.summary.highScore = Math.max(...scores);
-    this.summary.averageScore = average(scores);
-    this.summary.lowAccuracy = Math.min(...accuracies);
-    this.summary.highAccuracy = Math.max(...accuracies);
-    this.summary.averageAccuracy = average(accuracies);
-    this.summary.averagePrecision = average(precisions);
-    this.summary.averageRecall = average(recalls);
-    this.summary.averageF1Score = average(f1Scores);
+  protected updateSummary(
+    simulations: S[],
+    summary: SimulationSummary
+  ): SimulationSummary {
+    const scores = simulations.map((s) => s.score);
+    const accuracies = simulations.map((s) => s.accuracy);
+    const precisions = simulations.map((s) => s.precision);
+    const recalls = simulations.map((s) => s.recall);
+    const f1Scores = simulations.map((s) => s.f1Score);
+    summary.lowScore = Math.min(...scores);
+    summary.highScore = Math.max(...scores);
+    summary.averageScore = average(scores);
+    summary.lowAccuracy = Math.min(...accuracies);
+    summary.highAccuracy = Math.max(...accuracies);
+    summary.averageAccuracy = average(accuracies);
+    summary.averagePrecision = average(precisions);
+    summary.averageRecall = average(recalls);
+    summary.averageF1Score = average(f1Scores);
+    return summary;
   }
 }

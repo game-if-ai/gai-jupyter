@@ -5,13 +5,9 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { INotebookState } from "@datalayer/jupyter-react";
-import { INotebookContent } from "@jupyterlab/nbformat";
-
-import { GaiCellTypes } from "../../local-constants";
-import { Simulation, Simulator } from "../simulator";
+import { Experiment, Simulation, Simulator } from "../simulator";
 import { Review, Reviews } from "./types";
-import { extractClassifierOutputFromCell, randomInt } from "../../utils";
+import { randomInt } from "../../utils";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
@@ -21,6 +17,7 @@ export const ITEMS = ["egg", "dumpling", "riceball", "sushi", "flan"];
 export const CUSTOMERS = ["brown", "panda", "polar", "redpanda", "pink"];
 
 export interface ClassifierOutput {
+  review: Review;
   inputText: string; // review text
   realLabel: number; // what the review's rating was
   classifierLabel: number; // what the classifier thought it was
@@ -61,64 +58,55 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
     };
   }
 
-  simulate(runs: number, notebook: INotebookState) {
-    if (!notebook || !notebook.model || !notebook.adapter) {
-      return;
-    }
-    super.simulate(runs, notebook);
-    const sims: CafeSimulation[] = [];
-    const inputs: Review[][] = [];
-    for (let i = 0; i < runs; i++) {
+  simulate(
+    outputs: ClassifierOutput[][],
+    trainInstances: number,
+    testInstances: number,
+    evaluationCode: string[]
+  ): Experiment<CafeSimulation> {
+    const experiment = super.simulate(
+      outputs,
+      trainInstances,
+      testInstances,
+      evaluationCode
+    );
+    for (let run = 0; run < outputs.length; run++) {
       const sim = this.play();
-      sims.push(sim);
-      inputs.push(sim.spawns.map((s) => s.review));
-    }
-    const source = notebook.model.toJSON() as INotebookContent;
-    let outputCell = -1;
-    for (let i = 0; i < notebook.model.cells.length; i++) {
-      const cell = notebook.model.cells.get(i);
-      if (cell.getMetadata("gai_cell_type") === GaiCellTypes.INPUT) {
-        source.cells[i].source = `inputs = ${JSON.stringify(inputs)}`;
-      }
-      if (cell.getMetadata("gai_cell_type") === GaiCellTypes.OUTPUT) {
-        outputCell = i;
-      }
-    }
-    notebook.adapter.setNotebookModel(source);
-    notebook.model.cells.get(outputCell).stateChanged.connect((changedCell) => {
-      const classifierOutputs =
-        extractClassifierOutputFromCell<ClassifierOutput>(changedCell);
-      for (const [s, sim] of sims.entries()) {
-        const simClassifierOutput = classifierOutputs[s];
-        for (const [i, spawn] of sim.spawns.entries()) {
-          const classifierOutput = simClassifierOutput[i];
-          if (classifierOutput.classifierLabel) {
-            sim.score += classifierOutput.realLabel ? 1 : -1;
-          }
-          if (classifierOutput.classifierLabel === classifierOutput.realLabel) {
-            sim.accuracy++;
-          }
-          spawn.classifierOutput = classifierOutput;
+      const simClassifierOutput = outputs[run];
+      for (let i = 0; i < sim.spawns.length; i++) {
+        const classifierOutput = simClassifierOutput[i];
+        if (classifierOutput.classifierLabel) {
+          sim.score += classifierOutput.realLabel ? 1 : -1;
         }
-        const numTruePositive = simClassifierOutput.filter(
-          (output) => output.classifierLabel === 1 && output.realLabel === 1
-        ).length;
-        const numFalsePositive = simClassifierOutput.filter(
-          (output) => output.classifierLabel === 1 && output.realLabel === 0
-        ).length;
-        const numFalseNegative = simClassifierOutput.filter(
-          (output) => output.classifierLabel === 0 && output.realLabel === 1
-        ).length;
-        sim.precision = numTruePositive / (numTruePositive + numFalsePositive);
-        sim.recall = numTruePositive / (numTruePositive + numFalseNegative);
-        sim.f1Score =
-          (2 * sim.precision * sim.recall) / (sim.precision + sim.recall);
-        sim.accuracy = sim.accuracy / sim.spawns.length;
-        this.simulations.push(sim);
+        if (classifierOutput.classifierLabel === classifierOutput.realLabel) {
+          sim.accuracy++;
+        }
+        sim.spawns[i].review = outputs[run][i].review;
+        sim.spawns[i].classifierOutput = classifierOutput;
       }
-
-      this.updateSummary();
-    });
-    notebook.adapter.commands.execute("notebook:run-all");
+      const numTruePositive = simClassifierOutput.filter(
+        (output) => output.classifierLabel === 1 && output.realLabel === 1
+      ).length;
+      const numFalsePositive = simClassifierOutput.filter(
+        (output) => output.classifierLabel === 1 && output.realLabel === 0
+      ).length;
+      const numFalseNegative = simClassifierOutput.filter(
+        (output) => output.classifierLabel === 0 && output.realLabel === 1
+      ).length;
+      sim.precision = numTruePositive / (numTruePositive + numFalsePositive);
+      sim.recall = numTruePositive / (numTruePositive + numFalseNegative);
+      sim.f1Score =
+        (2 * sim.precision * sim.recall) / (sim.precision + sim.recall);
+      sim.accuracy = sim.accuracy / sim.spawns.length;
+      experiment.simulations.push(sim);
+    }
+    experiment.summary = this.updateSummary(
+      experiment.simulations,
+      experiment.summary
+    );
+    if (experiment.simulations.length > 0) {
+      this.experiments.push(experiment);
+    }
+    return experiment;
   }
 }

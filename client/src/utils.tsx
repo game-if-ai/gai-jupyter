@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+import { INotebookState } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
@@ -30,4 +31,55 @@ export function extractClassifierOutputFromCell<T>(cell: ICellModel): T[][] {
       ((cellOutput?.data as PartialJSONObject)["application/json"] as any)) ||
     [];
   return fruitClassifierData;
+}
+
+export function formatDateTime(now: Date) {
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // Get the current month (0-11), add 1 to convert to 1-12 format
+  const day = now.getDate();
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  const seconds = now.getSeconds();
+
+  const dateTimeString = `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`;
+
+  return dateTimeString;
+}
+
+export function extractNotebookCellCode(notebook: INotebookState): string[][] {
+  if (!notebook || !notebook.model || !notebook.adapter) {
+    return [];
+  }
+  let cellSources: string[][] = [];
+
+  for (let i = 0; i < notebook.model.cells.length; i++) {
+    const cell = notebook.model.cells.get(i);
+    const cellSource = cell.toJSON().source;
+    if (typeof cellSource == "string") {
+      cellSources.push([cellSource]);
+    } else {
+      cellSources.push(cellSource);
+    }
+  }
+  return cellSources;
+}
+
+export function extractInputFromCell(cell: ICellModel): number[] {
+  const cellData = cell.toJSON();
+  const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
+  const data = (cellOutput?.data &&
+    ((cellOutput?.data as PartialJSONObject)["application/json"] as any)) || [
+    0, 0,
+  ];
+  return data;
+}
+
+export function extractOutputFromCell<T>(cell: ICellModel): T[][] {
+  const cellData = cell.toJSON();
+  const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
+  const data: T[][] =
+    (cellOutput?.data &&
+      ((cellOutput?.data as PartialJSONObject)["application/json"] as any)) ||
+    [];
+  return data;
 }

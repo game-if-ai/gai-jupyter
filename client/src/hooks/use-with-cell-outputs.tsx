@@ -6,16 +6,19 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import { selectNotebookModel } from "@datalayer/jupyter-react";
 import { useEffect, useState } from "react";
+import { selectNotebookModel } from "@datalayer/jupyter-react";
 import { INotebookModel } from "@jupyterlab/notebook";
+import { MultilineString } from "@jupyterlab/nbformat";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
-import { extractClassifierOutputFromCell } from "../utils";
+import { extractInputFromCell, extractOutputFromCell } from "../utils";
 
 export function useWithCellOutputs() {
+  const [evaluationInput, setEvaluationInput] = useState<number[]>([0, 0]);
   const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
   const [notebookConnectionSetup, setNotebookConnectionSetup] = useState(false);
+  const [evaluationCode, setEvaluationCode] = useState<MultilineString>("");
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
 
   useEffect(() => {
@@ -30,10 +33,6 @@ export function useWithCellOutputs() {
     extractEvaluationOutput(activeNotebookModel.model);
   }, [activeNotebookModel, notebookConnectionSetup]);
 
-  function reconnectCell(): void {
-    setNotebookConnectionSetup(false);
-  }
-
   function extractEvaluationOutput(activeNotebookModel: INotebookModel) {
     const notebookCells = activeNotebookModel.cells;
     if (!notebookCells) {
@@ -41,19 +40,28 @@ export function useWithCellOutputs() {
     }
     for (let i = 0; i < notebookCells.length; i++) {
       const cellData = notebookCells.get(i);
-      const isEvaluationCell =
-        cellData.getMetadata("gai_cell_type") === GaiCellTypes.OUTPUT;
-      if (isEvaluationCell) {
-        setEvaluationOutput(extractClassifierOutputFromCell(cellData));
+      const cellType = cellData.getMetadata("gai_cell_type");
+      if (cellType === GaiCellTypes.INPUT) {
+        setEvaluationInput(extractInputFromCell(cellData));
         cellData.stateChanged.connect((changedCell) => {
-          setEvaluationOutput(extractClassifierOutputFromCell(changedCell));
+          setEvaluationInput(extractInputFromCell(changedCell));
+        });
+      } else if (cellType === GaiCellTypes.OUTPUT) {
+        setEvaluationOutput(extractOutputFromCell(cellData));
+        cellData.stateChanged.connect((changedCell) => {
+          setEvaluationOutput(extractOutputFromCell(changedCell));
+        });
+      } else if (cellType === GaiCellTypes.EVALUATION) {
+        cellData.contentChanged.connect((changedCell) => {
+          setEvaluationCode(changedCell.toJSON().source);
         });
       }
     }
   }
 
   return {
+    evaluationInput,
     evaluationOutput,
-    reconnectCell,
+    evaluationCode,
   };
 }
