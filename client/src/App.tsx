@@ -83,9 +83,7 @@ function App(): JSX.Element {
       return (
         <Summary
           experiment={experiment}
-          previousExperiments={game.simulator.experiments.filter(
-            (prevExperiment) => prevExperiment.id !== experiment.id
-          )}
+          previousExperiments={game.simulator.experiments}
           runSimulation={viewSimulation}
           goToNotebook={viewNotebook}
           setExperiment={setExperiment}

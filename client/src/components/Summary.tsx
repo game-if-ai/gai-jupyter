@@ -17,14 +17,23 @@ import {
   Typography,
 } from "@mui/material";
 import { Experiment, Simulation } from "../games/simulator";
-import { formatDateTime } from "../utils";
+import { formatDateTime, sortExperimentsByF1Score } from "../utils";
 
 function PreviousExperimentsView(props: {
+  currentExperiment: Experiment<Simulation>;
   previousExperiments: Experiment<Simulation>[];
   setExperiment: (e: Experiment<Simulation>) => void;
 }) {
-  const { previousExperiments, setExperiment } = props;
-  console.log(previousExperiments);
+  const { previousExperiments, setExperiment, currentExperiment } = props;
+  const experimentsSortedByF1score =
+    sortExperimentsByF1Score(previousExperiments);
+  const moreThanOnePreviousExperiment = experimentsSortedByF1score.length > 1;
+  const bestRunId = moreThanOnePreviousExperiment
+    ? experimentsSortedByF1score[experimentsSortedByF1score.length - 1].id
+    : "";
+  const worstRunId = moreThanOnePreviousExperiment
+    ? experimentsSortedByF1score[0].id
+    : "";
   return (
     <div>
       <Typography variant="h3">Previous Experiments</Typography>
@@ -52,46 +61,74 @@ function PreviousExperimentsView(props: {
           </TableRow>
         </TableHead>
         <TableBody>
-          {previousExperiments.map((previousExperiment) => {
-            const { summary, time: dateOfExperiment } = previousExperiment;
-            return (
-              <TableRow
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell align="center">
-                  {formatDateTime(dateOfExperiment)}
-                </TableCell>
-                <TableCell align="center">
-                  {previousExperiment.trainInstances}
-                </TableCell>
-                <TableCell align="center">
-                  {previousExperiment.testInstances}
-                </TableCell>
-                <TableCell align="center">{summary.averageScore}</TableCell>
-                <TableCell align="center">{`${
-                  Math.round(summary.averageAccuracy * 100 * 100) / 100
-                }%`}</TableCell>
-                <TableCell align="center">{`${
-                  Math.round(summary.averagePrecision * 100 * 100) / 100
-                }%`}</TableCell>
-                <TableCell align="center">{`${
-                  Math.round(summary.averageRecall * 100 * 100) / 100
-                }%`}</TableCell>
-                <TableCell align="center">{`${
-                  Math.round(summary.averageF1Score * 100 * 100) / 100
-                }%`}</TableCell>
-                <TableCell align="center">
-                  <Button
-                    onClick={() => {
-                      setExperiment(previousExperiment);
-                    }}
-                  >
-                    View
-                  </Button>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          {previousExperiments
+            .slice()
+            .reverse()
+            .map((previousExperiment, i) => {
+              const experimentSelected =
+                previousExperiment.id === currentExperiment.id;
+              const isBestExperiment = bestRunId === previousExperiment.id;
+              const isWorstExperiment = worstRunId === previousExperiment.id;
+              const { summary, time: dateOfExperiment } = previousExperiment;
+              return (
+                <TableRow
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  style={{
+                    backgroundColor: experimentSelected ? "#D3D3D3" : "white",
+                  }}
+                >
+                  <TableCell align="center">
+                    {isBestExperiment || isWorstExperiment ? (
+                      <span
+                        style={{
+                          color: isBestExperiment ? "green" : "red",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {isBestExperiment
+                          ? "Best Experiment"
+                          : "Worst Experiment"}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                    <br />
+                    {formatDateTime(dateOfExperiment)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {previousExperiment.trainInstances}
+                  </TableCell>
+                  <TableCell align="center">
+                    {previousExperiment.testInstances}
+                  </TableCell>
+                  <TableCell align="center">{summary.averageScore}</TableCell>
+                  <TableCell align="center">{`${Math.round(
+                    summary.averageAccuracy * 100
+                  )}%`}</TableCell>
+                  <TableCell align="center">{`${Math.round(
+                    summary.averagePrecision * 100
+                  )}%`}</TableCell>
+                  <TableCell align="center">{`${Math.round(
+                    summary.averageRecall * 100
+                  )}%`}</TableCell>
+                  <TableCell align="center">{`${Math.round(
+                    summary.averageF1Score * 100
+                  )}%`}</TableCell>
+                  {}
+                  <TableCell align="center">
+                    {!experimentSelected ? (
+                      <Button
+                        onClick={() => {
+                          setExperiment(previousExperiment);
+                        }}
+                      >
+                        View
+                      </Button>
+                    ) : undefined}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
         </TableBody>
       </TableContainer>
     </div>
@@ -107,10 +144,14 @@ function CurrentExperimentView(props: {
     summary,
     simulations,
     time: dateOfExperiment,
+    trainInstances,
+    testInstances,
   } = props.currentExperiment;
   return (
-    <div>
-      <Typography variant="h3">Current Experiment</Typography>
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
+      <Typography variant="h3">Experiment</Typography>
       <Typography>
         Date of experiment: {formatDateTime(dateOfExperiment)}
       </Typography>
@@ -119,41 +160,47 @@ function CurrentExperimentView(props: {
         style={{
           width: "fit-content",
           outline: "black solid 1px",
-          marginLeft: "auto",
-          marginRight: "auto",
           margin: 20,
+          padding: 20,
         }}
       >
         <Typography variant="h5">Experiment Averages</Typography>
-        <Typography>({simulations.length} Runs)</Typography>
-        <TableHead>
-          <TableRow>
-            <TableCell align="right">Train Instances</TableCell>
-            <TableCell align="right">Test Instances</TableCell>
-            <TableCell align="right">Score</TableCell>
-            <TableCell align="right">Accuracy</TableCell>
-            <TableCell align="right">Precision</TableCell>
-            <TableCell align="right">Recall</TableCell>
-            <TableCell align="right">F1 Score</TableCell>
-          </TableRow>
-        </TableHead>
         <TableBody>
-          <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-            <TableCell align="center">80</TableCell>
-            <TableCell align="center">20</TableCell>
+          <TableRow>
+            <TableCell align="center">Train Instances</TableCell>
+            <TableCell align="center">{trainInstances}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell align="center">Test Instances</TableCell>
+            <TableCell align="center">{testInstances}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell align="center">Test Score</TableCell>
             <TableCell align="center">{summary.averageScore}</TableCell>
-            <TableCell align="center">{`${
-              Math.round(summary.averageAccuracy * 100 * 100) / 100
-            }%`}</TableCell>
-            <TableCell align="center">{`${
-              Math.round(summary.averagePrecision * 100 * 100) / 100
-            }%`}</TableCell>
-            <TableCell align="center">{`${
-              Math.round(summary.averageRecall * 100 * 100) / 100
-            }%`}</TableCell>
-            <TableCell align="center">{`${
-              Math.round(summary.averageF1Score * 100 * 100) / 100
-            }%`}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell align="center">Accuracy</TableCell>
+            <TableCell align="center">{`${Math.round(
+              summary.averageAccuracy * 100
+            )}%`}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell align="center">Precision</TableCell>
+            <TableCell align="center">{`${Math.round(
+              summary.averagePrecision * 100
+            )}%`}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell align="center">Recall</TableCell>
+            <TableCell align="center">{`${Math.round(
+              summary.averageRecall * 100
+            )}%`}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell align="center">F1 Score</TableCell>
+            <TableCell align="center">{`${Math.round(
+              summary.averageF1Score * 100
+            )}%`}</TableCell>
           </TableRow>
         </TableBody>
       </TableContainer>
@@ -189,18 +236,18 @@ function CurrentExperimentView(props: {
                 {i + 1}
               </TableCell>
               <TableCell align="center">{s.score}</TableCell>
-              <TableCell align="center">{`${
-                Math.round(s.accuracy * 100 * 100) / 100
-              }%`}</TableCell>
-              <TableCell align="center">{`${
-                Math.round(s.precision * 100 * 100) / 100
-              }%`}</TableCell>
-              <TableCell align="center">{`${
-                Math.round(s.recall * 100 * 100) / 100
-              }%`}</TableCell>
-              <TableCell align="center">{`${
-                Math.round(s.f1Score * 100 * 100) / 100
-              }%`}</TableCell>
+              <TableCell align="center">{`${Math.round(
+                s.accuracy * 100
+              )}%`}</TableCell>
+              <TableCell align="center">{`${Math.round(
+                s.precision * 100
+              )}%`}</TableCell>
+              <TableCell align="center">{`${Math.round(
+                s.recall * 100
+              )}%`}</TableCell>
+              <TableCell align="center">{`${Math.round(
+                s.f1Score * 100
+              )}%`}</TableCell>
               <TableCell align="center">
                 <Button onClick={() => props.runSimulation(i)}>Run</Button>
               </TableCell>
@@ -213,6 +260,7 @@ function CurrentExperimentView(props: {
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
+          width: "100%",
         }}
       >
         <Button
@@ -275,6 +323,7 @@ function Summary(props: {
         ? PreviousExperimentsView({
             previousExperiments,
             setExperiment: _setExperiment,
+            currentExperiment: experiment,
           })
         : CurrentExperimentView({
             currentExperiment: experiment,
