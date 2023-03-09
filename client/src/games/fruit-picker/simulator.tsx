@@ -74,7 +74,6 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
     testInstances: number,
     evaluationCode: string[],
     notebook: INotebookState
-
   ): Experiment<FruitSimulation> {
     const experiment = super.simulate(
       outputs,

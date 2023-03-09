@@ -11,15 +11,15 @@ import { selectNotebookModel } from "@datalayer/jupyter-react";
 import { INotebookModel } from "@jupyterlab/notebook";
 import { MultilineString } from "@jupyterlab/nbformat";
 
-import { GaiCellTypes } from "../local-constants";
+import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { extractInputFromCell, extractOutputFromCell } from "../utils";
 
-export function useWithCellOutputs(notebookUid: string) {
+export function useWithCellOutputs() {
   const [evaluationInput, setEvaluationInput] = useState<number[]>([0, 0]);
   const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
   const [notebookConnectionSetup, setNotebookConnectionSetup] = useState(false);
   const [evaluationCode, setEvaluationCode] = useState<MultilineString>("");
-  const activeNotebookModel = selectNotebookModel(notebookUid);
+  const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
 
   useEffect(() => {
     if (
@@ -62,6 +62,6 @@ export function useWithCellOutputs(notebookUid: string) {
     evaluationOutput,
     evaluationCode,
     setupCellConnections,
-    setNotebookConnectionSetup
+    setNotebookConnectionSetup,
   };
 }

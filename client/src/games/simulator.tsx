@@ -66,7 +66,9 @@ export class Simulator<S extends Simulation> {
     const experiment: Experiment<S> = {
       id: uuid(),
       time: new Date(),
-      notebookContent: notebook?.model ? notebook.model.toJSON() as INotebookContent : undefined,
+      notebookContent: notebook?.model
+        ? (notebook.model.toJSON() as INotebookContent)
+        : undefined,
       trainInstances,
       testInstances,
       evaluationCode,
