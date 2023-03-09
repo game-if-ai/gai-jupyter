@@ -13,26 +13,30 @@ import { Button } from "@mui/material";
 import { Game } from "../games";
 import { useWithNotebookModifications } from "../hooks/use-with-notebook-modifications";
 import { useWithCellOutputs } from "../hooks/use-with-cell-outputs";
-import { NOTEBOOK_UID } from "../local-constants";
+import { Experiment, Simulation } from "../games/simulator";
 
 function NotebookComponent(props: {
   game: Game;
+  notebookUid: string;
+  curExperiment: Experiment<Simulation> | undefined;
   setExperiment: (e: number) => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
 }): JSX.Element {
-  const notebook = selectNotebook(NOTEBOOK_UID);
+  const {curExperiment, notebookUid} = props;
   const { evaluationOutput, evaluationInput, evaluationCode } =
-    useWithCellOutputs();
+    useWithCellOutputs(notebookUid);
   useWithNotebookModifications({ greyOutUneditableBlocks: true });
+  const notebook = selectNotebook(notebookUid);
 
   useEffect(() => {
-    if (evaluationOutput) {
+    if (evaluationOutput && evaluationOutput.length) {
       props.game.simulator.simulate(
         evaluationOutput,
         evaluationInput[0],
         evaluationInput[1],
-        evaluationCode
+        evaluationCode,
+        notebook
       );
       props.setExperiment(props.game.simulator.experiments.length - 1);
     }
@@ -64,13 +68,13 @@ function NotebookComponent(props: {
           textAlign: "left",
         }}
       >
-        <Notebook path={`${props.game.id}/test.ipynb`} uid={NOTEBOOK_UID} />
+        <Notebook model={curExperiment?.notebookContent ? curExperiment.notebookContent : undefined} path={curExperiment?.notebookContent ? undefined : `${props.game.id}/test.ipynb`} uid={notebookUid} />
       </div>
       <Button onClick={simulate}>Run</Button>
-      <Button onClick={toSimulation} disabled={!evaluationOutput.length}>
+      <Button onClick={toSimulation} disabled={!evaluationOutput.length && props.game.simulator.experiments.length == 0}>
         View Simulations
       </Button>
-      <Button disabled={!evaluationOutput.length} onClick={toSummary}>
+      <Button disabled={!evaluationOutput.length && props.game.simulator.experiments.length == 0} onClick={toSummary}>
         View Results Summary
       </Button>
     </div>

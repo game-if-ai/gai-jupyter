@@ -11,15 +11,15 @@ import { selectNotebookModel } from "@datalayer/jupyter-react";
 import { INotebookModel } from "@jupyterlab/notebook";
 import { MultilineString } from "@jupyterlab/nbformat";
 
-import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
+import { GaiCellTypes } from "../local-constants";
 import { extractInputFromCell, extractOutputFromCell } from "../utils";
 
-export function useWithCellOutputs() {
+export function useWithCellOutputs(notebookUid: string) {
   const [evaluationInput, setEvaluationInput] = useState<number[]>([0, 0]);
   const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
   const [notebookConnectionSetup, setNotebookConnectionSetup] = useState(false);
   const [evaluationCode, setEvaluationCode] = useState<MultilineString>("");
-  const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
+  const activeNotebookModel = selectNotebookModel(notebookUid);
 
   useEffect(() => {
     if (
@@ -30,10 +30,10 @@ export function useWithCellOutputs() {
       return;
     }
     setNotebookConnectionSetup(true);
-    extractEvaluationOutput(activeNotebookModel.model);
+    setupCellConnections(activeNotebookModel.model);
   }, [activeNotebookModel, notebookConnectionSetup]);
 
-  function extractEvaluationOutput(activeNotebookModel: INotebookModel) {
+  function setupCellConnections(activeNotebookModel: INotebookModel) {
     const notebookCells = activeNotebookModel.cells;
     if (!notebookCells) {
       return;
@@ -42,12 +42,10 @@ export function useWithCellOutputs() {
       const cellData = notebookCells.get(i);
       const cellType = cellData.getMetadata("gai_cell_type");
       if (cellType === GaiCellTypes.INPUT) {
-        setEvaluationInput(extractInputFromCell(cellData));
         cellData.stateChanged.connect((changedCell) => {
           setEvaluationInput(extractInputFromCell(changedCell));
         });
       } else if (cellType === GaiCellTypes.OUTPUT) {
-        setEvaluationOutput(extractOutputFromCell(cellData));
         cellData.stateChanged.connect((changedCell) => {
           setEvaluationOutput(extractOutputFromCell(changedCell));
         });
@@ -63,5 +61,7 @@ export function useWithCellOutputs() {
     evaluationInput,
     evaluationOutput,
     evaluationCode,
+    setupCellConnections,
+    setNotebookConnectionSetup
   };
 }

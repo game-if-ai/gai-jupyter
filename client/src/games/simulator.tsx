@@ -8,6 +8,8 @@ The full terms of this copyright and license should always be found in the root 
 import { MultilineString } from "@jupyterlab/nbformat";
 import { average } from "../utils";
 import { v4 as uuid } from "uuid";
+import { INotebookState } from "@datalayer/jupyter-react";
+import { INotebookContent } from "@jupyterlab/nbformat";
 
 export interface Experiment<S extends Simulation> {
   id: string;
@@ -17,6 +19,7 @@ export interface Experiment<S extends Simulation> {
   evaluationCode: MultilineString;
   simulations: S[];
   summary: SimulationSummary;
+  notebookContent: INotebookContent | undefined;
 }
 
 export interface Simulation {
@@ -57,11 +60,13 @@ export class Simulator<S extends Simulation> {
     outputs: any[][],
     trainInstances: number,
     testInstances: number,
-    evaluationCode: MultilineString
+    evaluationCode: MultilineString,
+    notebook: INotebookState | undefined
   ): Experiment<S> {
     const experiment: Experiment<S> = {
       id: uuid(),
       time: new Date(),
+      notebookContent: notebook?.model ? notebook.model.toJSON() as INotebookContent : undefined,
       trainInstances,
       testInstances,
       evaluationCode,

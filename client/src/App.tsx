@@ -5,7 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import React, { useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Experiment, Simulation } from "./games/simulator";
@@ -29,7 +29,7 @@ function App(): JSX.Element {
   const [game, setGame] = useState<Game>();
   const [experiment, setExperiment] = useState<Experiment<Simulation>>();
   const [simulation, setSimulation] = useState<number>(0);
-
+  const notebookUid = useRef(123);
   function loadGame(game: Game): void {
     setGame(game);
     setStep(STEP.NOTEBOOK);
@@ -61,13 +61,17 @@ function App(): JSX.Element {
     setStep(STEP.NOTEBOOK);
   }
 
+
   function getComponent(): JSX.Element {
     if (step === STEP.PICK_GAME) {
       return <GamePicker loadGame={loadGame} />;
     } else if (step === STEP.NOTEBOOK) {
+      notebookUid.current += 1;
       return (
         <Notebook
           game={game!}
+          notebookUid={String(notebookUid.current)}
+          curExperiment={experiment}
           setExperiment={viewExperiment}
           viewSummary={viewSummary}
           runSimulation={viewSimulation}
