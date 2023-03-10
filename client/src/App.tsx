@@ -29,7 +29,6 @@ function App(): JSX.Element {
   const [game, setGame] = useState<Game>();
   const [experiment, setExperiment] = useState<Experiment<Simulation>>();
   const [simulation, setSimulation] = useState<number>(0);
-
   function loadGame(game: Game): void {
     setGame(game);
     setStep(STEP.NOTEBOOK);
@@ -68,6 +67,7 @@ function App(): JSX.Element {
       return (
         <Notebook
           game={game!}
+          curExperiment={experiment}
           setExperiment={viewExperiment}
           viewSummary={viewSummary}
           runSimulation={viewSimulation}
@@ -83,9 +83,7 @@ function App(): JSX.Element {
       return (
         <Summary
           experiment={experiment}
-          previousExperiments={game.simulator.experiments.filter(
-            (prevExperiment) => prevExperiment.id !== experiment.id
-          )}
+          previousExperiments={game.simulator.experiments}
           runSimulation={viewSimulation}
           goToNotebook={viewNotebook}
           setExperiment={setExperiment}

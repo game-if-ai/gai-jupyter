@@ -6,35 +6,43 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Notebook, selectNotebook } from "@datalayer/jupyter-react";
 import { Button } from "@mui/material";
 
 import { Game } from "../games";
 import { useWithNotebookModifications } from "../hooks/use-with-notebook-modifications";
 import { useWithCellOutputs } from "../hooks/use-with-cell-outputs";
+import { Experiment, Simulation } from "../games/simulator";
 import { NOTEBOOK_UID } from "../local-constants";
 
 function NotebookComponent(props: {
   game: Game;
+  curExperiment: Experiment<Simulation> | undefined;
   setExperiment: (e: number) => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
 }): JSX.Element {
-  const notebook = selectNotebook(NOTEBOOK_UID);
+  const { curExperiment } = props;
   const { evaluationOutput, evaluationInput, evaluationCode } =
     useWithCellOutputs();
   useWithNotebookModifications({ greyOutUneditableBlocks: true });
+  const notebook = selectNotebook(NOTEBOOK_UID);
+  const [outputSimulated, setOutputSimulated] = useState(true);
+  const [loadedWithExperiment] = useState(Boolean(props.curExperiment)); //only evaluates when component first loads
 
   useEffect(() => {
-    if (evaluationOutput) {
+    if (evaluationOutput && evaluationOutput.length && !outputSimulated) {
+      console.log(evaluationOutput);
       props.game.simulator.simulate(
         evaluationOutput,
         evaluationInput[0],
         evaluationInput[1],
-        evaluationCode
+        evaluationCode,
+        notebook
       );
       props.setExperiment(props.game.simulator.experiments.length - 1);
+      setOutputSimulated(true);
     }
   }, [evaluationOutput]);
 
@@ -42,6 +50,8 @@ function NotebookComponent(props: {
     if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
+    // race condition: we are assuming that outputSimulated is properly set BEFORE the notebook finishes running
+    setOutputSimulated(false);
     notebook.adapter.commands.execute("notebook:run-all");
   }
 
@@ -64,13 +74,37 @@ function NotebookComponent(props: {
           textAlign: "left",
         }}
       >
-        <Notebook path={`${props.game.id}/test.ipynb`} uid={NOTEBOOK_UID} />
+        <Notebook
+          model={
+            loadedWithExperiment && curExperiment?.notebookContent
+              ? curExperiment.notebookContent
+              : undefined
+          }
+          path={
+            loadedWithExperiment && curExperiment?.notebookContent
+              ? undefined
+              : `${props.game.id}/test.ipynb`
+          }
+          uid={NOTEBOOK_UID}
+        />
       </div>
       <Button onClick={simulate}>Run</Button>
-      <Button onClick={toSimulation} disabled={!evaluationOutput.length}>
+      <Button
+        onClick={toSimulation}
+        disabled={
+          !evaluationOutput.length &&
+          props.game.simulator.experiments.length == 0
+        }
+      >
         View Simulations
       </Button>
-      <Button disabled={!evaluationOutput.length} onClick={toSummary}>
+      <Button
+        disabled={
+          !evaluationOutput.length &&
+          props.game.simulator.experiments.length == 0
+        }
+        onClick={toSummary}
+      >
         View Results Summary
       </Button>
     </div>

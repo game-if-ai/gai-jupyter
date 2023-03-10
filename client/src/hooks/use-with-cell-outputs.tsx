@@ -30,10 +30,10 @@ export function useWithCellOutputs() {
       return;
     }
     setNotebookConnectionSetup(true);
-    extractEvaluationOutput(activeNotebookModel.model);
+    setupCellConnections(activeNotebookModel.model);
   }, [activeNotebookModel, notebookConnectionSetup]);
 
-  function extractEvaluationOutput(activeNotebookModel: INotebookModel) {
+  function setupCellConnections(activeNotebookModel: INotebookModel) {
     const notebookCells = activeNotebookModel.cells;
     if (!notebookCells) {
       return;
@@ -42,12 +42,10 @@ export function useWithCellOutputs() {
       const cellData = notebookCells.get(i);
       const cellType = cellData.getMetadata("gai_cell_type");
       if (cellType === GaiCellTypes.INPUT) {
-        setEvaluationInput(extractInputFromCell(cellData));
         cellData.stateChanged.connect((changedCell) => {
           setEvaluationInput(extractInputFromCell(changedCell));
         });
       } else if (cellType === GaiCellTypes.OUTPUT) {
-        setEvaluationOutput(extractOutputFromCell(cellData));
         cellData.stateChanged.connect((changedCell) => {
           setEvaluationOutput(extractOutputFromCell(changedCell));
         });
@@ -63,5 +61,7 @@ export function useWithCellOutputs() {
     evaluationInput,
     evaluationOutput,
     evaluationCode,
+    setupCellConnections,
+    setNotebookConnectionSetup,
   };
 }

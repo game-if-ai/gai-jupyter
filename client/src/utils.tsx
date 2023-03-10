@@ -8,6 +8,7 @@ import { INotebookState } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
+import { Experiment, Simulation } from "games/simulator";
 
 export function random(max: number, min: number = 0): number {
   return Math.random() * (max - min) + min;
@@ -82,4 +83,23 @@ export function extractOutputFromCell<T>(cell: ICellModel): T[][] {
       ((cellOutput?.data as PartialJSONObject)["application/json"] as any)) ||
     [];
   return data;
+}
+
+function f1ScoreComparison(
+  a: Experiment<Simulation>,
+  b: Experiment<Simulation>
+) {
+  if (a.summary.averageF1Score < b.summary.averageF1Score) {
+    return -1;
+  }
+  if (a.summary.averageF1Score > b.summary.averageF1Score) {
+    return 1;
+  }
+  return 0;
+}
+
+export function sortExperimentsByF1Score(
+  experiments: Experiment<Simulation>[]
+) {
+  return experiments.slice().sort(f1ScoreComparison);
 }

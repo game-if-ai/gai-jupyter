@@ -8,6 +8,7 @@ The full terms of this copyright and license should always be found in the root 
 import { Experiment, Simulation, Simulator } from "../simulator";
 import { Review, Reviews } from "./types";
 import { randomInt } from "../../utils";
+import { INotebookState } from "@datalayer/jupyter-react";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
@@ -62,13 +63,15 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
     outputs: ClassifierOutput[][],
     trainInstances: number,
     testInstances: number,
-    evaluationCode: string[]
+    evaluationCode: string[],
+    notebook: INotebookState
   ): Experiment<CafeSimulation> {
     const experiment = super.simulate(
       outputs,
       trainInstances,
       testInstances,
-      evaluationCode
+      evaluationCode,
+      notebook
     );
     for (let run = 0; run < outputs.length; run++) {
       const sim = this.play();
