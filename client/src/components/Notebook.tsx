@@ -6,7 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Notebook, selectNotebook } from "@datalayer/jupyter-react";
 import { Button } from "@mui/material";
 
@@ -28,9 +28,12 @@ function NotebookComponent(props: {
     useWithCellOutputs();
   useWithNotebookModifications({ greyOutUneditableBlocks: true });
   const notebook = selectNotebook(NOTEBOOK_UID);
+  const [outputSimulated, setOutputSimulated] = useState(true);
+  const [loadedWithExperiment] = useState(Boolean(props.curExperiment)); //only evaluates when component first loads
 
   useEffect(() => {
-    if (evaluationOutput && evaluationOutput.length) {
+    if (evaluationOutput && evaluationOutput.length && !outputSimulated) {
+      console.log(evaluationOutput);
       props.game.simulator.simulate(
         evaluationOutput,
         evaluationInput[0],
@@ -39,6 +42,7 @@ function NotebookComponent(props: {
         notebook
       );
       props.setExperiment(props.game.simulator.experiments.length - 1);
+      setOutputSimulated(true);
     }
   }, [evaluationOutput]);
 
@@ -46,6 +50,8 @@ function NotebookComponent(props: {
     if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
+    // race condition: we are assuming that outputSimulated is properly set BEFORE the notebook finishes running
+    setOutputSimulated(false);
     notebook.adapter.commands.execute("notebook:run-all");
   }
 
@@ -70,12 +76,12 @@ function NotebookComponent(props: {
       >
         <Notebook
           model={
-            curExperiment?.notebookContent
+            loadedWithExperiment && curExperiment?.notebookContent
               ? curExperiment.notebookContent
               : undefined
           }
           path={
-            curExperiment?.notebookContent
+            loadedWithExperiment && curExperiment?.notebookContent
               ? undefined
               : `${props.game.id}/test.ipynb`
           }
