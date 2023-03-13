@@ -8,6 +8,7 @@ The full terms of this copyright and license should always be found in the root 
 import { Fruit, Fruits, FruitTrait } from "./types";
 import { Experiment, Simulation, Simulator } from "../simulator";
 import { randomInt } from "../../utils";
+import { INotebookState } from "@datalayer/jupyter-react";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
@@ -70,9 +71,15 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
   simulate(
     inputs: number[],
     outputs: FruitClassifierOutput[][],
-    evaluationCode: string[]
+    evaluationCode: string[],
+    notebook: INotebookState
   ): Experiment<FruitSimulation> {
-    const experiment = super.simulate(inputs, outputs, evaluationCode);
+    const experiment = super.simulate(
+      inputs,
+      outputs,
+      evaluationCode,
+      notebook
+    );
     for (let run = 0; run < outputs.length; run++) {
       const sim = this.play();
       const simClassifierData = outputs[run];

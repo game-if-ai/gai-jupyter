@@ -18,6 +18,7 @@ import { ICellModel } from "@jupyterlab/cells";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { extractInputFromCell, extractOutputFromCell } from "../utils";
+import { Experiment, Simulation } from "../games/simulator";
 
 export interface CellState {
   cell: ICellModel;

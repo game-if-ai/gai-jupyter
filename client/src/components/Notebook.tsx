@@ -7,7 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
-import { Notebook, Output } from "@datalayer/jupyter-react";
+import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import {
   AppBar,
   Button,
@@ -38,6 +38,7 @@ import {
 import CodeEditor from "@uiw/react-textarea-code-editor";
 
 import { Game } from "../games";
+import { Experiment, Simulation } from "../games/simulator";
 import { CellState, useWithCellOutputs } from "../hooks/use-with-cell-outputs";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
@@ -119,12 +120,14 @@ function NotebookCell(props: {
 
 function NotebookComponent(props: {
   game: Game;
+  curExperiment: Experiment<Simulation> | undefined;
   setExperiment: (e: number) => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
 }): JSX.Element {
   const classes = useStyles();
   const { height } = useWithWindowSize();
+  const { game, curExperiment } = props;
   const {
     cells,
     code,
@@ -138,33 +141,46 @@ function NotebookComponent(props: {
     saveCode,
     undoCode,
   } = useWithCellOutputs();
+  const notebook = selectNotebook(NOTEBOOK_UID);
   const [mode, setMode] = useState<"dark" | "light">("light");
   const [dialogUnsaved, setDialogUnsaved] = useState<boolean>(false);
+  const [outputSimulated, setOutputSimulated] = useState(true);
+  const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
+
+  useEffect(() => {
+    if (evaluationOutput && evaluationOutput.length && !outputSimulated) {
+      console.log(evaluationOutput);
+      setOutputSimulated(true);
+    }
+  }, [evaluationOutput]);
 
   function toSimulation(): void {
-    props.game.simulator.simulate(
+    game.simulator.simulate(
       evaluationInput,
       evaluationOutput,
-      evaluationCode
+      evaluationCode,
+      notebook
     );
-    props.setExperiment(props.game.simulator.experiments.length - 1);
+    props.setExperiment(game.simulator.experiments.length - 1);
     props.runSimulation(0);
   }
 
   function toSummary(): void {
-    props.game.simulator.simulate(
+    game.simulator.simulate(
       evaluationInput,
       evaluationOutput,
-      evaluationCode
+      evaluationCode,
+      notebook
     );
-    props.setExperiment(props.game.simulator.experiments.length - 1);
+    props.setExperiment(game.simulator.experiments.length - 1);
     props.viewSummary();
   }
 
-  function onRun(): void {
+  function simulate(): void {
     if (isCodeEdited) {
       setDialogUnsaved(true);
     } else {
+      setOutputSimulated(false);
       run();
     }
   }
@@ -226,13 +242,13 @@ function NotebookComponent(props: {
           <IconButton disabled={!isCodeEdited} onClick={undoCode}>
             <Undo />
           </IconButton>
-          <IconButton onClick={onRun}>
+          <IconButton onClick={simulate}>
             <PlayArrow />
           </IconButton>
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <div className={classes.cells} style={{ height: height - 100 }}>
+      <div className={classes.cells} style={{ height: height - 150 }}>
         {Object.entries(cells).map((v) => (
           <NotebookCell
             key={v[0]}
@@ -257,7 +273,19 @@ function NotebookComponent(props: {
         {ShortcutKey(";", ";")}
       </div>
       <div style={{ display: "none" }}>
-        <Notebook path={`${props.game.id}/test.ipynb`} uid={NOTEBOOK_UID} />
+        <Notebook
+          model={
+            loadedWithExperiment && curExperiment?.notebookContent
+              ? curExperiment.notebookContent
+              : undefined
+          }
+          path={
+            loadedWithExperiment && curExperiment?.notebookContent
+              ? undefined
+              : `${props.game.id}/test.ipynb`
+          }
+          uid={NOTEBOOK_UID}
+        />
       </div>
       <Dialog
         onClose={clear}
@@ -309,7 +337,7 @@ const useStyles = makeStyles(() => ({
   },
   cells: {
     width: "100%",
-    flexGrow: 1,
+    // flexGrow: 1,
     overflowY: "scroll",
   },
   cellHeader: {
