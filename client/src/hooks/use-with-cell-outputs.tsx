@@ -19,19 +19,18 @@ import { ICellModel } from "@jupyterlab/cells";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { extractInputFromCell, extractOutputFromCell } from "../utils";
 
-interface CellState {
+export interface CellState {
   cell: ICellModel;
   output: IOutput[];
 }
 
 export function useWithCellOutputs() {
-  const [evaluationInput, setEvaluationInput] = useState<number[]>([0, 0]);
+  const [evaluationInput, setEvaluationInput] = useState<number[]>([]);
   const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
   const [evaluationCode, setEvaluationCode] = useState<MultilineString>("");
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [cells, setCells] = useState<Record<string, CellState>>({});
-  const [curCell, setCurCell] = useState<string>("");
-  const [code, setCode] = useState<MultilineString>();
+  const [code, setCode] = useState<MultilineString>("");
 
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
@@ -81,40 +80,20 @@ export function useWithCellOutputs() {
         });
       }
     }
-    setCurCell(GaiCellTypes.EVALUATION);
     setCells(cs);
     setNotebookConnected(true);
-  }
-
-  function selectCell(cellType: GaiCellTypes): void {
-    if (!notebook || !notebook.model || !notebook.adapter) {
-      return;
-    }
-    setCurCell(cellType);
-    const cell = cells[cellType].cell;
-    const curIdx = Object.values(cells).findIndex(
-      (c) =>
-        c.cell.getMetadata("gai_cell_type") ===
-        cell.getMetadata("gai_cell_type")
-    );
-    const cellIdx = Object.values(cells).findIndex(
-      (c) => c.cell.getMetadata("gai_cell_type") === cellType
-    );
-    for (let i = curIdx; i !== cellIdx; i += curIdx > cellIdx ? -1 : 1) {
-      if (cellIdx < i) {
-        notebook.adapter.commands.execute("notebook-cells:select-above");
-      } else {
-        notebook.adapter.commands.execute("notebook-cells:select-below");
-      }
-    }
   }
 
   function run(): void {
     if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
-    // notebook.adapter.commands.execute("run-selected-codecell");
     notebook.adapter.commands.execute("notebook:run-all");
+  }
+
+  function clear(): void {
+    setEvaluationInput([]);
+    setEvaluationOutput([]);
   }
 
   function editCode(code: string): void {
@@ -145,14 +124,13 @@ export function useWithCellOutputs() {
 
   return {
     cells,
-    curCell,
     code,
     isCodeEdited,
     evaluationInput,
     evaluationOutput,
     evaluationCode,
-    selectCell,
     run,
+    clear,
     editCode,
     saveCode,
     undoCode,

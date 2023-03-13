@@ -9,6 +9,20 @@ import { ICellModel } from "@jupyterlab/cells";
 import { IOutput } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
 
+export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
+  return [...a.slice(0, i), item, ...a.slice(i + 1)];
+}
+
+export function copyAndRemove<T>(a: T[], i: number): T[] {
+  return [...a.slice(0, i), ...a.slice(i + 1)];
+}
+
+export function copyAndMove<T>(a: T[], moveFrom: number, moveTo: number): T[] {
+  const item = a[moveFrom];
+  const removed = copyAndRemove(a, moveFrom);
+  return [...removed.slice(0, moveTo), item, ...removed.slice(moveTo)];
+}
+
 export function random(max: number, min: number = 0): number {
   return Math.random() * (max - min) + min;
 }
@@ -40,9 +54,7 @@ export function formatDateTime(now: Date) {
   const hours = now.getHours();
   const minutes = now.getMinutes();
   const seconds = now.getSeconds();
-
   const dateTimeString = `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`;
-
   return dateTimeString;
 }
 
@@ -51,7 +63,6 @@ export function extractNotebookCellCode(notebook: INotebookState): string[][] {
     return [];
   }
   let cellSources: string[][] = [];
-
   for (let i = 0; i < notebook.model.cells.length; i++) {
     const cell = notebook.model.cells.get(i);
     const cellSource = cell.toJSON().source;
