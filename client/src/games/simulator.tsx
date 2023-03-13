@@ -57,9 +57,8 @@ export class Simulator<S extends Simulation> {
   }
 
   simulate(
+    inputs: number[],
     outputs: any[][],
-    trainInstances: number,
-    testInstances: number,
     evaluationCode: MultilineString,
     notebook: INotebookState | undefined
   ): Experiment<S> {
@@ -69,8 +68,8 @@ export class Simulator<S extends Simulation> {
       notebookContent: notebook?.model
         ? (notebook.model.toJSON() as INotebookContent)
         : undefined,
-      trainInstances,
-      testInstances,
+      trainInstances: inputs[0],
+      testInstances: inputs[1],
       evaluationCode,
       simulations: [],
       summary: {

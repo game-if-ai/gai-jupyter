@@ -7,61 +7,133 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import { useEffect, useState } from "react";
-import { selectNotebookModel } from "@datalayer/jupyter-react";
+import { selectNotebook, selectNotebookModel } from "@datalayer/jupyter-react";
 import { INotebookModel } from "@jupyterlab/notebook";
-import { MultilineString } from "@jupyterlab/nbformat";
+import {
+  INotebookContent,
+  IOutput,
+  MultilineString,
+} from "@jupyterlab/nbformat";
+import { ICellModel } from "@jupyterlab/cells";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { extractInputFromCell, extractOutputFromCell } from "../utils";
+import { Experiment, Simulation } from "../games/simulator";
+
+export interface CellState {
+  cell: ICellModel;
+  output: IOutput[];
+}
 
 export function useWithCellOutputs() {
-  const [evaluationInput, setEvaluationInput] = useState<number[]>([0, 0]);
+  const [evaluationInput, setEvaluationInput] = useState<number[]>([]);
   const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
-  const [notebookConnectionSetup, setNotebookConnectionSetup] = useState(false);
   const [evaluationCode, setEvaluationCode] = useState<MultilineString>("");
+  const [notebookConnected, setNotebookConnected] = useState(false);
+  const [cells, setCells] = useState<Record<string, CellState>>({});
+  const [code, setCode] = useState<MultilineString>("");
+
+  const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
+  const isCodeEdited = `${code}` !== `${evaluationCode}`;
 
   useEffect(() => {
     if (
       !activeNotebookModel ||
       !activeNotebookModel.model ||
-      notebookConnectionSetup
+      !activeNotebookModel.model.cells ||
+      notebookConnected
     ) {
       return;
     }
-    setNotebookConnectionSetup(true);
-    setupCellConnections(activeNotebookModel.model);
-  }, [activeNotebookModel, notebookConnectionSetup]);
+    connect(activeNotebookModel.model);
+  }, [activeNotebookModel]);
 
-  function setupCellConnections(activeNotebookModel: INotebookModel) {
+  function connect(activeNotebookModel: INotebookModel) {
+    const cs: Record<string, CellState> = {};
     const notebookCells = activeNotebookModel.cells;
-    if (!notebookCells) {
-      return;
-    }
     for (let i = 0; i < notebookCells.length; i++) {
       const cellData = notebookCells.get(i);
       const cellType = cellData.getMetadata("gai_cell_type");
-      if (cellType === GaiCellTypes.INPUT) {
-        cellData.stateChanged.connect((changedCell) => {
+      cs[cellType as string] = {
+        cell: cellData,
+        output: [],
+      };
+      cellData.stateChanged.connect((changedCell) => {
+        const type = changedCell.getMetadata("gai_cell_type");
+        cells[type as string] = {
+          cell: changedCell,
+          output: changedCell.toJSON().outputs as IOutput[],
+        };
+        setCells({ ...cells });
+        if (type === GaiCellTypes.INPUT) {
           setEvaluationInput(extractInputFromCell(changedCell));
-        });
-      } else if (cellType === GaiCellTypes.OUTPUT) {
-        cellData.stateChanged.connect((changedCell) => {
+        }
+        if (type === GaiCellTypes.OUTPUT) {
           setEvaluationOutput(extractOutputFromCell(changedCell));
-        });
-      } else if (cellType === GaiCellTypes.EVALUATION) {
+        }
+      });
+      if (cellType === GaiCellTypes.EVALUATION) {
+        setCode(cellData.toJSON().source);
+        setEvaluationCode(cellData.toJSON().source);
         cellData.contentChanged.connect((changedCell) => {
           setEvaluationCode(changedCell.toJSON().source);
         });
       }
     }
+    setCells(cs);
+    setNotebookConnected(true);
+  }
+
+  function run(): void {
+    if (!notebook || !notebook.model || !notebook.adapter) {
+      return;
+    }
+    notebook.adapter.commands.execute("notebook:run-all");
+  }
+
+  function clear(): void {
+    setEvaluationInput([]);
+    setEvaluationOutput([]);
+  }
+
+  function editCode(code: string): void {
+    setCode(code);
+  }
+
+  function saveCode(): void {
+    if (!notebook || !notebook.model || !notebook.adapter || !code) {
+      return;
+    }
+    setNotebookConnected(false);
+    const source = notebook.model.toJSON() as INotebookContent;
+    for (let i = 0; i < notebook.model.cells.length; i++) {
+      const cell = notebook.model.cells.get(i);
+      if (cell.getMetadata("gai_cell_type") === GaiCellTypes.EVALUATION) {
+        source.cells[i].source = code;
+      }
+    }
+    notebook.adapter.setNotebookModel(source);
+  }
+
+  function undoCode(): void {
+    if (!isCodeEdited) {
+      return;
+    }
+    setCode(evaluationCode);
   }
 
   return {
+    cells,
+    code,
+    isCodeEdited,
     evaluationInput,
     evaluationOutput,
     evaluationCode,
-    setupCellConnections,
-    setNotebookConnectionSetup,
+    run,
+    clear,
+    editCode,
+    saveCode,
+    undoCode,
   };
 }

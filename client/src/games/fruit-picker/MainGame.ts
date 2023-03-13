@@ -19,7 +19,7 @@ import { Fruits } from "./types";
 
 const fontStyle = {
   fontFamily: "Arial",
-  fontSize: "48",
+  fontSize: "48px",
   color: "#ffffff",
   fontStyle: "bold",
   shadow: {
@@ -80,14 +80,27 @@ export default class MainGame extends Phaser.Scene {
     this.eventSystem = data.eventSystem;
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
-    //
     this.add.image(400, 300, "background");
     this.timerText = this.add.text(20, 20, `${GAME_TIME}:00`, fontStyle);
-    this.scoreText = this.add.text(600, 20, "Score: 0", fontStyle);
+    this.scoreText = this.add.text(-20, 20, "Score: 0", {
+      ...fontStyle,
+      fontSize: "24px",
+      fixedWidth: Number(this.game.config.width),
+      align: "right",
+    });
     if (!this.config.playManually) {
-      this.accuracyText = this.add.text(680, 20, "Accuracy: 100%", fontStyle);
+      this.accuracyText = this.add.text(-20, 60, "Accuracy: 100%", {
+        ...fontStyle,
+        fontSize: "24px",
+        fixedWidth: Number(this.game.config.width),
+        align: "right",
+      });
     }
-    this.matchText = this.add.text(350, 550, "Catch the fruits!", fontStyle);
+    this.matchText = this.add.text(20, 550, "Catch the fruits!", {
+      ...fontStyle,
+      fixedWidth: Number(this.game.config.width),
+      align: "center",
+    });
     this.sound.play("music", { loop: true });
     this.eventSystem.on("pause", this.pause, this);
     this.eventSystem.on("mute", this.mute, this);
@@ -118,6 +131,7 @@ export default class MainGame extends Phaser.Scene {
     });
     this.spawnEvent = this.time.addEvent({
       delay: SPAWN_TIME,
+      startAt: SPAWN_TIME,
       timeScale: this.speed,
       loop: true,
       callback: this.spawnFruit,

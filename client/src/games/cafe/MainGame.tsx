@@ -17,7 +17,7 @@ import {
 
 const fontStyle = {
   fontFamily: "Arial",
-  fontSize: "48",
+  fontSize: "24px",
   color: "#ffffff",
   fontStyle: "bold",
   shadow: {
@@ -32,6 +32,7 @@ const fontStyle = {
 const labelFont = {
   fontFamily: "Arial",
   fontStyle: "bold",
+  fontSize: "18px",
   color: "#ffffff",
   wordWrap: { width: 480 },
   shadow: {
@@ -118,11 +119,20 @@ export default class MainGame extends Phaser.Scene {
     this.trash.state = "trash";
     // text
     this.timerText = this.add.text(5, 5, `Time: ${GAME_TIME}:00`, fontStyle);
-    this.scoreText = this.add.text(565, 5, "Score: 0", fontStyle);
+    this.scoreText = this.add.text(-5, 5, "Score: 0", {
+      ...fontStyle,
+      fixedWidth: Number(this.game.config.width),
+      align: "right",
+    });
     if (!this.config.playManually) {
-      this.accuracyText = this.add.text(565, 20, "Accuracy: 100%", fontStyle);
+      this.accuracyText = this.add.text(-5, 25, "Accuracy: 100%", {
+        ...fontStyle,
+        fixedWidth: Number(this.game.config.width),
+        align: "right",
+      });
     }
     this.text = this.add.text(5, 290, "", labelFont);
+    this.text.state = "text";
     // start
     this.eventSystem.on("pause", this.pause, this);
     this.eventSystem.on("mute", this.mute, this);
@@ -134,6 +144,7 @@ export default class MainGame extends Phaser.Scene {
     if (this.config?.playManually) {
       this.config.simulation = this.config.simulator.play();
       this.trash?.setInteractive();
+      this.text?.setInteractive();
       this.input.on("gameobjectdown", this.selectItem, this);
     }
     this.score = 0;
@@ -185,12 +196,12 @@ export default class MainGame extends Phaser.Scene {
     });
     this.spawnEvent = this.time.addEvent({
       delay: SPAWN_TIME,
+      startAt: SPAWN_TIME,
       timeScale: this.speed,
       loop: true,
       callback: this.spawn,
       callbackScope: this,
     });
-    this.spawn();
   }
 
   update() {
@@ -216,7 +227,7 @@ export default class MainGame extends Phaser.Scene {
     }
     const simulation = this.config.simulation;
     const spawn = simulation.spawns[this.itemIdx];
-    const item = this.add.sprite(0, 200, "food", spawn.item).setScale(2);
+    const item = this.add.sprite(0, 200, "food", spawn.item).setScale(3);
     item.setData("review", spawn.review.review);
     item.setData("rating", spawn.review.rating);
     item.setData("idx", this.itemIdx);
@@ -268,6 +279,13 @@ export default class MainGame extends Phaser.Scene {
     if (item.state === "trash") {
       this.trashItem();
       return;
+    }
+    if (item.state === "text") {
+      const i = this.items.find((i) => i.state !== "deleted");
+      if (!i) {
+        return;
+      }
+      item = i;
     }
     if (item.data.list["rating"] === 1) {
       this.speech?.setTexture("char_speech", "good");

@@ -60,16 +60,14 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
   }
 
   simulate(
+    inputs: number[],
     outputs: ClassifierOutput[][],
-    trainInstances: number,
-    testInstances: number,
     evaluationCode: string[],
     notebook: INotebookState
   ): Experiment<CafeSimulation> {
     const experiment = super.simulate(
+      inputs,
       outputs,
-      trainInstances,
-      testInstances,
       evaluationCode,
       notebook
     );

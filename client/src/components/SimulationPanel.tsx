@@ -15,13 +15,13 @@ import {
   NavigateNext,
   VolumeOff,
   VolumeUp,
-  FastForward,
 } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Experiment, Simulation } from "../games/simulator";
 import { Game } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
+import { useWithWindowSize } from "../hooks/use-with-window-size";
 
 const SPEEDS = [1, 2, 4, 10];
 
@@ -33,8 +33,13 @@ function GamePlayer(props: {
   toSummary: () => void;
 }): JSX.Element {
   const classes = useStyles();
+  const { width, height } = useWithWindowSize();
   const [simulation, setSimulation] = useState<number>(props.simulation);
   const [showSummary, setShowSummary] = useState<boolean>(false);
+  const aspect =
+    (props.game.config.scale!.width! as number) /
+    (props.game.config.scale!.height! as number);
+  const gameHeight = Math.min(width / aspect, height - 100);
 
   const { simulations } = props.experiment;
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
@@ -87,21 +92,19 @@ function GamePlayer(props: {
         <Button disabled={simulation === 0} onClick={() => toSimulation(0)}>
           1
         </Button>
-        <Typography>...</Typography>
-        <Button
+        <IconButton
           disabled={simulation === 0}
           onClick={() => toSimulation(simulation - 1)}
         >
           <NavigateBefore />
-        </Button>
+        </IconButton>
         <Typography>{simulation + 1}</Typography>
-        <Button
+        <IconButton
           disabled={simulation === simulations.length - 1}
           onClick={() => toSimulation(simulation + 1)}
         >
           <NavigateNext />
-        </Button>
-        <Typography>...</Typography>
+        </IconButton>
         <Button
           disabled={simulation === simulations.length - 1}
           onClick={() => toSimulation(simulations.length - 1)}
@@ -114,12 +117,13 @@ function GamePlayer(props: {
       </div>
       <div
         className={classes.gameContainer}
-        style={{
-          height: props.game.config.height,
-          width: props.game.config.width,
-        }}
+        style={{ height: gameHeight, width: width }}
       >
-        <div id="game-container" ref={gameContainerRef} />
+        <div
+          id="game-container"
+          style={{ width, height: gameHeight }}
+          ref={gameContainerRef}
+        />
         <div
           className={classes.summary}
           style={{ display: showSummary ? "block" : "none" }}
@@ -134,8 +138,6 @@ function GamePlayer(props: {
         <IconButton onClick={() => pause(!isPaused)}>
           {isPaused ? <PlayCircleOutline /> : <PauseCircleOutline />}
         </IconButton>
-        <div style={{ width: 50 }} />
-        <FastForward color="disabled" />
         {SPEEDS.map((s) => (
           <Button
             className={classes.button}
@@ -145,13 +147,12 @@ function GamePlayer(props: {
             x{s}
           </Button>
         ))}
-        <div style={{ width: 50 }} />
         <Button
           className={classes.button}
           disabled={showSummary}
           onClick={endSimulation}
         >
-          End Run
+          End
         </Button>
       </div>
     </div>
@@ -163,9 +164,9 @@ const useStyles = makeStyles(() => ({
     position: "relative",
   },
   controls: {
-    display: "flex",
-    flexFlow: "row",
     width: "100%",
+    display: "flex",
+    flexDirection: "row",
     alignContent: "center",
     alignItems: "center",
     justifyItems: "center",
@@ -175,10 +176,13 @@ const useStyles = makeStyles(() => ({
     position: "absolute",
     left: 0,
     right: 0,
-    top: 150,
-    marginLeft: "auto",
-    marginRight: "auto",
-    width: "fit-content",
+    top: 0,
+    bottom: 0,
+    margin: "auto",
+    width: "min-content",
+    height: "min-content",
+    maxWidth: "100%",
+    maxHeight: "100%",
   },
   button: {
     textTransform: "none",
