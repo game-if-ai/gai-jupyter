@@ -1,0 +1,22 @@
+version: 0.2
+
+env:
+  variables:
+    STAGE: 'prod'
+  parameter-store:
+    S3_DEPLOY_BUCKET_PROD: "/gameifai/prod/s3-websites/NAME"
+    CDN_ID_PROD: "/gameifai/prod/CLOUDFRONT_DISTRIBUTION_ID"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+    commands:
+      - n 18
+
+  build:
+    commands:
+      - cd client && npm run build
+      - echo Deploying to $S3_DEPLOY_BUCKET_PROD
+      - aws s3 sync ./build s3://$S3_DEPLOY_BUCKET_PROD/
+      - aws cloudfront create-invalidation --distribution-id $CDN_ID_PROD --paths "/*"
