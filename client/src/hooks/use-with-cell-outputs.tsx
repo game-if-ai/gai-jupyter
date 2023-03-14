@@ -18,7 +18,6 @@ import { ICellModel } from "@jupyterlab/cells";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { extractInputFromCell, extractOutputFromCell } from "../utils";
-import { Experiment, Simulation } from "../games/simulator";
 
 export interface CellState {
   cell: ICellModel;
@@ -31,6 +30,7 @@ export function useWithCellOutputs() {
   const [evaluationCode, setEvaluationCode] = useState<MultilineString>("");
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [cells, setCells] = useState<Record<string, CellState>>({});
+  const [curCell, setCurCell] = useState<string>("");
   const [code, setCode] = useState<MultilineString>("");
 
   const notebook = selectNotebook(NOTEBOOK_UID);
@@ -125,6 +125,7 @@ export function useWithCellOutputs() {
 
   return {
     cells,
+    curCell,
     code,
     isCodeEdited,
     evaluationInput,
@@ -135,5 +136,6 @@ export function useWithCellOutputs() {
     editCode,
     saveCode,
     undoCode,
+    setCurCell,
   };
 }

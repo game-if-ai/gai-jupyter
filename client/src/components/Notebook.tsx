@@ -6,7 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import {
   AppBar,
@@ -49,13 +49,45 @@ function NotebookCell(props: {
   mode: "dark" | "light";
   code: string | string[];
   editCode: (s: string) => void;
+  setCurCell: (s: string) => void;
 }): JSX.Element {
   const classes = useStyles();
   const { mode, cellType, cellState } = props;
   const { cell, output } = cellState;
   const [showOutput, setShowOutput] = useState<boolean>(true);
   const [outputElement, setOutputElement] = useState<JSX.Element>();
+  const [topVisible, setTopVisible] = useState<boolean>(false);
+  const [botVisible, setBotVisible] = useState<boolean>(false);
   const isDisabled = cell.getMetadata("contenteditable") === false;
+  const refTop = useRef<HTMLDivElement>(null);
+  const refBot = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!refTop.current || !refBot.current) {
+      return;
+    }
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach((e) => {
+        const attr = e.target.getAttribute("cy-data");
+        if (attr === "top") {
+          setTopVisible(e.isIntersecting);
+        } else if (attr === "bottom") {
+          setBotVisible(e.isIntersecting);
+        }
+      });
+    });
+    observer.observe(refTop.current);
+    observer.observe(refBot.current);
+    return () => {
+      observer.disconnect();
+    };
+  }, [refTop.current, refBot.current]);
+
+  useEffect(() => {
+    if (topVisible && botVisible) {
+      props.setCurCell(cellType);
+    }
+  }, [topVisible, botVisible]);
 
   useEffect(() => {
     if (outputElement) {
@@ -86,8 +118,11 @@ function NotebookCell(props: {
             : "#f6f8fa",
       }}
     >
+      <div cy-data="top" ref={refTop} />
       <div className={classes.cellHeader}>
-        {isDisabled ? <EditOff fontSize="small" /> : undefined}
+        {isDisabled ? (
+          <EditOff fontSize="small" className={classes.noEditIcon} />
+        ) : undefined}
         <Typography>{cellType.toLowerCase()}</Typography>
         <div style={{ flexGrow: 1 }} />
         <Button
@@ -114,6 +149,7 @@ function NotebookCell(props: {
       <Collapse in={showOutput} timeout="auto" unmountOnExit>
         {outputElement}
       </Collapse>
+      <div cy-data="bottom" ref={refBot} />
     </div>
   );
 }
@@ -130,6 +166,7 @@ function NotebookComponent(props: {
   const { game, curExperiment } = props;
   const {
     cells,
+    curCell,
     code,
     isCodeEdited,
     evaluationInput,
@@ -140,6 +177,7 @@ function NotebookComponent(props: {
     editCode,
     saveCode,
     undoCode,
+    setCurCell,
   } = useWithCellOutputs();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const [mode, setMode] = useState<"dark" | "light">("light");
@@ -149,7 +187,6 @@ function NotebookComponent(props: {
 
   useEffect(() => {
     if (evaluationOutput && evaluationOutput.length && !outputSimulated) {
-      console.log(evaluationOutput);
       setOutputSimulated(true);
     }
   }, [evaluationOutput]);
@@ -188,7 +225,9 @@ function NotebookComponent(props: {
   function ShortcutKey(str: string, key: string): JSX.Element {
     return (
       <Button
-        onClick={() => {
+        key={str}
+        onClick={(e) => {
+          e.preventDefault();
           const c = code as string;
           const element = document.getElementById(
             "code-input"
@@ -197,6 +236,9 @@ function NotebookComponent(props: {
           const textBeforeCursor = c.substring(0, cursorPosition);
           const textAfterCursor = c.substring(cursorPosition, c.length);
           editCode(textBeforeCursor + key + textAfterCursor);
+          new Promise((res) => setTimeout(res, 100)).then(() => {
+            element.selectionStart = cursorPosition + 1;
+          });
         }}
       >
         {str}
@@ -210,10 +252,12 @@ function NotebookComponent(props: {
         <Toolbar>
           <Select
             variant="standard"
+            value={curCell}
             onChange={(e) => {
               document
                 .getElementById(`cell-${e.target.value}`)
                 ?.scrollIntoView();
+              setCurCell(e.target.value);
             }}
             style={{ color: "white" }}
           >
@@ -248,7 +292,7 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <div className={classes.cells} style={{ height: height - 150 }}>
+      <div className={classes.cells} style={{ height: height - 100 }}>
         {Object.entries(cells).map((v) => (
           <NotebookCell
             key={v[0]}
@@ -257,6 +301,7 @@ function NotebookComponent(props: {
             mode={mode}
             code={code}
             editCode={editCode}
+            setCurCell={setCurCell}
           />
         ))}
       </div>
@@ -264,13 +309,7 @@ function NotebookComponent(props: {
         className={classes.buttons}
         style={{ backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa" }}
       >
-        {ShortcutKey("TAB", "\t")}
-        {ShortcutKey("<", "<")}
-        {ShortcutKey(">", ">")}
-        {ShortcutKey("!", "!")}
-        {ShortcutKey("/", "/")}
-        {ShortcutKey(".", ".")}
-        {ShortcutKey(";", ";")}
+        {SHORTCUT_KEYS.map((s) => ShortcutKey(s.text, s.key || s.text))}
       </div>
       <div style={{ display: "none" }}>
         <Notebook
@@ -337,7 +376,7 @@ const useStyles = makeStyles(() => ({
   },
   cells: {
     width: "100%",
-    // flexGrow: 1,
+    flexGrow: 1,
     overflowY: "scroll",
   },
   cellHeader: {
@@ -362,6 +401,10 @@ const useStyles = makeStyles(() => ({
     backgroundColor: "white",
     color: "red",
   },
+  noEditIcon: {
+    marginRight: 5,
+    color: "#a8a8a8",
+  },
   buttons: {
     flexDirection: "row",
     width: "100%",
@@ -369,5 +412,31 @@ const useStyles = makeStyles(() => ({
     whiteSpace: "nowrap",
   },
 }));
+
+interface ShortcutKey {
+  text: string;
+  key?: string;
+}
+const SHORTCUT_KEYS: ShortcutKey[] = [
+  { text: "TAB", key: "    " },
+  { text: "(" },
+  { text: ")" },
+  { text: "[" },
+  { text: "]" },
+  { text: "=" },
+  { text: ":" },
+  { text: ";" },
+  { text: "," },
+  { text: "." },
+  { text: '"' },
+  { text: "'" },
+  { text: "!" },
+  { text: "?" },
+  { text: "+" },
+  { text: "-" },
+  { text: "<" },
+  { text: ">" },
+  { text: "#" },
+];
 
 export default NotebookComponent;

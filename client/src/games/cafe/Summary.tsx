@@ -18,32 +18,39 @@ import { CafeSimulation } from "./simulator";
 
 export function Summary(props: { simulation: Simulation }): JSX.Element {
   const simulation = props.simulation as CafeSimulation;
+
+  function round(n: number): string {
+    return `${Math.round(n * 100 * 100) / 100}%`;
+  }
+
   return (
-    <TableContainer component={Paper}>
-      <TableHead>
-        <TableRow>
-          <TableCell align="right">Score</TableCell>
-          <TableCell align="right">Accuracy</TableCell>
-          <TableCell align="right">Precision</TableCell>
-          <TableCell align="right">Recall</TableCell>
-          <TableCell align="right">F1 Score</TableCell>
-        </TableRow>
-      </TableHead>
+    <TableContainer
+      component={Paper}
+      style={{
+        width: "fit-content",
+        padding: 20,
+      }}
+    >
       <TableBody>
-        <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+        <TableRow>
+          <TableCell align="center">Score</TableCell>
           <TableCell align="center">{simulation.score}</TableCell>
-          <TableCell align="center">
-            {Math.round(simulation.accuracy * 100 * 100) / 100}%
-          </TableCell>
-          <TableCell align="center">{`${
-            Math.round(simulation.precision * 100 * 100) / 100
-          }%`}</TableCell>
-          <TableCell align="center">{`${
-            Math.round(simulation.recall * 100 * 100) / 100
-          }%`}</TableCell>
-          <TableCell align="center">{`${
-            Math.round(simulation.f1Score * 100 * 100) / 100
-          }%`}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell align="center">Accuracy</TableCell>
+          <TableCell align="center">{round(simulation.accuracy)}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell align="center">Precision</TableCell>
+          <TableCell align="center">{round(simulation.precision)}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell align="center">Recall</TableCell>
+          <TableCell align="center">{round(simulation.recall)}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell align="center">F1 Score</TableCell>
+          <TableCell align="center">{round(simulation.f1Score)}</TableCell>
         </TableRow>
       </TableBody>
     </TableContainer>
