@@ -8,7 +8,6 @@ The full terms of this copyright and license should always be found in the root 
 import {
   TableContainer,
   Paper,
-  TableHead,
   TableRow,
   TableCell,
   TableBody,

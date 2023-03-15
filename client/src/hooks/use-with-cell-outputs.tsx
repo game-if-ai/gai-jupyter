@@ -116,13 +116,6 @@ export function useWithCellOutputs() {
     notebook.adapter.setNotebookModel(source);
   }
 
-  function undoCode(): void {
-    if (!isCodeEdited) {
-      return;
-    }
-    setCode(evaluationCode);
-  }
-
   return {
     cells,
     curCell,
@@ -135,7 +128,6 @@ export function useWithCellOutputs() {
     clear,
     editCode,
     saveCode,
-    undoCode,
     setCurCell,
   };
 }

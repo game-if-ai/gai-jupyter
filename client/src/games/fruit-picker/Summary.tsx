@@ -11,7 +11,6 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Typography,
 } from "@mui/material";
 import React from "react";
 import { Simulation } from "../simulator";
