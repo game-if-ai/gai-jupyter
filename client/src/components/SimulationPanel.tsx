@@ -7,7 +7,15 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useRef, useState } from "react";
-import { Button, IconButton, Typography } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from "@mui/material";
 import {
   PlayCircleOutline,
   PauseCircleOutline,
@@ -86,10 +94,14 @@ function GamePlayer(props: {
   return (
     <div>
       <div className={classes.controls}>
-        <Button className={classes.button} onClick={toNotebook}>
+        <Button sx={{ textTransform: "none" }} onClick={toNotebook}>
           Notebook
         </Button>
-        <Button disabled={simulation === 0} onClick={() => toSimulation(0)}>
+        <Button
+          size="small"
+          disabled={simulation === 0}
+          onClick={() => toSimulation(0)}
+        >
           1
         </Button>
         <IconButton
@@ -111,36 +123,25 @@ function GamePlayer(props: {
         >
           {simulations.length}
         </Button>
-        <Button className={classes.button} onClick={toSummary}>
+        <Button sx={{ textTransform: "none" }} onClick={toSummary}>
           Summary
         </Button>
       </div>
       <div
-        className={classes.gameContainer}
-        style={{ height: gameHeight, width: width }}
-      >
-        <div
-          id="game-container"
-          style={{ width, height: gameHeight }}
-          ref={gameContainerRef}
-        />
-        <div
-          className={classes.summary}
-          style={{ display: showSummary ? "block" : "none" }}
-        >
-          <props.game.summaryPanel simulation={simulations[simulation]} />
-        </div>
-      </div>
+        id="game-container"
+        style={{ width, height: gameHeight }}
+        ref={gameContainerRef}
+      />
       <div className={classes.controls}>
-        <IconButton onClick={() => mute(!isMuted)}>
+        <IconButton size="small" onClick={() => mute(!isMuted)}>
           {isMuted ? <VolumeOff /> : <VolumeUp />}
         </IconButton>
-        <IconButton onClick={() => pause(!isPaused)}>
+        <IconButton size="small" onClick={() => pause(!isPaused)}>
           {isPaused ? <PlayCircleOutline /> : <PauseCircleOutline />}
         </IconButton>
         {SPEEDS.map((s) => (
           <Button
-            className={classes.button}
+            sx={{ textTransform: "none" }}
             disabled={speed === s}
             onClick={() => changeSpeed(s)}
           >
@@ -148,21 +149,40 @@ function GamePlayer(props: {
           </Button>
         ))}
         <Button
-          className={classes.button}
+          sx={{ textTransform: "none" }}
           disabled={showSummary}
           onClick={endSimulation}
         >
           End
         </Button>
       </div>
+      <Dialog
+        className={classes.summary}
+        onClose={() => setShowSummary(false)}
+        open={showSummary}
+      >
+        <DialogTitle>Simulation Summary</DialogTitle>
+        <DialogContent>
+          <props.game.summaryPanel simulation={simulations[simulation]} />
+          <Button onClick={() => setShowSummary(false)}>Close</Button>
+          <Button
+            onClick={() => {
+              if (simulation < simulations.length - 1) {
+                toSimulation(simulation + 1);
+              } else {
+                toSummary();
+              }
+            }}
+          >
+            {simulation < simulations.length - 1 ? "Next" : "Done"}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
 const useStyles = makeStyles(() => ({
-  gameContainer: {
-    position: "relative",
-  },
   controls: {
     width: "100%",
     display: "flex",
@@ -173,19 +193,12 @@ const useStyles = makeStyles(() => ({
     justifyContent: "center",
   },
   summary: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
     margin: "auto",
     width: "min-content",
     height: "min-content",
     maxWidth: "100%",
     maxHeight: "100%",
-  },
-  button: {
-    textTransform: "none",
+    textAlign: "center",
   },
 }));
 
