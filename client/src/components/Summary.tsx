@@ -8,6 +8,7 @@ The full terms of this copyright and license should always be found in the root 
 import React, { useState } from "react";
 import {
   Button,
+  IconButton,
   Paper,
   TableBody,
   TableCell,
@@ -16,15 +17,23 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import { makeStyles } from "@mui/styles";
+import { Launch } from "@mui/icons-material";
 import { Experiment, Simulation } from "../games/simulator";
 import { formatDateTime, sortExperimentsByF1Score } from "../utils";
 
+function round(n: number): string {
+  return `${Math.round(n * 100)}%`;
+}
+
 function PreviousExperimentsView(props: {
+  classes: Record<string, any>;
   currentExperiment: Experiment<Simulation>;
   previousExperiments: Experiment<Simulation>[];
   setExperiment: (e: Experiment<Simulation>) => void;
 }) {
-  const { previousExperiments, setExperiment, currentExperiment } = props;
+  const { classes, previousExperiments, setExperiment, currentExperiment } =
+    props;
   const experimentsSortedByF1score =
     sortExperimentsByF1Score(previousExperiments);
   const moreThanOnePreviousExperiment = experimentsSortedByF1score.length > 1;
@@ -37,27 +46,20 @@ function PreviousExperimentsView(props: {
   return (
     <div>
       <Typography variant="h3">Previous Experiments</Typography>
-      <TableContainer
-        component={Paper}
-        style={{
-          width: "fit-content",
-          outline: "black solid 1px",
-          marginLeft: "auto",
-          marginRight: "auto",
-          margin: 20,
-        }}
-      >
+      <TableContainer component={Paper} className={classes.table}>
         <TableHead>
           <TableRow>
             <TableCell align="right">Date/Time</TableCell>
-            <TableCell align="right">Train Instances</TableCell>
-            <TableCell align="right">Test Instances</TableCell>
+            <TableCell align="right">Train</TableCell>
+            <TableCell align="right">Test</TableCell>
             <TableCell align="right">Score</TableCell>
             <TableCell align="right">Accuracy</TableCell>
             <TableCell align="right">Precision</TableCell>
             <TableCell align="right">Recall</TableCell>
             <TableCell align="right">F1 Score</TableCell>
-            <TableCell align="right"></TableCell>
+            <TableCell align="right" className={classes.sticky}>
+              View
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -102,28 +104,27 @@ function PreviousExperimentsView(props: {
                     {previousExperiment.testInstances}
                   </TableCell>
                   <TableCell align="center">{summary.averageScore}</TableCell>
-                  <TableCell align="center">{`${Math.round(
-                    summary.averageAccuracy * 100
-                  )}%`}</TableCell>
-                  <TableCell align="center">{`${Math.round(
-                    summary.averagePrecision * 100
-                  )}%`}</TableCell>
-                  <TableCell align="center">{`${Math.round(
-                    summary.averageRecall * 100
-                  )}%`}</TableCell>
-                  <TableCell align="center">{`${Math.round(
-                    summary.averageF1Score * 100
-                  )}%`}</TableCell>
-                  {}
                   <TableCell align="center">
+                    {round(summary.averageAccuracy)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {round(summary.averagePrecision)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {round(summary.averageRecall)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {round(summary.averageF1Score)}
+                  </TableCell>
+                  {}
+                  <TableCell align="center" className={classes.sticky}>
                     {!experimentSelected ? (
-                      <Button
-                        onClick={() => {
-                          setExperiment(previousExperiment);
-                        }}
+                      <IconButton
+                        size="small"
+                        onClick={() => setExperiment(previousExperiment)}
                       >
-                        View
-                      </Button>
+                        <Launch />
+                      </IconButton>
                     ) : undefined}
                   </TableCell>
                 </TableRow>
@@ -136,10 +137,12 @@ function PreviousExperimentsView(props: {
 }
 
 function CurrentExperimentView(props: {
+  classes: Record<string, any>;
   currentExperiment: Experiment<Simulation>;
   runSimulation: (i: number) => void;
   goToNotebook: () => void;
 }) {
+  const classes = props.classes;
   const {
     summary,
     simulations,
@@ -147,6 +150,7 @@ function CurrentExperimentView(props: {
     trainInstances,
     testInstances,
   } = props.currentExperiment;
+
   return (
     <div
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
@@ -155,15 +159,7 @@ function CurrentExperimentView(props: {
       <Typography>
         Date of experiment: {formatDateTime(dateOfExperiment)}
       </Typography>
-      <TableContainer
-        component={Paper}
-        style={{
-          width: "fit-content",
-          outline: "black solid 1px",
-          margin: 20,
-          padding: 20,
-        }}
-      >
+      <TableContainer component={Paper} className={classes.curExperiment}>
         <Typography variant="h5">Experiment Averages</Typography>
         <TableBody>
           <TableRow>
@@ -180,41 +176,30 @@ function CurrentExperimentView(props: {
           </TableRow>
           <TableRow>
             <TableCell align="center">Accuracy</TableCell>
-            <TableCell align="center">{`${Math.round(
-              summary.averageAccuracy * 100
-            )}%`}</TableCell>
+            <TableCell align="center">
+              {round(summary.averageAccuracy)}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell align="center">Precision</TableCell>
-            <TableCell align="center">{`${Math.round(
-              summary.averagePrecision * 100
-            )}%`}</TableCell>
+            <TableCell align="center">
+              {round(summary.averagePrecision)}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell align="center">Recall</TableCell>
-            <TableCell align="center">{`${Math.round(
-              summary.averageRecall * 100
-            )}%`}</TableCell>
+            <TableCell align="center">{round(summary.averageRecall)}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell align="center">F1 Score</TableCell>
-            <TableCell align="center">{`${Math.round(
-              summary.averageF1Score * 100
-            )}%`}</TableCell>
+            <TableCell align="center">
+              {round(summary.averageF1Score)}
+            </TableCell>
           </TableRow>
         </TableBody>
       </TableContainer>
-      <Typography variant="h5" style={{ margin: 20 }}>
-        Individual Runs
-      </Typography>
-      <TableContainer
-        component={Paper}
-        style={{
-          width: "fit-content",
-          marginLeft: "auto",
-          marginRight: "auto",
-        }}
-      >
+      <Typography variant="h5">Individual Runs</Typography>
+      <TableContainer component={Paper} className={classes.table}>
         <TableHead>
           <TableRow>
             <TableCell>Run #</TableCell>
@@ -223,7 +208,9 @@ function CurrentExperimentView(props: {
             <TableCell align="right">Precision</TableCell>
             <TableCell align="right">Recall</TableCell>
             <TableCell align="right">F1 Score</TableCell>
-            <TableCell align="right">View Simulation</TableCell>
+            <TableCell align="right" className={classes.sticky}>
+              View
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -236,20 +223,14 @@ function CurrentExperimentView(props: {
                 {i + 1}
               </TableCell>
               <TableCell align="center">{s.score}</TableCell>
-              <TableCell align="center">{`${Math.round(
-                s.accuracy * 100
-              )}%`}</TableCell>
-              <TableCell align="center">{`${Math.round(
-                s.precision * 100
-              )}%`}</TableCell>
-              <TableCell align="center">{`${Math.round(
-                s.recall * 100
-              )}%`}</TableCell>
-              <TableCell align="center">{`${Math.round(
-                s.f1Score * 100
-              )}%`}</TableCell>
-              <TableCell align="center">
-                <Button onClick={() => props.runSimulation(i)}>Run</Button>
+              <TableCell align="center">{round(s.accuracy)}</TableCell>
+              <TableCell align="center">{round(s.precision)}</TableCell>
+              <TableCell align="center">{round(s.recall)}</TableCell>
+              <TableCell align="center">{round(s.f1Score)}</TableCell>
+              <TableCell align="center" className={classes.sticky}>
+                <IconButton size="small" onClick={() => props.runSimulation(i)}>
+                  <Launch />
+                </IconButton>
               </TableCell>
             </TableRow>
           ))}
@@ -302,6 +283,7 @@ function Summary(props: {
     setExperiment,
   } = props;
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
+  const classes = useStyles();
 
   function _setExperiment(experiment: Experiment<Simulation>) {
     setExperiment(experiment);
@@ -321,11 +303,13 @@ function Summary(props: {
       ) : undefined}
       {viewPreviousExperiment
         ? PreviousExperimentsView({
+            classes,
             previousExperiments,
             setExperiment: _setExperiment,
             currentExperiment: experiment,
           })
         : CurrentExperimentView({
+            classes,
             currentExperiment: experiment,
             runSimulation,
             goToNotebook,
@@ -333,5 +317,27 @@ function Summary(props: {
     </div>
   );
 }
+
+const useStyles = makeStyles({
+  sticky: {
+    position: "sticky",
+    background: "white",
+    right: 0,
+  },
+  table: {
+    width: "fit-content",
+    maxWidth: "100%",
+    marginLeft: "auto",
+    marginRight: "auto",
+    outline: "black solid 1px",
+    marginTop: 20,
+  },
+  curExperiment: {
+    width: "fit-content",
+    outline: "black solid 1px",
+    margin: 20,
+    padding: 20,
+  },
+});
 
 export default Summary;
