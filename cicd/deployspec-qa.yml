@@ -1,0 +1,25 @@
+version: 0.2
+
+env:
+  variables:
+    STAGE: 'qa'
+  parameter-store:
+    S3_DEPLOY_BUCKET_QA: "/gameifai/qa/s3-websites/NAME"
+    CDN_ID_QA: "/gameifai/qa/CLOUDFRONT_DISTRIBUTION_ID"
+    REACT_APP_JUPYTER_SERVER_HTTP_URL_DEV: "/gameifai/dev/JUPYTER_SERVER_HTTP_URL"
+    REACT_APP_JUPYTER_SERVER_WS_URL_DEV: "/gameifai/dev/JUPYTER_SERVER_WS_URL"
+    REACT_APP_JUPYTER_SERVER_TOKEN_DEV: "/gameifai/dev/JUPYTER_SERVER_TOKEN"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+    commands:
+      - n 18
+
+  build:
+    commands:
+      - cd client && npm run build
+      - echo Deploying to $S3_DEPLOY_BUCKET_QA
+      - aws s3 sync ./build s3://$S3_DEPLOY_BUCKET_QA/
+      - aws cloudfront create-invalidation --distribution-id $CDN_ID_QA --paths "/*"
