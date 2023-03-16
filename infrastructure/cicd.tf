@@ -4,7 +4,7 @@ module "pipeline" {
   project_name            = "gai-jupyter"
   github_repo_name        = "gai-jupyter"
   github_org              = "game-if-ai"
-  github_branch_dev       = "cicd-pipeline" # TODO: Change this back to main once testing is complete
+  github_branch_dev       = "main"
   github_branch_release   = "release"
 
   # reference: https://github.com/cloudposse/terraform-aws-codebuild#inputs
