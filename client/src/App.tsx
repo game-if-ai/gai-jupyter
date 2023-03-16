@@ -44,18 +44,27 @@ function App(): JSX.Element {
     }
   }, [game]);
 
-  async function sendCmi5Results(): Promise<void> {
+  function sendCmi5Results(): void {
     if (!Cmi5.isCmiAvailable) {
       console.log("cmi5 not available to send results");
       return;
     }
+
+    // TODO: Score evaluation
+    // +0.5 for code that executes without any errors
+    // +0-0.35 for % of key elements in code that are contained (patterns of importance: should all be contained hints)
+    // +0-0.15 for better performance of metrics of interest vs. a baseline (e.g., set an expected performance and std-dev)
 
     Cmi5.instance.complete({
       transform: (s) => {
         return {
           ...s,
           result: {
-            score: { scaled: experiment?.summary.averageF1Score || 0 },
+            score: {
+              scaled: experiment?.summary.averageF1Score || 0,
+              min: experiment?.summary.lowF1Score,
+              max: experiment?.summary.highF1Score,
+            },
           },
         };
       },
