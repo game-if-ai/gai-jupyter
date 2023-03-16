@@ -15,8 +15,20 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 
+const useLiveJupyterServer = process.env.JUPYTER_SERVER_HTTP_URL_DEV && process.env.JUPYTER_SERVER_WS_URL_DEV && process.env.JUPYTER_SERVER_TOKEN_DEV
+
+if(useLiveJupyterServer){
+  console.log("sufficient jupyter server params provided")
+}
+
 root.render(
-  <Jupyter terminals={true} startDefaultKernel={true}>
+  <Jupyter
+  terminals={true}
+  startDefaultKernel={true}
+  jupyterServerHttpUrl={useLiveJupyterServer ? process.env.JUPYTER_SERVER_HTTP_URL_DEV : "http://localhost:8686/api/jupyter"}
+  jupyterServerWsUrl={useLiveJupyterServer ? process.env.JUPYTER_SERVER_WS_URL_DEV : "ws://localhost:8686/api/jupyter"}
+  jupyterToken={useLiveJupyterServer ? process.env.JUPYTER_SERVER_TOKEN_DEV : "60c1661cc408f978c309d04157af55c9588ff9557c9380e4fb50785750703da6"}
+  >
     <App />
   </Jupyter>
 );

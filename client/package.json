@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "run-p -c start:*",
+    "start": "GENERATE_SOURCEMAP=false run-p -c start:*",
     "start:jupyter": "./dev/sh/start-jupyter-server.sh",
     "start:react": "react-scripts start",
     "build": "NODE_OPTIONS=--max_old_space_size=4096 GENERATE_SOURCEMAP=false react-scripts build",
