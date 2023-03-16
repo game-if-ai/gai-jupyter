@@ -5,7 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Experiment, Simulation } from "./games/simulator";
@@ -14,6 +14,7 @@ import GamePicker from "./components/GamePicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
+import Cmi5 from "@xapi/cmi5";
 
 enum STEP {
   PICK_GAME,
@@ -29,6 +30,38 @@ function App(): JSX.Element {
   const [game, setGame] = useState<Game>();
   const [experiment, setExperiment] = useState<Experiment<Simulation>>();
   const [simulation, setSimulation] = useState<number>(0);
+
+  useEffect(() => {
+    if (Cmi5.isCmiAvailable) {
+      console.log("cmi5 available");
+      Cmi5.instance.initialize();
+    } else {
+      try {
+        Cmi5.instance.getLaunchParameters();
+      } catch (err) {
+        console.error("cmi5 not available", err);
+      }
+    }
+  }, [game]);
+
+  async function sendCmi5Results(): Promise<void> {
+    if (!Cmi5.isCmiAvailable) {
+      console.log("cmi5 not available to send results");
+      return;
+    }
+
+    Cmi5.instance.complete({
+      transform: (s) => {
+        return {
+          ...s,
+          result: {
+            score: { scaled: experiment?.summary.averageF1Score || 0 },
+          },
+        };
+      },
+    });
+  }
+
   function loadGame(game: Game): void {
     setGame(game);
     setStep(STEP.NOTEBOOK);
@@ -87,6 +120,7 @@ function App(): JSX.Element {
           runSimulation={viewSimulation}
           goToNotebook={viewNotebook}
           setExperiment={setExperiment}
+          onSubmit={sendCmi5Results}
         />
       );
     } else if (step === STEP.SIMULATION) {

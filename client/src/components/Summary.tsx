@@ -141,6 +141,7 @@ function CurrentExperimentView(props: {
   currentExperiment: Experiment<Simulation>;
   runSimulation: (i: number) => void;
   goToNotebook: () => void;
+  onSubmit: () => void;
 }) {
   const classes = props.classes;
   const {
@@ -258,7 +259,11 @@ function CurrentExperimentView(props: {
         >
           Simulator
         </Button>
-        <Button variant="contained" style={{ margin: 10 }}>
+        <Button
+          onClick={props.onSubmit}
+          variant="contained"
+          style={{ margin: 10 }}
+        >
           Submit
         </Button>
       </div>
@@ -274,6 +279,7 @@ function Summary(props: {
   setExperiment: React.Dispatch<
     React.SetStateAction<Experiment<Simulation> | undefined>
   >;
+  onSubmit: () => void;
 }): JSX.Element {
   const {
     runSimulation,
@@ -281,6 +287,7 @@ function Summary(props: {
     experiment,
     previousExperiments,
     setExperiment,
+    onSubmit,
   } = props;
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
@@ -313,6 +320,7 @@ function Summary(props: {
             currentExperiment: experiment,
             runSimulation,
             goToNotebook,
+            onSubmit,
           })}
     </div>
   );

@@ -8,6 +8,7 @@ import { INotebookState } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
+import { LaunchParameters } from "@xapi/cmi5";
 import { Experiment, Simulation } from "games/simulator";
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
@@ -113,4 +114,20 @@ export function sortExperimentsByF1Score(
   experiments: Experiment<Simulation>[]
 ) {
   return experiments.slice().sort(f1ScoreComparison);
+}
+
+export function getCmiParamsFromUri(): LaunchParameters {
+  const searchParams = new URL(window.location.href).searchParams;
+  const activityId = searchParams.get("activityId") || "";
+  const actor = searchParams.get("actor") || "";
+  const endpoint = searchParams.get("endpoint") || "";
+  const fetch = searchParams.get("fetch") || "";
+  const registration = searchParams.get("registration") || "";
+  return {
+    activityId: activityId,
+    actor: JSON.parse(actor),
+    endpoint: endpoint,
+    fetch: fetch,
+    registration: registration,
+  };
 }
