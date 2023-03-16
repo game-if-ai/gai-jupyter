@@ -46,7 +46,17 @@ function PreviousExperimentsView(props: {
   return (
     <div>
       <Typography variant="h3">Previous Experiments</Typography>
-      <TableContainer component={Paper} className={classes.table}>
+      <TableContainer
+        component={Paper}
+        style={{
+          width: "fit-content",
+          maxWidth: "100%",
+          marginLeft: "auto",
+          marginRight: "auto",
+          outline: "black solid 1px",
+          marginTop: 20,
+        }}
+      >
         <TableHead>
           <TableRow>
             <TableCell align="right">Date/Time</TableCell>
@@ -159,7 +169,16 @@ function CurrentExperimentView(props: {
       <Typography>
         Date of experiment: {formatDateTime(dateOfExperiment)}
       </Typography>
-      <TableContainer component={Paper} className={classes.curExperiment}>
+      <TableContainer
+        component={Paper}
+        style={{
+          width: "fit-content",
+          outline: "black solid 1px",
+          padding: 20,
+          marginTop: 20,
+          marginBottom: 20,
+        }}
+      >
         <Typography variant="h5">Experiment Averages</Typography>
         <TableBody>
           <TableRow>
@@ -199,7 +218,17 @@ function CurrentExperimentView(props: {
         </TableBody>
       </TableContainer>
       <Typography variant="h5">Individual Runs</Typography>
-      <TableContainer component={Paper} className={classes.table}>
+      <TableContainer
+        component={Paper}
+        style={{
+          width: "fit-content",
+          maxWidth: "100%",
+          marginLeft: "auto",
+          marginRight: "auto",
+          outline: "black solid 1px",
+          marginTop: 20,
+        }}
+      >
         <TableHead>
           <TableRow>
             <TableCell>Run #</TableCell>
@@ -323,20 +352,6 @@ const useStyles = makeStyles({
     position: "sticky",
     background: "white",
     right: 0,
-  },
-  table: {
-    width: "fit-content",
-    maxWidth: "100%",
-    marginLeft: "auto",
-    marginRight: "auto",
-    outline: "black solid 1px",
-    marginTop: 20,
-  },
-  curExperiment: {
-    width: "fit-content",
-    outline: "black solid 1px",
-    margin: 20,
-    padding: 20,
   },
 });
 

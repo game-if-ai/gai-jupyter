@@ -11,7 +11,7 @@ import { CafeSimulation } from "./simulator";
 
 const fontStyle = {
   fontFamily: "Arial",
-  fontSize: "24px",
+  fontSize: "16px",
   color: "#ffffff",
   fontStyle: "bold",
   shadow: {
@@ -24,8 +24,10 @@ const fontStyle = {
 };
 
 const labelFont = {
-  color: "#ffffff",
+  fontFamily: "Arial",
+  fontStyle: "bold",
   fontSize: "18px",
+  color: "#ffffff",
   wordWrap: { width: 480 },
   shadow: {
     color: "#000000",
@@ -50,23 +52,30 @@ export default class MainMenu extends Phaser.Scene {
   }
 
   create(data: GameParams<CafeSimulation>) {
-    this.add.image(320, 180, "bg_kitchen", "top").setScale(2);
-    this.add.image(250, 40, "bg_kitchen", "hanging_plant").setScale(2).flipX =
+    this.cameras.main.setBackgroundColor("#4f4135");
+    const offset =
+      this.game.canvas.height > 180 ? (this.game.canvas.height / 2) % 180 : 0;
+    this.add.image(160, 90 + offset, "bg_kitchen", "top");
+    this.add.image(120, 20 + offset, "bg_kitchen", "hanging_plant").flipX =
       true;
-    this.add.image(390, 40, "bg_kitchen", "hanging_plant").setScale(2);
-    this.add.image(150, 22, "bg_kitchen", "hanging_light").setScale(2);
-    this.add.image(490, 22, "bg_kitchen", "hanging_light").setScale(2);
-    this.add.image(200, 125, "bg_kitchen", "plant1").setScale(2);
-    this.add.image(320, 125, "bg_kitchen", "plant1").setScale(2);
-    this.add.image(440, 125, "bg_kitchen", "plant1").setScale(2);
-    this.add.image(120, 115, "bg_kitchen", "plant2").setScale(2);
-    this.add.image(520, 115, "bg_kitchen", "plant2").setScale(2);
-    this.add.image(35, 90, "bg_kitchen", "painting1").setScale(2);
-    this.add.image(605, 90, "bg_kitchen", "painting2").setScale(2);
-    this.add.image(35, 37, "bg_kitchen", "clock").setScale(2);
+    this.add.image(200, 20 + offset, "bg_kitchen", "hanging_plant");
+    this.add.image(75, 10 + offset, "bg_kitchen", "hanging_light");
+    this.add.image(245, 10 + offset, "bg_kitchen", "hanging_light");
+    this.add.image(100, 62 + offset, "bg_kitchen", "plant1");
+    this.add.image(160, 62 + offset, "bg_kitchen", "plant1");
+    this.add.image(220, 62 + offset, "bg_kitchen", "plant1");
+    this.add.image(60, 57 + offset, "bg_kitchen", "plant2");
+    this.add.image(260, 57 + offset, "bg_kitchen", "plant2");
+    this.add.image(17, 45 + offset, "bg_kitchen", "painting1");
+    this.add.image(302, 45 + offset, "bg_kitchen", "painting2");
+    this.add.image(17, 18 + offset, "bg_kitchen", "clock");
 
-    const bear = this.add.image(320, 145, "char_bears", "brown").setScale(2);
-    const bubble = this.add.image(320, 110, "char_speech", "...").setScale(2);
+    const bear = this.add
+      .image(160, 72 + offset, "char_bears", "brown")
+      .setScale(2);
+    const bubble = this.add
+      .image(160, 35 + offset, "char_speech", "...")
+      .setScale(2.5);
     this.time.addEvent({
       delay: 200,
       loop: true,
@@ -85,18 +94,17 @@ export default class MainMenu extends Phaser.Scene {
       callback: () => {
         bear.flipX = !bear.flipX;
         if (bear.frame.name.endsWith("2")) {
-          bubble.y = 108;
+          bubble.y = 34 + offset;
         } else {
-          bubble.y = 110;
+          bubble.y = 35 + offset;
         }
       },
       callbackScope: this,
     });
 
-    this.add.image(320, 260, "bg_kitchen", "bottom").setScale(2);
-    this.add.image(485, 330, "bg_kitchen", "divider").setScale(2);
-    this.add.image(568, 330, "bg_kitchen", "shelf").setScale(2);
-    this.add.image(570, 345, "bg_kitchen", "trash").setScale(2);
+    this.add.image(160, 130 + offset, "bg_kitchen", "bottom");
+    this.add.image(242.5, 165 + offset, "bg_kitchen", "divider");
+    this.add.image(285, 172 + offset, "bg_kitchen", "trash");
 
     this.add.text(5, 5, "Time: 120:00", fontStyle);
     this.add.text(-5, 5, "Score: 0", {
@@ -109,7 +117,7 @@ export default class MainMenu extends Phaser.Scene {
       fixedWidth: Number(this.game.config.width),
       align: "right",
     });
-    this.add.text(5, 290, "", labelFont);
+    this.add.text(5, 145 + offset, "", labelFont);
 
     this.input.once("pointerdown", () => {
       this.scene.start("MainGame", data);
