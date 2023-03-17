@@ -61,9 +61,7 @@ function App(): JSX.Element {
           ...s,
           result: {
             score: {
-              scaled: experiment?.summary.averageF1Score || 0,
-              min: experiment?.summary.lowF1Score,
-              max: experiment?.summary.highF1Score,
+              scaled: 1,
             },
           },
         };
