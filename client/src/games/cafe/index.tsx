@@ -14,13 +14,13 @@ import { Game } from "..";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
-  title: "Cafe Reviews",
+  title: "Bought or Not!",
   parent: "phaser-container",
   backgroundColor: "#282c34",
   scale: {
     mode: Phaser.Scale.ScaleModes.FIT,
-    width: 640,
-    height: 360,
+    width: 320,
+    height: 180,
   },
   physics: {
     default: "arcade",
@@ -33,6 +33,9 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
 
 export const Cafe: Game = {
   id: "cafe",
+  title: "Bought or Not!",
+  description:
+    "You are trying to build a classifier to recommend products based on their reviews.",
   config: GameConfig,
   simulator: new CafeSimulator(),
   summaryPanel: Summary,

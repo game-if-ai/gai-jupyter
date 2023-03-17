@@ -32,6 +32,9 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
 
 export const FruitPicker: Game = {
   id: "fruitpicker",
+  title: "Fruit Picker",
+  description:
+    "You are trying to build a classifier to select fruit based on their physical traits.",
   config: GameConfig,
   simulator: new FruitSimulator(),
   summaryPanel: Summary,

@@ -1,0 +1,110 @@
+/*
+This software is Copyright ©️ 2020 The University of Southern California. All Rights Reserved. 
+Permission to use, copy, modify, and distribute this software and its documentation for educational, research and non-profit purposes, without fee, and without a written agreement is hereby granted, provided that the above copyright notice and subject to the full license file found in the root of this software deliverable. Permission to make commercial use of this software may be obtained by contacting:  USC Stevens Center for Innovation University of Southern California 1150 S. Olive Street, Suite 2300, Los Angeles, CA 90115, USA Email: accounting@stevens.usc.edu
+
+The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
+*/
+
+import React, { useEffect, useState } from "react";
+import { IconButton, Tooltip, Typography } from "@mui/material";
+import { Close } from "@mui/icons-material";
+import { withStyles } from "tss-react/mui";
+import { DialogueMessage, UseWithDialogue } from "../hooks/use-with-dialogue";
+
+export const ColorTooltip = withStyles(Tooltip, {
+  tooltip: {
+    backgroundColor: "secondary",
+  },
+});
+
+export function TooltipMsg(props: {
+  elemId: string;
+  dialogue: UseWithDialogue;
+  children?: any;
+  placement?:
+    | "bottom"
+    | "left"
+    | "right"
+    | "top"
+    | "bottom-end"
+    | "bottom-start"
+    | "left-end"
+    | "left-start"
+    | "right-end"
+    | "right-start"
+    | "top-end"
+    | "top-start";
+}): JSX.Element {
+  const { curMessage, nextMessage } = props.dialogue;
+  const [open, setOpen] = useState<boolean>(false);
+  const [lastMessage, setLastMessage] = useState<DialogueMessage>();
+
+  useEffect(() => {
+    if (!curMessage) {
+      setOpen(false);
+    } else {
+      setOpen(curMessage.id === props.elemId);
+      if (curMessage.id === props.elemId && !curMessage.noSave) {
+        setLastMessage(curMessage);
+      }
+    }
+  }, [curMessage]);
+
+  function close(): void {
+    if (curMessage && curMessage.id === props.elemId) {
+      nextMessage();
+    } else {
+      setOpen(false);
+    }
+  }
+
+  return (
+    <div>
+      <ColorTooltip
+        open={open}
+        disableHoverListener={open}
+        onClose={close}
+        onMouseEnter={() => {
+          if (!open && lastMessage) {
+            setOpen(true);
+          }
+        }}
+        onMouseLeave={() => {
+          if (curMessage?.id !== props.elemId) {
+            setOpen(false);
+          }
+        }}
+        placement={props.placement}
+        arrow
+        title={
+          <div>
+            <IconButton
+              color="inherit"
+              size="small"
+              text-align="right"
+              align-content="right"
+              onClick={close}
+            >
+              <Close />
+            </IconButton>
+            <Typography color="inherit" align="center">
+              {curMessage?.id === props.elemId
+                ? curMessage?.title
+                : lastMessage?.title}
+            </Typography>
+            <p style={{ textAlign: "center" }}>
+              {curMessage?.id === props.elemId
+                ? curMessage?.text
+                : lastMessage?.text}
+            </p>
+          </div>
+        }
+        PopperProps={{
+          style: { maxWidth: 250, textAlign: "right" },
+        }}
+      >
+        {props.children}
+      </ColorTooltip>
+    </div>
+  );
+}

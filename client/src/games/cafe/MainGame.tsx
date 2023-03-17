@@ -17,7 +17,7 @@ import {
 
 const fontStyle = {
   fontFamily: "Arial",
-  fontSize: "24px",
+  fontSize: "16px",
   color: "#ffffff",
   fontStyle: "bold",
   shadow: {
@@ -34,7 +34,7 @@ const labelFont = {
   fontStyle: "bold",
   fontSize: "18px",
   color: "#ffffff",
-  wordWrap: { width: 480 },
+  wordWrap: { width: 250 },
   shadow: {
     color: "#000000",
     fill: true,
@@ -56,6 +56,7 @@ export default class MainGame extends Phaser.Scene {
   trash?: Phaser.GameObjects.Sprite;
   bear?: Phaser.GameObjects.Image;
   speech?: Phaser.GameObjects.Image;
+  offset: number;
 
   text?: Phaser.GameObjects.Text;
   timerText?: Phaser.GameObjects.Text;
@@ -76,6 +77,7 @@ export default class MainGame extends Phaser.Scene {
     this.numCorrect = 0;
     this.items = [];
     this.itemIdx = 0;
+    this.offset = 0;
   }
 
   preload() {
@@ -93,29 +95,35 @@ export default class MainGame extends Phaser.Scene {
     this.eventSystem = data.eventSystem;
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
+    this.cameras.main.setBackgroundColor("#4f4135");
+    this.offset =
+      this.game.canvas.height > 180 ? (this.game.canvas.height / 2) % 180 : 0;
     // upper bg
-    this.add.image(320, 180, "bg_kitchen", "top").setScale(2);
-    this.add.image(250, 40, "bg_kitchen", "hanging_plant").setScale(2).flipX =
+    this.add.image(160, 90 + this.offset, "bg_kitchen", "top");
+    this.add.image(120, 20 + this.offset, "bg_kitchen", "hanging_plant").flipX =
       true;
-    this.add.image(390, 40, "bg_kitchen", "hanging_plant").setScale(2);
-    this.add.image(150, 22, "bg_kitchen", "hanging_light").setScale(2);
-    this.add.image(490, 22, "bg_kitchen", "hanging_light").setScale(2);
-    this.add.image(200, 125, "bg_kitchen", "plant1").setScale(2);
-    this.add.image(320, 125, "bg_kitchen", "plant1").setScale(2);
-    this.add.image(440, 125, "bg_kitchen", "plant1").setScale(2);
-    this.add.image(120, 115, "bg_kitchen", "plant2").setScale(2);
-    this.add.image(520, 115, "bg_kitchen", "plant2").setScale(2);
-    this.add.image(35, 90, "bg_kitchen", "painting1").setScale(2);
-    this.add.image(605, 90, "bg_kitchen", "painting2").setScale(2);
-    this.add.image(35, 37, "bg_kitchen", "clock").setScale(2);
+    this.add.image(200, 20 + this.offset, "bg_kitchen", "hanging_plant");
+    this.add.image(75, 10 + this.offset, "bg_kitchen", "hanging_light");
+    this.add.image(245, 10 + this.offset, "bg_kitchen", "hanging_light");
+    this.add.image(100, 62 + this.offset, "bg_kitchen", "plant1");
+    this.add.image(160, 62 + this.offset, "bg_kitchen", "plant1");
+    this.add.image(220, 62 + this.offset, "bg_kitchen", "plant1");
+    this.add.image(60, 57 + this.offset, "bg_kitchen", "plant2");
+    this.add.image(260, 57 + this.offset, "bg_kitchen", "plant2");
+    this.add.image(17, 45 + this.offset, "bg_kitchen", "painting1");
+    this.add.image(302, 45 + this.offset, "bg_kitchen", "painting2");
+    this.add.image(17, 18 + this.offset, "bg_kitchen", "clock");
     // character sprites
-    this.bear = this.add.image(320, 145, "char_bears", "brown").setScale(2);
-    this.speech = this.add.image(320, 110, "char_speech", "...").setScale(2);
+    this.bear = this.add
+      .image(160, 72 + this.offset, "char_bears", "brown")
+      .setScale(2);
+    this.speech = this.add
+      .image(160, 35 + this.offset, "char_speech", "...")
+      .setScale(2.5);
     // lower bg
-    this.add.image(320, 260, "bg_kitchen", "bottom").setScale(2);
-    this.add.image(485, 330, "bg_kitchen", "divider").setScale(2);
-    this.add.image(568, 330, "bg_kitchen", "shelf").setScale(2);
-    this.trash = this.add.sprite(570, 345, "bg_kitchen", "trash").setScale(2);
+    this.add.image(160, 130 + this.offset, "bg_kitchen", "bottom");
+    this.add.image(242.5, 165 + this.offset, "bg_kitchen", "divider");
+    this.trash = this.add.sprite(285, 172 + this.offset, "bg_kitchen", "trash");
     this.trash.state = "trash";
     // text
     this.timerText = this.add.text(5, 5, `Time: ${GAME_TIME}:00`, fontStyle);
@@ -131,7 +139,7 @@ export default class MainGame extends Phaser.Scene {
         align: "right",
       });
     }
-    this.text = this.add.text(5, 290, "", labelFont);
+    this.text = this.add.text(5, 145 + this.offset, "", labelFont);
     this.text.state = "text";
     // start
     this.eventSystem.on("pause", this.pause, this);
@@ -180,9 +188,9 @@ export default class MainGame extends Phaser.Scene {
       callback: () => {
         this.bear!.flipX = !this.bear!.flipX;
         if (this.bear!.frame.name.endsWith("2")) {
-          this.speech!.y = 108;
+          this.speech!.y = 34 + this.offset;
         } else {
-          this.speech!.y = 110;
+          this.speech!.y = 35 + this.offset;
         }
       },
       callbackScope: this,
@@ -227,7 +235,9 @@ export default class MainGame extends Phaser.Scene {
     }
     const simulation = this.config.simulation;
     const spawn = simulation.spawns[this.itemIdx];
-    const item = this.add.sprite(0, 200, "food", spawn.item).setScale(3);
+    const item = this.add
+      .sprite(0, 100 + this.offset, "food", spawn.item)
+      .setScale(3);
     item.setData("review", spawn.review.review);
     item.setData("rating", spawn.review.rating);
     item.setData("idx", this.itemIdx);
@@ -257,7 +267,7 @@ export default class MainGame extends Phaser.Scene {
     }
     this.tweens.add({
       targets: item,
-      x: 800,
+      x: 320,
       duration: (ITEM_TIME * 1000) / this.speed,
       onComplete: () => {
         if (item.state !== "deleted") {
@@ -333,8 +343,8 @@ export default class MainGame extends Phaser.Scene {
       }
       this.tweens.add({
         targets: cur,
-        x: 570,
-        y: 345,
+        x: 285,
+        y: 172 + this.offset,
         duration: 200 / this.speed,
         ease: "sine.inout",
         onComplete: () => {
