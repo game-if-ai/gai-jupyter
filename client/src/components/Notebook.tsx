@@ -35,7 +35,6 @@ import {
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
-
 import { basicSetup, EditorView } from "codemirror";
 import { python } from "@codemirror/lang-python";
 import { EditorState } from "@codemirror/state";
@@ -44,19 +43,22 @@ import { ViewUpdate } from "@codemirror/view";
 import { Game } from "../games";
 import { Experiment, Simulation } from "../games/simulator";
 import { CellState, useWithCellOutputs } from "../hooks/use-with-cell-outputs";
-import { useWithWindowSize } from "../hooks/use-with-window-size";
+import { UseWithDialogue, useWithDialogue } from "../hooks/use-with-dialogue";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
+import { TooltipMsg } from "./Dialogue";
 
 function NotebookCell(props: {
+  curCell: string;
   cellType: string;
   cellState: CellState;
   mode: "dark" | "light";
+  dialogue: UseWithDialogue;
   editCode: (c: string) => void;
   setCurCell: (s: string) => void;
   setEditor: (e: EditorView) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { mode, cellType, cellState } = props;
+  const { mode, cellType, cellState, dialogue } = props;
   const { cell, output } = cellState;
   const [showOutput, setShowOutput] = useState<boolean>(true);
   const [outputElement, setOutputElement] = useState<JSX.Element>();
@@ -77,7 +79,8 @@ function NotebookCell(props: {
     if (isDisabled) {
       extensions.push(EditorState.readOnly.of(true));
     }
-    if (cellType === GaiCellTypes.EVALUATION) {
+    const isEvalCell = cellType === GaiCellTypes.EVALUATION;
+    if (isEvalCell) {
       extensions.push(
         EditorView.updateListener.of((v: ViewUpdate) => {
           if (v.docChanged) {
@@ -95,7 +98,7 @@ function NotebookCell(props: {
       parent: doc,
     });
     setEditor(view);
-    if (cellType === GaiCellTypes.EVALUATION) {
+    if (isEvalCell) {
       props.setEditor(view);
     }
   }, []);
@@ -121,7 +124,7 @@ function NotebookCell(props: {
   }, [refTop.current, refBot.current]);
 
   useEffect(() => {
-    if (topVisible && botVisible) {
+    if (topVisible && botVisible && props.curCell) {
       props.setCurCell(cellType);
     }
   }, [topVisible, botVisible]);
@@ -130,6 +133,14 @@ function NotebookCell(props: {
     if (outputElement) {
       setOutputElement(undefined);
     } else if (output.length) {
+      const o = output[0];
+      if (o.traceback) {
+        dialogue.addMessage({
+          id: `output-${cellType}`,
+          text: "There was an error while running this cell. Please review and make changes before re-running.",
+          noSave: true,
+        });
+      }
       setOutputElement(<Output outputs={output} />);
     }
   }, [output]);
@@ -160,14 +171,18 @@ function NotebookCell(props: {
         {isDisabled ? (
           <EditOff fontSize="small" className={classes.noEditIcon} />
         ) : undefined}
-        <Typography>{cellType.toLowerCase()}</Typography>
+        <TooltipMsg elemId={`cell-${cellType}`} dialogue={dialogue}>
+          <Typography>{cellType.toLowerCase()}</Typography>
+        </TooltipMsg>
         <div style={{ flexGrow: 1 }} />
-        <Button
-          startIcon={showOutput ? <Visibility /> : <VisibilityOff />}
-          onClick={() => setShowOutput(!showOutput)}
-        >
-          Output
-        </Button>
+        <TooltipMsg elemId={`output-${cellType}`} dialogue={dialogue}>
+          <Button
+            startIcon={showOutput ? <Visibility /> : <VisibilityOff />}
+            onClick={() => setShowOutput(!showOutput)}
+          >
+            Output
+          </Button>
+        </TooltipMsg>
       </div>
       <div id={`code-input-${cellType}`} />
       <Collapse in={showOutput} timeout="auto" unmountOnExit>
@@ -181,12 +196,12 @@ function NotebookCell(props: {
 function NotebookComponent(props: {
   game: Game;
   curExperiment: Experiment<Simulation> | undefined;
+  sawTutorial: boolean;
   setExperiment: (e: number) => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { height } = useWithWindowSize();
   const { game, curExperiment } = props;
   const {
     cells,
@@ -201,18 +216,54 @@ function NotebookComponent(props: {
     saveCode,
     setCurCell,
   } = useWithCellOutputs();
+  const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const [mode, setMode] = useState<"dark" | "light">("light");
   const [dialogUnsaved, setDialogUnsaved] = useState<boolean>(false);
+  const [dialogDescription, setDialogDescription] = useState<boolean>(true);
+  const [editor, setEditor] = useState<EditorView>();
   const [outputSimulated, setOutputSimulated] = useState(true);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
-  const [editor, setEditor] = useState<EditorView>();
 
   useEffect(() => {
     if (evaluationOutput && evaluationOutput.length && !outputSimulated) {
       setOutputSimulated(true);
     }
   }, [evaluationOutput]);
+
+  useEffect(() => {
+    if (Boolean(evaluationInput.length && evaluationOutput.length)) {
+      dialogue.addMessage({
+        id: "view-sim",
+        title: "Congrats!",
+        text: "Go to see the results",
+        noSave: true,
+      });
+    }
+  }, [evaluationInput, evaluationOutput]);
+
+  useEffect(() => {
+    if (!dialogDescription && !curCell) {
+      setCurCell(GaiCellTypes.EVALUATION);
+      document
+        .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
+        ?.scrollIntoView();
+      if (!props.sawTutorial) {
+        dialogue.addMessages([
+          {
+            id: `cell-${GaiCellTypes.EVALUATION}`,
+            title: "Model Evaluation",
+            text: "This is the evaluation cell. It has been filled in with stub code. Please edit it then run.",
+          },
+          {
+            id: "run",
+            title: "Run Code",
+            text: "This is the run button. Press it after you've filled in the code to run the code and view simulated output.",
+          },
+        ]);
+      }
+    }
+  }, [dialogDescription]);
 
   function toSimulation(): void {
     game.simulator.simulate(
@@ -314,28 +365,40 @@ function NotebookComponent(props: {
             }
             onChange={() => setMode(mode === "dark" ? "light" : "dark")}
           />
-          <IconButton disabled={!isCodeEdited} onClick={saveCode}>
-            <Save />
-          </IconButton>
+          <TooltipMsg elemId="save" dialogue={dialogue}>
+            <IconButton disabled={!isCodeEdited} onClick={saveCode}>
+              <Save />
+            </IconButton>
+          </TooltipMsg>
           <IconButton disabled={!isCodeEdited} onClick={undo}>
             <Undo />
           </IconButton>
-          <IconButton onClick={simulate}>
-            <PlayArrow />
-          </IconButton>
+          <TooltipMsg elemId="run" dialogue={dialogue}>
+            <IconButton onClick={simulate}>
+              <PlayArrow />
+            </IconButton>
+          </TooltipMsg>
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <div className={classes.cells} style={{ height: height - 100 }}>
+      <Button
+        sx={{ textTransform: "none" }}
+        onClick={() => setDialogDescription(true)}
+      >
+        Build a sentiment classifier model.
+      </Button>
+      <div className={classes.cells}>
         {Object.entries(cells).map((v) => (
           <NotebookCell
             key={v[0]}
+            curCell={curCell}
             cellType={v[0]}
             cellState={v[1]}
             mode={mode}
             editCode={editCode}
             setCurCell={setCurCell}
             setEditor={setEditor}
+            dialogue={dialogue}
           />
         ))}
       </div>
@@ -364,7 +427,7 @@ function NotebookComponent(props: {
         onClose={clear}
         open={Boolean(evaluationInput.length && evaluationOutput.length)}
       >
-        <DialogTitle>Code Run</DialogTitle>
+        <DialogTitle>See results</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Would you like to view your results?
@@ -372,8 +435,12 @@ function NotebookComponent(props: {
         </DialogContent>
         <DialogActions>
           <Button onClick={clear}>Cancel</Button>
-          <Button onClick={toSimulation}>View Simulation</Button>
-          <Button onClick={toSummary}>View Summary</Button>
+          <TooltipMsg elemId="view-sim" dialogue={dialogue} placement="top">
+            <Button onClick={toSimulation}>View Simulation</Button>
+          </TooltipMsg>
+          <TooltipMsg elemId="view-summary" dialogue={dialogue} placement="top">
+            <Button onClick={toSummary}>View Summary</Button>
+          </TooltipMsg>
         </DialogActions>
       </Dialog>
       <Dialog onClose={() => setDialogUnsaved(false)} open={dialogUnsaved}>
@@ -384,7 +451,18 @@ function NotebookComponent(props: {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogUnsaved(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              dialogue.addMessage({
+                id: "save",
+                text: "Don't forget to save your changes before running again!",
+                noSave: true,
+              });
+              setDialogUnsaved(false);
+            }}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={() => {
               run();
@@ -393,6 +471,22 @@ function NotebookComponent(props: {
           >
             Yes
           </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        onClose={() => setDialogDescription(false)}
+        open={dialogDescription}
+      >
+        <DialogTitle>{game.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{game.description}</DialogContentText>
+          <DialogContentText>
+            Please complete this notebook to build a sentiment classifier. You
+            will receive hints on how to improve its performance as you go.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogDescription(false)}>Okay</Button>
         </DialogActions>
       </Dialog>
     </div>
@@ -410,7 +504,7 @@ const useStyles = makeStyles(() => ({
   },
   cells: {
     width: "100%",
-    flexGrow: 1,
+    flex: 1,
     overflowY: "scroll",
   },
   cellHeader: {

@@ -157,6 +157,7 @@ export default class MainGame extends Phaser.Scene {
     for (const fruit of this.fruit) {
       if (fruit.y >= 600) {
         fruit.state = "deleted";
+        fruit.destroy();
       }
     }
     this.fruit = this.fruit.filter((f) => f.state !== "deleted");

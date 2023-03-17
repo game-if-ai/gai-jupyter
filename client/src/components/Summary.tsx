@@ -5,7 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   IconButton,
@@ -21,6 +21,12 @@ import { makeStyles } from "@mui/styles";
 import { Launch } from "@mui/icons-material";
 import { Experiment, Simulation } from "../games/simulator";
 import { formatDateTime, sortExperimentsByF1Score } from "../utils";
+import {
+  DialogueMessage,
+  UseWithDialogue,
+  useWithDialogue,
+} from "../hooks/use-with-dialogue";
+import { TooltipMsg } from "./Dialogue";
 
 function round(n: number): string {
   return `${Math.round(n * 100)}%`;
@@ -28,6 +34,7 @@ function round(n: number): string {
 
 function PreviousExperimentsView(props: {
   classes: Record<string, any>;
+  dialogue: UseWithDialogue;
   currentExperiment: Experiment<Simulation>;
   previousExperiments: Experiment<Simulation>[];
   setExperiment: (e: Experiment<Simulation>) => void;
@@ -149,6 +156,7 @@ function PreviousExperimentsView(props: {
 function CurrentExperimentView(props: {
   classes: Record<string, any>;
   currentExperiment: Experiment<Simulation>;
+  dialogue: UseWithDialogue;
   runSimulation: (i: number) => void;
   goToNotebook: () => void;
 }) {
@@ -160,6 +168,33 @@ function CurrentExperimentView(props: {
     trainInstances,
     testInstances,
   } = props.currentExperiment;
+
+  useEffect(() => {
+    const msgs: DialogueMessage[] = [];
+    if (summary.averageAccuracy <= 0.6) {
+      msgs.push({
+        id: "notebook",
+        title: "Results Very Bad",
+        text: "Something seems wrong, barely better than random. Maybe check the model training.",
+        noSave: true,
+      });
+    } else if (summary.averageAccuracy <= 0.8) {
+      msgs.push({
+        id: "notebook",
+        title: "Results Okay",
+        text: "The classifier works! But can we do better?",
+        noSave: true,
+      });
+    } else {
+      msgs.push({
+        id: "submit",
+        title: "Results Very Good",
+        text: "That was a good run! Do you want to submit this or tune it more?",
+        noSave: true,
+      });
+    }
+    props.dialogue.addMessages(msgs);
+  }, [summary]);
 
   return (
     <div
@@ -273,13 +308,15 @@ function CurrentExperimentView(props: {
           width: "100%",
         }}
       >
-        <Button
-          variant="contained"
-          onClick={props.goToNotebook}
-          style={{ margin: 10 }}
-        >
-          Notebook
-        </Button>
+        <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
+          <Button
+            variant="contained"
+            onClick={props.goToNotebook}
+            style={{ margin: 10 }}
+          >
+            Notebook
+          </Button>
+        </TooltipMsg>
         <Button
           variant="contained"
           onClick={() => props.runSimulation(0)}
@@ -287,9 +324,11 @@ function CurrentExperimentView(props: {
         >
           Simulator
         </Button>
-        <Button variant="contained" style={{ margin: 10 }}>
-          Submit
-        </Button>
+        <TooltipMsg elemId="submit" dialogue={props.dialogue}>
+          <Button variant="contained" style={{ margin: 10 }}>
+            Submit
+          </Button>
+        </TooltipMsg>
       </div>
     </div>
   );
@@ -313,6 +352,7 @@ function Summary(props: {
   } = props;
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
+  const dialogue = useWithDialogue();
 
   function _setExperiment(experiment: Experiment<Simulation>) {
     setExperiment(experiment);
@@ -334,12 +374,14 @@ function Summary(props: {
         ? PreviousExperimentsView({
             classes,
             previousExperiments,
+            dialogue,
             setExperiment: _setExperiment,
             currentExperiment: experiment,
           })
         : CurrentExperimentView({
             classes,
             currentExperiment: experiment,
+            dialogue,
             runSimulation,
             goToNotebook,
           })}

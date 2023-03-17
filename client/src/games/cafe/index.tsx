@@ -14,7 +14,7 @@ import { Game } from "..";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
-  title: "Cafe Reviews",
+  title: "Bought or Not!",
   parent: "phaser-container",
   backgroundColor: "#282c34",
   scale: {
@@ -33,6 +33,9 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
 
 export const Cafe: Game = {
   id: "cafe",
+  title: "Bought or Not!",
+  description:
+    "You are trying to build a classifier to recommend products based on their reviews.",
   config: GameConfig,
   simulator: new CafeSimulator(),
   summaryPanel: Summary,
