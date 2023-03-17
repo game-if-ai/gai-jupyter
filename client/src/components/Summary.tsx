@@ -195,7 +195,7 @@ function CurrentExperimentView(props: {
       });
     }
     props.dialogue.addMessages(msgs);
-  }, [summary]);
+  }, [summary, props.dialogue]);
 
   return (
     <div
