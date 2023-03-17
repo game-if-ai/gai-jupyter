@@ -170,33 +170,6 @@ function CurrentExperimentView(props: {
     testInstances,
   } = props.currentExperiment;
 
-  useEffect(() => {
-    const msgs: DialogueMessage[] = [];
-    if (summary.averageAccuracy <= 0.6) {
-      msgs.push({
-        id: "notebook",
-        title: "Results Very Bad",
-        text: "Something seems wrong, barely better than random. Maybe check the model training.",
-        noSave: true,
-      });
-    } else if (summary.averageAccuracy <= 0.8) {
-      msgs.push({
-        id: "notebook",
-        title: "Results Okay",
-        text: "The classifier works! But can we do better?",
-        noSave: true,
-      });
-    } else {
-      msgs.push({
-        id: "submit",
-        title: "Results Very Good",
-        text: "That was a good run! Do you want to submit this or tune it more?",
-        noSave: true,
-      });
-    }
-    props.dialogue.addMessages(msgs);
-  }, [summary, props.dialogue]);
-
   return (
     <div
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
@@ -357,6 +330,7 @@ function Summary(props: {
     setExperiment,
     onSubmit,
   } = props;
+  const { summary } = experiment;
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
   const dialogue = useWithDialogue();
@@ -365,6 +339,33 @@ function Summary(props: {
     setExperiment(experiment);
     setViewPreviousExperiments(false);
   }
+
+  useEffect(() => {
+    const msgs: DialogueMessage[] = [];
+    if (summary.averageAccuracy <= 0.6) {
+      msgs.push({
+        id: "notebook",
+        title: "Results Very Bad",
+        text: "Something seems wrong, barely better than random. Maybe check the model training.",
+        noSave: true,
+      });
+    } else if (summary.averageAccuracy <= 0.8) {
+      msgs.push({
+        id: "notebook",
+        title: "Results Okay",
+        text: "The classifier works! But can we do better?",
+        noSave: true,
+      });
+    } else {
+      msgs.push({
+        id: "submit",
+        title: "Results Very Good",
+        text: "That was a good run! Do you want to submit this or tune it more?",
+        noSave: true,
+      });
+    }
+    dialogue.addMessages(msgs);
+  }, [summary, dialogue]);
 
   return (
     <div>
