@@ -10,7 +10,6 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
@@ -30,18 +29,23 @@ import { Experiment, Simulation } from "../games/simulator";
 import { Game } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
+import { useWithDialogue } from "../hooks/use-with-dialogue";
+import { TooltipMsg } from "./Dialogue";
 
 const SPEEDS = [1, 2, 4, 10];
 
 function GamePlayer(props: {
   game: Game;
+  sawTutorial: boolean;
   experiment: Experiment<Simulation>;
   simulation: number;
+  setSawTutorial: (tf: boolean) => void;
   toNotebook: () => void;
   toSummary: () => void;
 }): JSX.Element {
   const classes = useStyles();
   const { width, height } = useWithWindowSize();
+  const dialogue = useWithDialogue();
   const [simulation, setSimulation] = useState<number>(props.simulation);
   const [showSummary, setShowSummary] = useState<boolean>(false);
   const aspect =
@@ -62,6 +66,45 @@ function GamePlayer(props: {
     mute,
     changeSpeed,
   } = useWithPhaserGame(gameContainerRef);
+
+  useEffect(() => {
+    if (props.sawTutorial) {
+      return;
+    }
+    dialogue.addMessages([
+      {
+        id: "current",
+        text: "This is the game player. Your classifier results are being used to simulate the choices made by the AI in this game.",
+        noSave: true,
+      },
+      {
+        id: "current",
+        text: `${simulations.length} game simulations were generated with random spawns, to test your classifier with.`,
+        noSave: true,
+      },
+      {
+        id: "speed-2",
+        text: "You can speed up the game playback for the simulations.",
+        noSave: true,
+      },
+      {
+        id: "end",
+        text: "Skip to the end of this simulation to view the summary results for this set of generated spawns.",
+        noSave: true,
+      },
+      {
+        id: "next",
+        text: "Skip to the next simulation.",
+        noSave: true,
+      },
+      {
+        id: "summary",
+        text: "Or simply skip all of the simulations to go directly to the classifier summary results.",
+        noSave: true,
+      },
+    ]);
+    props.setSawTutorial(true);
+  }, [props.game.id]);
 
   useEffect(() => {
     eventSystem.on("gameOver", endSimulation);
@@ -110,22 +153,28 @@ function GamePlayer(props: {
         >
           <NavigateBefore />
         </IconButton>
-        <Typography>{simulation + 1}</Typography>
-        <IconButton
-          disabled={simulation === simulations.length - 1}
-          onClick={() => toSimulation(simulation + 1)}
-        >
-          <NavigateNext />
-        </IconButton>
+        <TooltipMsg elemId="current" dialogue={dialogue}>
+          <Typography>{simulation + 1}</Typography>
+        </TooltipMsg>
+        <TooltipMsg elemId="next" dialogue={dialogue}>
+          <IconButton
+            disabled={simulation === simulations.length - 1}
+            onClick={() => toSimulation(simulation + 1)}
+          >
+            <NavigateNext />
+          </IconButton>
+        </TooltipMsg>
         <Button
           disabled={simulation === simulations.length - 1}
           onClick={() => toSimulation(simulations.length - 1)}
         >
           {simulations.length}
         </Button>
-        <Button sx={{ textTransform: "none" }} onClick={toSummary}>
-          Summary
-        </Button>
+        <TooltipMsg elemId="summary" dialogue={dialogue}>
+          <Button sx={{ textTransform: "none" }} onClick={toSummary}>
+            Summary
+          </Button>
+        </TooltipMsg>
       </div>
       <div
         id="game-container"
@@ -140,21 +189,25 @@ function GamePlayer(props: {
           {isPaused ? <PlayCircleOutline /> : <PauseCircleOutline />}
         </IconButton>
         {SPEEDS.map((s) => (
+          <TooltipMsg key={s} elemId={`speed-${s}`} dialogue={dialogue}>
+            <Button
+              sx={{ textTransform: "none" }}
+              disabled={speed === s}
+              onClick={() => changeSpeed(s)}
+            >
+              x{s}
+            </Button>
+          </TooltipMsg>
+        ))}
+        <TooltipMsg elemId="end" dialogue={dialogue}>
           <Button
             sx={{ textTransform: "none" }}
-            disabled={speed === s}
-            onClick={() => changeSpeed(s)}
+            disabled={showSummary}
+            onClick={endSimulation}
           >
-            x{s}
+            End
           </Button>
-        ))}
-        <Button
-          sx={{ textTransform: "none" }}
-          disabled={showSummary}
-          onClick={endSimulation}
-        >
-          End
-        </Button>
+        </TooltipMsg>
       </div>
       <Dialog
         className={classes.summary}

@@ -29,6 +29,10 @@ function App(): JSX.Element {
   const [game, setGame] = useState<Game>();
   const [experiment, setExperiment] = useState<Experiment<Simulation>>();
   const [simulation, setSimulation] = useState<number>(0);
+  const [sawNotebookTutorial, setSawNotebookTutorial] =
+    useState<boolean>(false);
+  const [sawSimTutorial, setSawSimTutorial] = useState<boolean>(false);
+
   function loadGame(game: Game): void {
     setGame(game);
     setStep(STEP.NOTEBOOK);
@@ -39,6 +43,7 @@ function App(): JSX.Element {
       return;
     }
     setExperiment(game.simulator.experiments[e]);
+    setSawNotebookTutorial(true);
   }
 
   function viewSimulation(i: number): void {
@@ -67,6 +72,7 @@ function App(): JSX.Element {
       return (
         <Notebook
           game={game!}
+          sawTutorial={sawNotebookTutorial}
           curExperiment={experiment}
           setExperiment={viewExperiment}
           viewSummary={viewSummary}
@@ -93,6 +99,8 @@ function App(): JSX.Element {
       return (
         <SimulationPanel
           game={game!}
+          sawTutorial={sawSimTutorial}
+          setSawTutorial={setSawSimTutorial}
           experiment={experiment!}
           simulation={simulation}
           toNotebook={viewNotebook}

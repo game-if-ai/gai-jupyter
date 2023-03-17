@@ -16,23 +16,30 @@ export function useWithPhaserGame(
   const [game, setGame] = useState<Game>();
   const [simulation, setSimulation] = useState<Simulation>();
   const [phaserGame, setPhaserGame] = useState<Phaser.Game>();
-  const [eventSystem, setEventSystem] = useState<Phaser.Events.EventEmitter>(
+  const [eventSystem] = useState<Phaser.Events.EventEmitter>(
     new Phaser.Events.EventEmitter()
   );
   const [speed, setSpeed] = useState<number>(1);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-
   const hasGame = Boolean(gameContainerRef.current?.firstChild);
 
   useEffect(() => {
     if (!game || phaserGame || hasGame) {
       return;
     }
-    const pg = new Phaser.Game({
+    const config = {
       ...game.config,
+      scale: {
+        ...game.config.scale,
+        height: Math.max(
+          game.config.scale!.height! as number,
+          gameContainerRef?.current?.clientHeight!
+        ),
+      },
       parent: gameContainerRef.current as HTMLElement,
-    });
+    };
+    const pg = new Phaser.Game(config);
     const playManually = simulation === undefined;
     const scene = playManually ? "MainMenu" : "MainGame";
     pg.scene.start(scene, {
