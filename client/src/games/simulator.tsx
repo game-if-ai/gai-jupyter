@@ -40,6 +40,8 @@ export interface SimulationSummary {
   averagePrecision: number;
   averageRecall: number;
   averageF1Score: number;
+  lowF1Score: number;
+  highF1Score: number;
 }
 
 export class Simulator<S extends Simulation> {
@@ -82,6 +84,8 @@ export class Simulator<S extends Simulation> {
         averagePrecision: 0,
         averageRecall: 0,
         averageF1Score: 0,
+        lowF1Score: 0,
+        highF1Score: 0,
       },
     };
     return experiment;
@@ -105,6 +109,8 @@ export class Simulator<S extends Simulation> {
     summary.averagePrecision = average(precisions);
     summary.averageRecall = average(recalls);
     summary.averageF1Score = average(f1Scores);
+    summary.lowF1Score = Math.min(...f1Scores);
+    summary.highF1Score = Math.max(...f1Scores);
     return summary;
   }
 }

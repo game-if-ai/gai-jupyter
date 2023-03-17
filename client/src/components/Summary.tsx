@@ -159,6 +159,7 @@ function CurrentExperimentView(props: {
   dialogue: UseWithDialogue;
   runSimulation: (i: number) => void;
   goToNotebook: () => void;
+  onSubmit: () => void;
 }) {
   const classes = props.classes;
   const {
@@ -325,7 +326,11 @@ function CurrentExperimentView(props: {
           Simulator
         </Button>
         <TooltipMsg elemId="submit" dialogue={props.dialogue}>
-          <Button variant="contained" style={{ margin: 10 }}>
+          <Button
+            variant="contained"
+            style={{ margin: 10 }}
+            onClick={props.onSubmit}
+          >
             Submit
           </Button>
         </TooltipMsg>
@@ -342,6 +347,7 @@ function Summary(props: {
   setExperiment: React.Dispatch<
     React.SetStateAction<Experiment<Simulation> | undefined>
   >;
+  onSubmit: () => void;
 }): JSX.Element {
   const {
     runSimulation,
@@ -349,6 +355,7 @@ function Summary(props: {
     experiment,
     previousExperiments,
     setExperiment,
+    onSubmit,
   } = props;
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
@@ -384,6 +391,7 @@ function Summary(props: {
             dialogue,
             runSimulation,
             goToNotebook,
+            onSubmit,
           })}
     </div>
   );

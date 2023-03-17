@@ -5,7 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Experiment, Simulation } from "./games/simulator";
@@ -14,6 +14,7 @@ import GamePicker from "./components/GamePicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
+import Cmi5 from "@xapi/cmi5";
 
 enum STEP {
   PICK_GAME,
@@ -32,6 +33,44 @@ function App(): JSX.Element {
   const [sawNotebookTutorial, setSawNotebookTutorial] =
     useState<boolean>(false);
   const [sawSimTutorial, setSawSimTutorial] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (Cmi5.isCmiAvailable) {
+      console.log("cmi5 available");
+      Cmi5.instance.initialize();
+    } else {
+      try {
+        Cmi5.instance.getLaunchParameters();
+      } catch (err) {
+        console.error("cmi5 not available", err);
+      }
+    }
+  }, [game]);
+
+  function sendCmi5Results(): void {
+    if (!Cmi5.isCmiAvailable) {
+      console.log("cmi5 not available to send results");
+      return;
+    }
+
+    // TODO: Score evaluation
+    // +0.5 for code that executes without any errors
+    // +0-0.35 for % of key elements in code that are contained (patterns of importance: should all be contained hints)
+    // +0-0.15 for better performance of metrics of interest vs. a baseline (e.g., set an expected performance and std-dev)
+
+    Cmi5.instance.complete({
+      transform: (s) => {
+        return {
+          ...s,
+          result: {
+            score: {
+              scaled: 1,
+            },
+          },
+        };
+      },
+    });
+  }
 
   function loadGame(game: Game): void {
     setGame(game);
@@ -93,6 +132,7 @@ function App(): JSX.Element {
           runSimulation={viewSimulation}
           goToNotebook={viewNotebook}
           setExperiment={setExperiment}
+          onSubmit={sendCmi5Results}
         />
       );
     } else if (step === STEP.SIMULATION) {
