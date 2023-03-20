@@ -7,7 +7,12 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useRef, useState } from "react";
-import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
+import {
+  CodeMirrorEditor,
+  Notebook,
+  Output,
+  selectNotebook,
+} from "@datalayer/jupyter-react";
 import {
   AppBar,
   Button,
@@ -37,6 +42,7 @@ import {
 } from "@mui/icons-material";
 import { basicSetup, EditorView } from "codemirror";
 import { python } from "@codemirror/lang-python";
+import { CompletionContext } from "@codemirror/autocomplete";
 import { EditorState } from "@codemirror/state";
 import { ViewUpdate } from "@codemirror/view";
 
@@ -48,6 +54,7 @@ import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { TooltipMsg } from "./Dialogue";
 
 function NotebookCell(props: {
+  game: Game;
   curCell: string;
   cellType: string;
   cellState: CellState;
@@ -65,10 +72,21 @@ function NotebookCell(props: {
   const [editor, setEditor] = useState<EditorView>();
   const [topVisible, setTopVisible] = useState<boolean>(false);
   const [botVisible, setBotVisible] = useState<boolean>(false);
-
   const isDisabled = cell.getMetadata("contenteditable") === false;
   const refTop = useRef<HTMLDivElement>(null);
   const refBot = useRef<HTMLDivElement>(null);
+
+  function myCompletions(context: CompletionContext) {
+    let word = context.matchBefore(/\w*/);
+    if (!word) {
+      return;
+    }
+    if (word.from == word.to && !context.explicit) return null;
+    return {
+      from: word.from,
+      options: props.game.autocompletion,
+    };
+  }
 
   useEffect(() => {
     const doc = document.getElementById(`code-input-${cellType}`);
@@ -78,6 +96,13 @@ function NotebookCell(props: {
     const extensions = [basicSetup, python(), EditorState.tabSize.of(4)];
     if (isDisabled) {
       extensions.push(EditorState.readOnly.of(true));
+    }
+    if (props.game.autocompletion) {
+      extensions.push(
+        python().language.data.of({
+          autocomplete: myCompletions,
+        })
+      );
     }
     const isEvalCell = cellType === GaiCellTypes.EVALUATION;
     if (isEvalCell) {
@@ -220,7 +245,9 @@ function NotebookComponent(props: {
   const notebook = selectNotebook(NOTEBOOK_UID);
   const [mode, setMode] = useState<"dark" | "light">("light");
   const [dialogUnsaved, setDialogUnsaved] = useState<boolean>(false);
-  const [dialogDescription, setDialogDescription] = useState<boolean>(true);
+  const [dialogDescription, setDialogDescription] = useState<boolean>(
+    !props.sawTutorial
+  );
   const [editor, setEditor] = useState<EditorView>();
   const [outputSimulated, setOutputSimulated] = useState(true);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
@@ -391,6 +418,7 @@ function NotebookComponent(props: {
         {Object.entries(cells).map((v) => (
           <NotebookCell
             key={v[0]}
+            game={game}
             curCell={curCell}
             cellType={v[0]}
             cellState={v[1]}

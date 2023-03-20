@@ -5,6 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
+import { Completion } from "@codemirror/autocomplete";
 import { Simulator, Simulation } from "./simulator";
 import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
@@ -14,6 +15,7 @@ export interface Game {
   title: string;
   description: string;
   config: Phaser.Types.Core.GameConfig;
+  autocompletion?: Completion[];
   simulator: Simulator<Simulation>;
   summaryPanel: (props: { simulation: Simulation }) => JSX.Element;
 }
