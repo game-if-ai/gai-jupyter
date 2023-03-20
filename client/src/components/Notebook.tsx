@@ -249,25 +249,7 @@ function NotebookComponent(props: {
     !props.sawTutorial
   );
   const [editor, setEditor] = useState<EditorView>();
-  const [outputSimulated, setOutputSimulated] = useState(true);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
-
-  useEffect(() => {
-    if (evaluationOutput && evaluationOutput.length && !outputSimulated) {
-      setOutputSimulated(true);
-    }
-  }, [evaluationOutput]);
-
-  useEffect(() => {
-    if (Boolean(evaluationInput.length && evaluationOutput.length)) {
-      dialogue.addMessage({
-        id: "view-sim",
-        title: "Congrats!",
-        text: "Go to see the results",
-        noSave: true,
-      });
-    }
-  }, [evaluationInput, evaluationOutput]);
 
   useEffect(() => {
     if (!dialogDescription && !curCell) {
@@ -291,6 +273,17 @@ function NotebookComponent(props: {
       }
     }
   }, [dialogDescription]);
+
+  useEffect(() => {
+    if (Boolean(evaluationInput.length && evaluationOutput.length)) {
+      dialogue.addMessage({
+        id: "view-sim",
+        title: "Congrats!",
+        text: "Go to see the results",
+        noSave: true,
+      });
+    }
+  }, [evaluationInput, evaluationOutput]);
 
   function toSimulation(): void {
     game.simulator.simulate(
@@ -318,7 +311,6 @@ function NotebookComponent(props: {
     if (isCodeEdited) {
       setDialogUnsaved(true);
     } else {
-      setOutputSimulated(false);
       run();
     }
   }
@@ -463,10 +455,14 @@ function NotebookComponent(props: {
         </DialogContent>
         <DialogActions>
           <Button onClick={clear}>Cancel</Button>
-          <TooltipMsg elemId="view-sim" dialogue={dialogue} placement="top">
+          <TooltipMsg elemId="view-sim" dialogue={dialogue} placement="bottom">
             <Button onClick={toSimulation}>View Simulation</Button>
           </TooltipMsg>
-          <TooltipMsg elemId="view-summary" dialogue={dialogue} placement="top">
+          <TooltipMsg
+            elemId="view-summary"
+            dialogue={dialogue}
+            placement="bottom"
+          >
             <Button onClick={toSummary}>View Summary</Button>
           </TooltipMsg>
         </DialogActions>

@@ -16,6 +16,7 @@ export interface Game {
   description: string;
   config: Phaser.Types.Core.GameConfig;
   autocompletion?: Completion[];
+  resizes?: boolean;
   simulator: Simulator<Simulation>;
   summaryPanel: (props: { simulation: Simulation }) => JSX.Element;
 }

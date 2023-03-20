@@ -37,6 +37,7 @@ export const Cafe: Game = {
   description:
     "You are trying to build a classifier to recommend products based on their reviews.",
   config: GameConfig,
+  resizes: true,
   autocompletion: [
     {
       label: "sklearn.naive_bayes",
