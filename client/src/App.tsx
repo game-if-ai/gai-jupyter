@@ -15,6 +15,7 @@ import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
 import Cmi5 from "@xapi/cmi5";
+import { evaluteExperiment } from "./score-evaluation";
 
 enum STEP {
   PICK_GAME,
@@ -52,11 +53,11 @@ function App(): JSX.Element {
       console.log("cmi5 not available to send results");
       return;
     }
-
-    // TODO: Score evaluation
-    // +0.5 for code that executes without any errors
-    // +0-0.35 for % of key elements in code that are contained (patterns of importance: should all be contained hints)
-    // +0-0.15 for better performance of metrics of interest vs. a baseline (e.g., set an expected performance and std-dev)
+    if(!experiment){
+      console.log("no experiment to evaluate");
+      return;
+    }
+    const experimentScore =  evaluteExperiment(experiment);
 
     Cmi5.instance.complete({
       transform: (s) => {
@@ -64,7 +65,7 @@ function App(): JSX.Element {
           ...s,
           result: {
             score: {
-              scaled: 1,
+              scaled: experimentScore
             },
           },
         };
