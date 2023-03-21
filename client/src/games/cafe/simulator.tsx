@@ -62,15 +62,9 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
   simulate(
     inputs: number[],
     outputs: ClassifierOutput[][],
-    evaluationCode: string[],
     notebook: INotebookState
   ): Experiment<CafeSimulation> {
-    const experiment = super.simulate(
-      inputs,
-      outputs,
-      evaluationCode,
-      notebook
-    );
+    const experiment = super.simulate(inputs, outputs, notebook);
     for (let run = 0; run < outputs.length; run++) {
       const sim = this.play();
       const simClassifierOutput = outputs[run];

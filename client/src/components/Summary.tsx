@@ -284,6 +284,7 @@ function CurrentExperimentView(props: {
       >
         <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
           <Button
+            data-elemid="notebook"
             variant="contained"
             onClick={props.goToNotebook}
             style={{ margin: 10 }}
@@ -300,6 +301,7 @@ function CurrentExperimentView(props: {
         </Button>
         <TooltipMsg elemId="submit" dialogue={props.dialogue}>
           <Button
+            data-elemid="submit"
             variant="contained"
             style={{ margin: 10 }}
             onClick={props.onSubmit}
@@ -365,7 +367,7 @@ function Summary(props: {
       });
     }
     dialogue.addMessages(msgs);
-  }, [summary, dialogue]);
+  }, [summary]);
 
   return (
     <div>
