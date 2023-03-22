@@ -37,6 +37,33 @@ export const Cafe: Game = {
   description:
     "You are trying to build a classifier to recommend products based on their reviews.",
   config: GameConfig,
+  resizes: true,
+  autocompletion: [
+    {
+      label: "sklearn.naive_bayes",
+      type: "text",
+      apply: "from sklearn.naive_bayes import MultinomialNB",
+      detail: "import Naive Bayes",
+    },
+    {
+      label: "sklearn.naive_bayes",
+      type: "text",
+      apply: "naive_bayes = MultinomialNB()",
+      detail: "create Naive Bayes model",
+    },
+    {
+      label: "sklearn.naive_bayes",
+      type: "text",
+      apply: "naive_bayes.fit()",
+      detail: "train Naive Bayes model",
+    },
+    {
+      label: "sklearn.naive_bayes",
+      type: "text",
+      apply: "naive_bayes.predict()",
+      detail: "evaluate Naive Bayes model",
+    },
+  ],
   simulator: new CafeSimulator(),
   summaryPanel: Summary,
 };

@@ -5,31 +5,37 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { Completion } from "@codemirror/autocomplete";
-import { Simulator, Simulation } from "./simulator";
-import Cafe from "./cafe";
-import FruitPicker from "./fruit-picker";
+import React from "react";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 
-export type GameID = "fruitpicker" | "cafe";
-
-export interface Game {
-  id: GameID;
-  title: string;
-  description: string;
-  config: Phaser.Types.Core.GameConfig;
-  autocompletion?: Completion[];
-  resizes?: boolean;
-  simulator: Simulator<Simulation>;
-  summaryPanel: (props: { simulation: Simulation }) => JSX.Element;
+export function ActionPopup(props: {
+  open: boolean;
+  title?: string;
+  text?: string;
+  children?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  onClose: () => void;
+}): JSX.Element {
+  return (
+    <Dialog onClose={props.onClose} open={props.open}>
+      {props.title ? (
+        <DialogTitle style={{ textAlign: "center" }}>{props.title}</DialogTitle>
+      ) : undefined}
+      {props.text ? (
+        <DialogContent>
+          <DialogContentText>{props.text}</DialogContentText>
+        </DialogContent>
+      ) : undefined}
+      {props.children ? (
+        <DialogActions style={{ justifyContent: "center" }}>
+          {props.children}
+        </DialogActions>
+      ) : undefined}
+    </Dialog>
+  );
 }
-
-export interface GameParams<S extends Simulation> {
-  playManually: boolean;
-  isMuted: boolean;
-  speed: number;
-  eventSystem: Phaser.Events.EventEmitter;
-  simulator: Simulator<S>;
-  simulation?: S;
-}
-
-export const Games: Game[] = [FruitPicker, Cafe];
