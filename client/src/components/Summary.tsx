@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+/* eslint-disable */
 
 import React, { useEffect, useState } from "react";
 import {
@@ -284,6 +285,7 @@ function CurrentExperimentView(props: {
       >
         <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
           <Button
+            data-elemid="notebook"
             variant="contained"
             onClick={props.goToNotebook}
             style={{ margin: 10 }}
@@ -300,6 +302,7 @@ function CurrentExperimentView(props: {
         </Button>
         <TooltipMsg elemId="submit" dialogue={props.dialogue}>
           <Button
+            data-elemid="submit"
             variant="contained"
             style={{ margin: 10 }}
             onClick={props.onSubmit}
@@ -365,7 +368,7 @@ function Summary(props: {
       });
     }
     dialogue.addMessages(msgs);
-  }, [summary, dialogue]);
+  }, [summary]);
 
   return (
     <div>

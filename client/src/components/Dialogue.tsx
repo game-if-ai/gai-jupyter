@@ -21,7 +21,7 @@ export const ColorTooltip = withStyles(Tooltip, {
 export function TooltipMsg(props: {
   elemId: string;
   dialogue: UseWithDialogue;
-  children?: any;
+  children?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   placement?:
     | "bottom"
     | "left"
@@ -36,6 +36,7 @@ export function TooltipMsg(props: {
     | "top-end"
     | "top-start";
 }): JSX.Element {
+  const { elemId } = props;
   const { curMessage, nextMessage } = props.dialogue;
   const [open, setOpen] = useState<boolean>(false);
   const [lastMessage, setLastMessage] = useState<DialogueMessage>();
@@ -44,15 +45,21 @@ export function TooltipMsg(props: {
     if (!curMessage) {
       setOpen(false);
     } else {
-      setOpen(curMessage.id === props.elemId);
-      if (curMessage.id === props.elemId && !curMessage.noSave) {
+      setOpen(curMessage.id === elemId);
+      if (curMessage.id === elemId && !curMessage.noSave) {
         setLastMessage(curMessage);
       }
     }
   }, [curMessage]);
 
+  useEffect(() => {
+    if (open && curMessage && curMessage.id === elemId) {
+      document.querySelector(`[data-elemid="${elemId}"]`)?.scrollIntoView();
+    }
+  }, [open]);
+
   function close(): void {
-    if (curMessage && curMessage.id === props.elemId) {
+    if (curMessage && curMessage.id === elemId) {
       nextMessage();
     } else {
       setOpen(false);
@@ -60,52 +67,46 @@ export function TooltipMsg(props: {
   }
 
   return (
-    <div>
-      <ColorTooltip
-        open={open}
-        disableHoverListener={open}
-        onClose={close}
-        onMouseEnter={() => {
-          if (!open && lastMessage) {
-            setOpen(true);
-          }
-        }}
-        onMouseLeave={() => {
-          if (curMessage?.id !== props.elemId) {
-            setOpen(false);
-          }
-        }}
-        placement={props.placement}
-        arrow
-        title={
-          <div>
-            <IconButton
-              color="inherit"
-              size="small"
-              text-align="right"
-              align-content="right"
-              onClick={close}
-            >
-              <Close />
-            </IconButton>
-            <Typography color="inherit" align="center">
-              {curMessage?.id === props.elemId
-                ? curMessage?.title
-                : lastMessage?.title}
-            </Typography>
-            <p style={{ textAlign: "center" }}>
-              {curMessage?.id === props.elemId
-                ? curMessage?.text
-                : lastMessage?.text}
-            </p>
-          </div>
+    <ColorTooltip
+      open={open}
+      disableHoverListener={open}
+      onClose={close}
+      onMouseEnter={() => {
+        if (!open && lastMessage) {
+          setOpen(true);
         }
-        PopperProps={{
-          style: { maxWidth: 250, textAlign: "right" },
-        }}
-      >
-        {props.children}
-      </ColorTooltip>
-    </div>
+      }}
+      onMouseLeave={() => {
+        if (curMessage?.id !== elemId) {
+          setOpen(false);
+        }
+      }}
+      placement={props.placement}
+      arrow
+      title={
+        <div>
+          <IconButton
+            color="inherit"
+            size="small"
+            text-align="right"
+            align-content="right"
+            onClick={close}
+          >
+            <Close />
+          </IconButton>
+          <Typography color="inherit" align="center">
+            {curMessage?.id === elemId ? curMessage?.title : lastMessage?.title}
+          </Typography>
+          <p style={{ textAlign: "center" }}>
+            {curMessage?.id === elemId ? curMessage?.text : lastMessage?.text}
+          </p>
+        </div>
+      }
+      PopperProps={{
+        style: { maxWidth: 250, textAlign: "right" },
+      }}
+    >
+      {props.children}
+    </ColorTooltip>
   );
 }

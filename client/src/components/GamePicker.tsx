@@ -53,7 +53,7 @@ function GamePicker(props: { loadGame: (g: Game) => void }): JSX.Element {
           >
             {Games.map((g) => (
               <MenuItem key={g.id} value={g.id}>
-                {g.config.title}
+                {g.title}
               </MenuItem>
             ))}
           </Select>
