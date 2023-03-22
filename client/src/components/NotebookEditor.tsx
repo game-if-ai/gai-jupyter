@@ -48,7 +48,6 @@ export function NotebookEditor(props: {
   const isEdited = cell.toJSON().source !== cellState.code;
 
   const notebook = selectNotebook(cellType);
-  const activeNotebookModel = selectNotebookModel(cellType);
   const [model, setModel] = useState<INotebookContent>();
   const [lintOutput, setLintOutput] = useState<string>("");
   const [lintCompartment] = useState(new Compartment());
@@ -135,13 +134,6 @@ export function NotebookEditor(props: {
           outputs: [],
           execution_count: 0,
         },
-        {
-          source: cellState.code,
-          cell_type: "code",
-          metadata: { trusted: true, editable: false, deletable: false },
-          outputs: [],
-          execution_count: 0,
-        },
       ],
       metadata: {},
       nbformat_minor: 1,
@@ -202,10 +194,10 @@ export function NotebookEditor(props: {
   }, [outputElement]);
 
   useEffect(() => {
-    if (isDisabled || !activeNotebookModel?.model?.cells) {
+    if (isDisabled || !notebook?.model?.cells) {
       return;
     }
-    const notebookCells = activeNotebookModel.model.cells;
+    const notebookCells = notebook.model.cells;
     notebookCells.get(0).stateChanged.connect((changedCell) => {
       const o = changedCell.toJSON().outputs as IOutput[];
       if (o.length > 0) {
@@ -223,7 +215,6 @@ export function NotebookEditor(props: {
           let diagnostics: Diagnostic[] = [];
           const lintLines = lintOutput.split("\n");
           for (const l of lintLines) {
-            console.log(l);
             const start = l.split(":")[0];
             if (!start) continue;
             if (view.state.doc.lines < Number.parseInt(start) - 1) continue;

@@ -158,14 +158,6 @@ export function useWithCellOutputs() {
     notebook.adapter.setNotebookModel(source);
   }
 
-  function formatCode(): void {
-    // const f = prettier.format("foo ( );", {
-    //   parser: "babel",
-    //   plugins: [parser],
-    // });
-    // console.log('test format ', f)
-  }
-
   return {
     cells,
     isEdited,
@@ -177,6 +169,5 @@ export function useWithCellOutputs() {
     undoCode,
     saveCode,
     userInputCellsCode,
-    formatCode,
   };
 }

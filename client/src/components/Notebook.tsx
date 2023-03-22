@@ -72,7 +72,6 @@ function NotebookComponent(props: {
     editCode,
     undoCode,
     saveCode,
-    formatCode,
   } = useWithCellOutputs();
   const [mode, setMode] = useState<"dark" | "light">("light");
   const [showUnsaved, setShowUnsaved] = useState<boolean>(false);
@@ -86,9 +85,6 @@ function NotebookComponent(props: {
 
   useEffect(() => {
     if (!showDescription && !sawTutorial) {
-      document
-        .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
-        ?.scrollIntoView();
       const messages = [];
       for (const c of Object.values(cells)) {
         const title = c.cell.getMetadata("gai_title") as string;
@@ -131,6 +127,21 @@ function NotebookComponent(props: {
     }
   }, [evaluationInput, evaluationOutput]);
 
+  const [scrolledToCell, setScrolledToCell] = useState<boolean>(false);
+  useEffect(() => {
+    if (
+      sawTutorial &&
+      !scrolledToCell &&
+      dialogue.messages.length === 0 &&
+      !dialogue.curMessage
+    ) {
+      setScrolledToCell(true);
+      document
+        .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
+        ?.scrollIntoView();
+    }
+  }, [dialogue.messages, dialogue.curMessage]);
+
   function toSimulation(): void {
     game.simulator.simulate(evaluationInput, evaluationOutput, notebook);
     props.setExperiment(game.simulator.experiments.length - 1);
@@ -158,13 +169,10 @@ function NotebookComponent(props: {
         <Toolbar>
           <Select
             variant="standard"
-            value={GaiCellTypes.EVALUATION}
             onChange={(e) => {
-              if (e.target.value) {
-                document
-                  .getElementById(`cell-${e.target.value}`)
-                  ?.scrollIntoView();
-              }
+              document
+                .getElementById(`cell-${e.target.value}`)
+                ?.scrollIntoView();
             }}
             style={{ color: "white" }}
           >
@@ -252,9 +260,7 @@ function NotebookComponent(props: {
         <Button startIcon={<Info />} onClick={() => setShowDescription(true)}>
           Info
         </Button>
-        <Button startIcon={<FormatColorText />} onClick={formatCode}>
-          Format
-        </Button>
+        <Button startIcon={<FormatColorText />}>Format</Button>
         <Button startIcon={<BugReport />}>Debug</Button>
       </Toolbar>
       <div style={{ display: "none" }}>
