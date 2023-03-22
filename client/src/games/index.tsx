@@ -10,8 +10,10 @@ import { Simulator, Simulation } from "./simulator";
 import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
 
+export type GameID = "fruitpicker" | "cafe";
+
 export interface Game {
-  id: string;
+  id: GameID;
   title: string;
   description: string;
   config: Phaser.Types.Core.GameConfig;

@@ -11,6 +11,7 @@ import {
 } from "./use-with-user-code-examination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Game } from "../games";
 
 type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
 
@@ -69,8 +70,11 @@ const improveCodeHints: ImproveCodeHint[] = [
   },
 ];
 
-export function useWithImproveCodeToasts(props: { numCodeRuns: number }) {
-  const { numCodeRuns } = props;
+export function useWithImproveCafeCode(props: {
+  numCodeRuns: number;
+  activeGame: Game;
+}) {
+  const { numCodeRuns, activeGame } = props;
 
   const [hintDisplayed, setHintDisplayed] = useState(false);
   const [activeHintIndex, setActiveHintIndex] = useState(-1);
@@ -80,7 +84,7 @@ export function useWithImproveCodeToasts(props: { numCodeRuns: number }) {
 
   function toastHint() {
     let activeHintIndexCopy = activeHintIndex;
-    if (activeHintIndex === -1) {
+    if (activeHintIndex === -1 || activeGame.id !== "cafe") {
       return;
     }
     while (activeHintIndexCopy >= 0) {
@@ -112,7 +116,7 @@ export function useWithImproveCodeToasts(props: { numCodeRuns: number }) {
   }
 
   useEffect(() => {
-    if (userCodeInfo.loadStatus === "LOADING") {
+    if (userCodeInfo.loadStatus === "LOADING" || activeGame.id !== "cafe") {
       return;
     }
     const firstActiveHintIndex = improveCodeHints.findIndex((hint) =>
@@ -138,7 +142,13 @@ export function useWithImproveCodeToasts(props: { numCodeRuns: number }) {
         );
       },
     });
-  }, [userCodeInfo, hintDisplayed, numCodeRuns, returningToNotebook]);
+  }, [
+    userCodeInfo,
+    hintDisplayed,
+    numCodeRuns,
+    returningToNotebook,
+    activeGame.id,
+  ]);
 
   return {
     toastHint,

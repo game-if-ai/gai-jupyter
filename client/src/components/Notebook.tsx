@@ -44,7 +44,7 @@ import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
-import { useWithImproveCodeToasts } from "../hooks/use-with-improve-code-toasts";
+import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
 
 function NotebookComponent(props: {
   game: Game;
@@ -78,9 +78,11 @@ function NotebookComponent(props: {
   const [showUnsaved, setShowUnsaved] = useState<boolean>(false);
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
-  const { toastHint, hintsAvailable } = useWithImproveCodeToasts({
-    numCodeRuns: numRuns,
-  });
+  const { toastHint: toastCafeHint, hintsAvailable: cafeHintsAvailable } =
+    useWithImproveCafeCode({
+      numCodeRuns: numRuns,
+      activeGame: game,
+    });
 
   useEffect(() => {
     if (!showDescription && !sawTutorial) {
@@ -173,7 +175,10 @@ function NotebookComponent(props: {
             ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
-          <IconButton disabled={!hintsAvailable} onClick={toastHint}>
+          <IconButton
+            disabled={!cafeHintsAvailable || game.id !== "cafe"}
+            onClick={toastCafeHint}
+          >
             <QuestionMark />
           </IconButton>
           <Switch
