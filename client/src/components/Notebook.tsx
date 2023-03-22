@@ -8,6 +8,8 @@ The full terms of this copyright and license should always be found in the root 
 
 import React, { useEffect, useState } from "react";
 import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
+import { ToastContainer, ToastContainerProps } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   AppBar,
   Button,
@@ -27,6 +29,7 @@ import {
   PlayArrow,
   Save,
   Undo,
+  QuestionMark,
 } from "@mui/icons-material";
 
 import { Game } from "../games";
@@ -41,6 +44,7 @@ import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
+import { useWithImproveCodeToasts } from "../hooks/use-with-improve-code-toasts";
 
 function NotebookComponent(props: {
   game: Game;
@@ -50,12 +54,14 @@ function NotebookComponent(props: {
   setExperiment: (e: number) => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
+  notebookRan: () => void;
+  numRuns: number;
 }): JSX.Element {
   const classes = useStyles();
   const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const shortcutKeyboard = useWithShortcutKeys();
-  const { game, curExperiment, sawTutorial } = props;
+  const { game, curExperiment, sawTutorial, notebookRan, numRuns } = props;
   const {
     cells,
     isEdited,
@@ -72,6 +78,9 @@ function NotebookComponent(props: {
   const [showUnsaved, setShowUnsaved] = useState<boolean>(false);
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
+  const { toastHint, hintsAvailable } = useWithImproveCodeToasts({
+    numCodeRuns: numRuns,
+  });
 
   useEffect(() => {
     if (!showDescription && !sawTutorial) {
@@ -136,6 +145,7 @@ function NotebookComponent(props: {
     if (isEdited) {
       setShowUnsaved(true);
     } else {
+      notebookRan();
       run();
     }
   }
@@ -163,6 +173,9 @@ function NotebookComponent(props: {
             ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
+          <IconButton disabled={!hintsAvailable} onClick={toastHint}>
+            <QuestionMark />
+          </IconButton>
           <Switch
             color="secondary"
             checked={mode === "dark"}
@@ -308,9 +321,15 @@ function NotebookComponent(props: {
       >
         <Button onClick={() => setShowDescription(false)}>Okay</Button>
       </ActionPopup>
+      <ToastContainer {...defaultToastOptions} />
     </div>
   );
 }
+
+const defaultToastOptions: ToastContainerProps = {
+  position: "bottom-left",
+  autoClose: 20000,
+};
 
 const useStyles = makeStyles(() => ({
   root: {
