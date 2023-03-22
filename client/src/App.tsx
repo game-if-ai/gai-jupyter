@@ -117,6 +117,7 @@ function App(): JSX.Element {
         <Notebook
           game={game!}
           sawTutorial={sawNotebookTutorial}
+          setSawTutorial={setSawNotebookTutorial}
           curExperiment={experiment}
           setExperiment={viewExperiment}
           viewSummary={viewSummary}

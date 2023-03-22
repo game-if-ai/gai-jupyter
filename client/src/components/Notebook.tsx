@@ -6,201 +6,51 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
-import { ToastContainer, toast, ToastContainerProps } from "react-toastify";
+import { ToastContainer, ToastContainerProps } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   AppBar,
   Button,
-  Collapse,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   IconButton,
   MenuItem,
   Select,
   Switch,
   Toolbar,
-  Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import {
+  BugReport,
   DarkMode,
-  EditOff,
+  FormatColorText,
+  Info,
   LightMode,
   PlayArrow,
   Save,
   Undo,
-  Visibility,
-  VisibilityOff,
   QuestionMark,
 } from "@mui/icons-material";
-import { basicSetup, EditorView } from "codemirror";
-import { python } from "@codemirror/lang-python";
-import { EditorState } from "@codemirror/state";
-import { ViewUpdate } from "@codemirror/view";
 
 import { Game } from "../games";
 import { Experiment, Simulation } from "../games/simulator";
-import { CellState, useWithCellOutputs } from "../hooks/use-with-cell-outputs";
-import { UseWithDialogue, useWithDialogue } from "../hooks/use-with-dialogue";
+import { useWithCellOutputs } from "../hooks/use-with-notebook";
+import { useWithDialogue } from "../hooks/use-with-dialogue";
+import {
+  SHORTCUT_KEYS,
+  useWithShortcutKeys,
+} from "../hooks/use-with-shortcut-keys";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { TooltipMsg } from "./Dialogue";
-import { ImproveCodeToasts } from "./ImproveCodeToasts";
-
-function NotebookCell(props: {
-  curCell: string;
-  cellType: string;
-  cellState: CellState;
-  mode: "dark" | "light";
-  dialogue: UseWithDialogue;
-  editCode: (c: string) => void;
-  setCurCell: (s: string) => void;
-  setEditor: (e: EditorView) => void;
-}): JSX.Element {
-  const classes = useStyles();
-  const { mode, cellType, cellState, dialogue } = props;
-  const { cell, output } = cellState;
-  const [showOutput, setShowOutput] = useState<boolean>(true);
-  const [outputElement, setOutputElement] = useState<JSX.Element>();
-  const [editor, setEditor] = useState<EditorView>();
-  const [topVisible, setTopVisible] = useState<boolean>(false);
-  const [botVisible, setBotVisible] = useState<boolean>(false);
-
-  const isDisabled = cell.getMetadata("contenteditable") === false;
-  const refTop = useRef<HTMLDivElement>(null);
-  const refBot = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const doc = document.getElementById(`code-input-${cellType}`);
-    if (!doc || editor) {
-      return;
-    }
-    const extensions = [basicSetup, python(), EditorState.tabSize.of(4)];
-    if (isDisabled) {
-      extensions.push(EditorState.readOnly.of(true));
-    }
-    const isEvalCell = cellType === GaiCellTypes.EVALUATION;
-    if (isEvalCell) {
-      extensions.push(
-        EditorView.updateListener.of((v: ViewUpdate) => {
-          if (v.docChanged) {
-            props.editCode(v.state.doc.toString());
-          }
-        })
-      );
-    }
-    const state = EditorState.create({
-      doc: cell.toJSON().source as string,
-      extensions,
-    });
-    const view = new EditorView({
-      state,
-      parent: doc,
-    });
-    setEditor(view);
-    if (isEvalCell) {
-      props.setEditor(view);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!refTop.current || !refBot.current) {
-      return;
-    }
-    const observer = new IntersectionObserver((entries, observer) => {
-      for (const e of entries) {
-        if (e.target.getAttribute("data-cy") === "top") {
-          setTopVisible(e.isIntersecting);
-        } else if (e.target.getAttribute("data-cy") === "bot") {
-          setBotVisible(e.isIntersecting);
-        }
-      }
-    });
-    observer.observe(refTop.current);
-    observer.observe(refBot.current);
-    return () => {
-      observer.disconnect();
-    };
-  }, [refTop.current, refBot.current]);
-
-  useEffect(() => {
-    if (topVisible && botVisible && props.curCell) {
-      props.setCurCell(cellType);
-    }
-  }, [topVisible, botVisible]);
-
-  useEffect(() => {
-    if (outputElement) {
-      setOutputElement(undefined);
-    } else if (output.length) {
-      const o = output[0];
-      if (o.traceback) {
-        dialogue.addMessage({
-          id: `output-${cellType}`,
-          text: "There was an error while running this cell. Please review and make changes before re-running.",
-          noSave: true,
-        });
-      }
-      setOutputElement(<Output outputs={output} />);
-    }
-  }, [output]);
-
-  useEffect(() => {
-    if (!outputElement && output.length) {
-      setOutputElement(<Output outputs={output} />);
-    }
-  }, [outputElement]);
-
-  return (
-    <div
-      id={`cell-${cellType}`}
-      style={{
-        color: mode === "dark" ? "white" : "",
-        backgroundColor:
-          mode === "dark"
-            ? isDisabled
-              ? "#232323"
-              : "#171a22"
-            : isDisabled
-            ? "#E3E3E3"
-            : "#f6f8fa",
-      }}
-    >
-      <div data-cy="top" ref={refTop} />
-      <div className={classes.cellHeader}>
-        {isDisabled ? (
-          <EditOff fontSize="small" className={classes.noEditIcon} />
-        ) : undefined}
-        <TooltipMsg elemId={`cell-${cellType}`} dialogue={dialogue}>
-          <Typography>{cellType.toLowerCase()}</Typography>
-        </TooltipMsg>
-        <div style={{ flexGrow: 1 }} />
-        <TooltipMsg elemId={`output-${cellType}`} dialogue={dialogue}>
-          <Button
-            startIcon={showOutput ? <Visibility /> : <VisibilityOff />}
-            onClick={() => setShowOutput(!showOutput)}
-          >
-            Output
-          </Button>
-        </TooltipMsg>
-      </div>
-      <div id={`code-input-${cellType}`} />
-      <Collapse in={showOutput} timeout="auto" unmountOnExit>
-        {outputElement}
-      </Collapse>
-      <div data-cy="bot" ref={refBot} style={{ marginBottom: 1 }} />
-    </div>
-  );
-}
+import { NotebookEditor } from "./NotebookEditor";
+import { ActionPopup } from "./Popup";
+import { useWithImproveCodeToasts } from "../hooks/use-with-improve-code-toasts";
 
 function NotebookComponent(props: {
   game: Game;
   curExperiment: Experiment<Simulation> | undefined;
   sawTutorial: boolean;
+  setSawTutorial: (tf: boolean) => void;
   setExperiment: (e: number) => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
@@ -208,37 +58,65 @@ function NotebookComponent(props: {
   numRuns: number;
 }): JSX.Element {
   const classes = useStyles();
-  const { game, curExperiment, notebookRan, numRuns } = props;
-  const {
-    cells,
-    curCell,
-    isCodeEdited,
-    evaluationInput,
-    evaluationOutput,
-    evaluationCode,
-    run,
-    clear,
-    editCode,
-    saveCode,
-    setCurCell,
-  } = useWithCellOutputs();
   const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
+  const shortcutKeyboard = useWithShortcutKeys();
+  const { game, curExperiment, sawTutorial, notebookRan, numRuns } = props;
+  const {
+    cells,
+    isEdited,
+    evaluationInput,
+    evaluationOutput,
+    run,
+    clearOutputs,
+    editCode,
+    undoCode,
+    saveCode,
+    formatCode,
+  } = useWithCellOutputs();
   const [mode, setMode] = useState<"dark" | "light">("light");
-  const [dialogUnsaved, setDialogUnsaved] = useState<boolean>(false);
-  const [dialogDescription, setDialogDescription] = useState<boolean>(true);
-  const [editor, setEditor] = useState<EditorView>();
-  const [outputSimulated, setOutputSimulated] = useState(true);
+  const [showUnsaved, setShowUnsaved] = useState<boolean>(false);
+  const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
-  const { toastHint, hintsAvailable } = ImproveCodeToasts({
+  const { toastHint, hintsAvailable } = useWithImproveCodeToasts({
     numCodeRuns: numRuns,
   });
 
   useEffect(() => {
-    if (evaluationOutput && evaluationOutput.length && !outputSimulated) {
-      setOutputSimulated(true);
+    if (!showDescription && !sawTutorial) {
+      document
+        .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
+        ?.scrollIntoView();
+      const messages = [];
+      for (const c of Object.values(cells)) {
+        const title = c.cell.getMetadata("gai_title") as string;
+        const text = c.cell.getMetadata("gai_description") as string;
+        const type = c.cell.getMetadata("gai_cell_type") as string;
+        if (title && text && type) {
+          messages.push({ id: `cell-${type}`, title, text });
+        }
+      }
+      dialogue.addMessages([
+        ...messages,
+        {
+          id: "save",
+          title: "Save Code",
+          text: "This is the save button. It will save all the changes you've made to edited notebook cells.",
+        },
+        {
+          id: "undo",
+          title: "Undo Code",
+          text: "This is the undo button. It will reset all edited notebook cells to the state they were in during the last save. If you want to undo changes to an individual cell, use that notebook's undo button instead.",
+        },
+        {
+          id: "run",
+          title: "Run Code",
+          text: "This is the run button. It will run all the notebook cells and generate the simulated output.",
+        },
+      ]);
+      props.setSawTutorial(true);
     }
-  }, [evaluationOutput]);
+  }, [showDescription]);
 
   useEffect(() => {
     if (Boolean(evaluationInput.length && evaluationOutput.length)) {
@@ -251,94 +129,25 @@ function NotebookComponent(props: {
     }
   }, [evaluationInput, evaluationOutput]);
 
-  useEffect(() => {
-    if (!dialogDescription && !curCell) {
-      setCurCell(GaiCellTypes.EVALUATION);
-      document
-        .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
-        ?.scrollIntoView();
-      if (!props.sawTutorial) {
-        dialogue.addMessages([
-          {
-            id: `cell-${GaiCellTypes.EVALUATION}`,
-            title: "Model Evaluation",
-            text: "This is the evaluation cell. It has been filled in with stub code. Please edit it then run.",
-          },
-          {
-            id: "run",
-            title: "Run Code",
-            text: "This is the run button. Press it after you've filled in the code to run the code and view simulated output.",
-          },
-        ]);
-      }
-    }
-  }, [dialogDescription]);
-
   function toSimulation(): void {
-    game.simulator.simulate(
-      evaluationInput,
-      evaluationOutput,
-      evaluationCode,
-      notebook
-    );
+    game.simulator.simulate(evaluationInput, evaluationOutput, notebook);
     props.setExperiment(game.simulator.experiments.length - 1);
     props.runSimulation(0);
   }
 
   function toSummary(): void {
-    game.simulator.simulate(
-      evaluationInput,
-      evaluationOutput,
-      evaluationCode,
-      notebook
-    );
+    game.simulator.simulate(evaluationInput, evaluationOutput, notebook);
     props.setExperiment(game.simulator.experiments.length - 1);
     props.viewSummary();
   }
 
   function simulate(): void {
-    if (isCodeEdited) {
-      setDialogUnsaved(true);
+    if (isEdited) {
+      setShowUnsaved(true);
     } else {
-      setOutputSimulated(false);
       notebookRan();
       run();
     }
-  }
-
-  function undo(): void {
-    if (!editor) {
-      return;
-    }
-    const transaction = editor.state.update({
-      changes: {
-        from: 0,
-        to: editor.state.doc.length,
-        insert: evaluationCode as string,
-      },
-    });
-    editor.dispatch(transaction);
-  }
-
-  function ShortcutKey(str: string, key: string): JSX.Element {
-    return (
-      <Button
-        key={str}
-        onClick={(e) => {
-          if (!editor) {
-            return;
-          }
-          const cursor = editor.state.selection.ranges[0];
-          const transaction = editor.state.update({
-            changes: { from: cursor.from, to: cursor.to, insert: key },
-          });
-          editor.dispatch(transaction);
-          editor.dispatch({ selection: { anchor: cursor.from + 1 } });
-        }}
-      >
-        {str}
-      </Button>
-    );
   }
 
   return (
@@ -347,12 +156,13 @@ function NotebookComponent(props: {
         <Toolbar>
           <Select
             variant="standard"
-            value={curCell}
+            value={GaiCellTypes.EVALUATION}
             onChange={(e) => {
-              document
-                .getElementById(`cell-${e.target.value}`)
-                ?.scrollIntoView();
-              setCurCell(e.target.value);
+              if (e.target.value) {
+                document
+                  .getElementById(`cell-${e.target.value}`)
+                  ?.scrollIntoView();
+              }
             }}
             style={{ color: "white" }}
           >
@@ -379,13 +189,15 @@ function NotebookComponent(props: {
             onChange={() => setMode(mode === "dark" ? "light" : "dark")}
           />
           <TooltipMsg elemId="save" dialogue={dialogue}>
-            <IconButton disabled={!isCodeEdited} onClick={saveCode}>
+            <IconButton disabled={!isEdited} onClick={saveCode}>
               <Save />
             </IconButton>
           </TooltipMsg>
-          <IconButton disabled={!isCodeEdited} onClick={undo}>
-            <Undo />
-          </IconButton>
+          <TooltipMsg elemId="undo" dialogue={dialogue}>
+            <IconButton disabled={!isEdited} onClick={undoCode}>
+              <Undo />
+            </IconButton>
+          </TooltipMsg>
           <TooltipMsg elemId="run" dialogue={dialogue}>
             <IconButton onClick={simulate}>
               <PlayArrow />
@@ -394,34 +206,54 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <Button
-        sx={{ textTransform: "none" }}
-        onClick={() => setDialogDescription(true)}
+      <div
+        className={classes.buttons}
+        style={{
+          display: shortcutKeyboard.isOpen ? "block" : "none",
+          backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa",
+        }}
       >
-        Build a sentiment classifier model.
-      </Button>
+        {SHORTCUT_KEYS.map((s) => (
+          <Button
+            key={s.text}
+            color="primary"
+            onClick={() => shortcutKeyboard.setKey(s.key || s.text)}
+          >
+            {s.text}
+          </Button>
+        ))}
+      </div>
       <div className={classes.cells}>
         {Object.entries(cells).map((v) => (
-          <NotebookCell
+          <NotebookEditor
             key={v[0]}
-            curCell={curCell}
+            game={game}
             cellType={v[0]}
             cellState={v[1]}
             mode={mode}
             editCode={editCode}
-            setCurCell={setCurCell}
-            setEditor={setEditor}
             dialogue={dialogue}
+            shortcutKeyboard={shortcutKeyboard}
           />
         ))}
       </div>
-      <div
+      <Toolbar
         className={classes.buttons}
-        style={{ backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa" }}
+        style={{
+          justifyContent: "center",
+          backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa",
+        }}
       >
-        {SHORTCUT_KEYS.map((s) => ShortcutKey(s.text, s.key || s.text))}
-      </div>
+        <Button startIcon={<Info />} onClick={() => setShowDescription(true)}>
+          Info
+        </Button>
+        <Button startIcon={<FormatColorText />} onClick={formatCode}>
+          Format
+        </Button>
+        <Button startIcon={<BugReport />}>Debug</Button>
+      </Toolbar>
       <div style={{ display: "none" }}>
+        <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
           model={
             loadedWithExperiment && curExperiment?.notebookContent
@@ -436,73 +268,59 @@ function NotebookComponent(props: {
           uid={NOTEBOOK_UID}
         />
       </div>
-      <Dialog
-        onClose={clear}
+      <ActionPopup
         open={Boolean(evaluationInput.length && evaluationOutput.length)}
+        onClose={clearOutputs}
+        title="See results"
+        text="Would you like to view your results?"
       >
-        <DialogTitle>See results</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Would you like to view your results?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={clear}>Cancel</Button>
-          <TooltipMsg elemId="view-sim" dialogue={dialogue} placement="top">
-            <Button onClick={toSimulation}>View Simulation</Button>
-          </TooltipMsg>
-          <TooltipMsg elemId="view-summary" dialogue={dialogue} placement="top">
-            <Button onClick={toSummary}>View Summary</Button>
-          </TooltipMsg>
-        </DialogActions>
-      </Dialog>
-      <Dialog onClose={() => setDialogUnsaved(false)} open={dialogUnsaved}>
-        <DialogTitle>Unsaved Code Changes</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Would you like to run without saving?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              dialogue.addMessage({
-                id: "save",
-                text: "Don't forget to save your changes before running again!",
-                noSave: true,
-              });
-              setDialogUnsaved(false);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              notebookRan();
-              run();
-              setDialogUnsaved(false);
-            }}
-          >
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
-        onClose={() => setDialogDescription(false)}
-        open={dialogDescription}
+        <Button onClick={clearOutputs}>Cancel</Button>
+        <TooltipMsg elemId="view-sim" dialogue={dialogue} placement="bottom">
+          <Button onClick={toSimulation}>View Simulation</Button>
+        </TooltipMsg>
+        <TooltipMsg
+          elemId="view-summary"
+          dialogue={dialogue}
+          placement="bottom"
+        >
+          <Button onClick={toSummary}>View Summary</Button>
+        </TooltipMsg>
+      </ActionPopup>
+      <ActionPopup
+        open={showUnsaved}
+        onClose={() => setShowUnsaved(false)}
+        title="Unsaved Code Changes"
+        text="Would you like to run without saving? You will lose any unsaved code changes."
       >
-        <DialogTitle>{game.title}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>{game.description}</DialogContentText>
-          <DialogContentText>
-            Please complete this notebook to build a sentiment classifier. You
-            will receive hints on how to improve its performance as you go.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogDescription(false)}>Okay</Button>
-        </DialogActions>
-      </Dialog>
+        <Button
+          onClick={() => {
+            dialogue.addMessage({
+              id: "save",
+              text: "Don't forget to save your changes before running again!",
+              noSave: true,
+            });
+            setShowUnsaved(false);
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={() => {
+            run();
+            setShowUnsaved(false);
+          }}
+        >
+          Run Anyway
+        </Button>
+      </ActionPopup>
+      <ActionPopup
+        open={showDescription}
+        onClose={() => setShowDescription(false)}
+        title={game.title}
+        text="Please complete this notebook to build a sentiment classifier. You will receive hints on how to improve its performance as you go."
+      >
+        <Button onClick={() => setShowDescription(false)}>Okay</Button>
+      </ActionPopup>
       <ToastContainer {...defaultToastOptions} />
     </div>
   );
@@ -527,18 +345,6 @@ const useStyles = makeStyles(() => ({
     flex: 1,
     overflowY: "scroll",
   },
-  cellHeader: {
-    display: "flex",
-    flexDirection: "row",
-    marginLeft: 10,
-    marginRight: 10,
-    alignItems: "center",
-  },
-  textEditor: {
-    fontSize: 12,
-    fontFamily:
-      "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-  },
   switchIcon: {
     width: 16,
     height: 16,
@@ -547,42 +353,14 @@ const useStyles = makeStyles(() => ({
     backgroundColor: "white",
     color: "red",
   },
-  noEditIcon: {
-    marginRight: 5,
-    color: "#a8a8a8",
-  },
   buttons: {
+    display: "flex",
     flexDirection: "row",
+    height: 40,
     width: "100%",
     overflowX: "scroll",
     whiteSpace: "nowrap",
   },
 }));
-
-interface ShortcutKey {
-  text: string;
-  key?: string;
-}
-const SHORTCUT_KEYS: ShortcutKey[] = [
-  { text: "TAB", key: "    " },
-  { text: "(" },
-  { text: ")" },
-  { text: "[" },
-  { text: "]" },
-  { text: "=" },
-  { text: ":" },
-  { text: ";" },
-  { text: "," },
-  { text: "." },
-  { text: '"' },
-  { text: "'" },
-  { text: "!" },
-  { text: "?" },
-  { text: "+" },
-  { text: "-" },
-  { text: "<" },
-  { text: ">" },
-  { text: "#" },
-];
 
 export default NotebookComponent;

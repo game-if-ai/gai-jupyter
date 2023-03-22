@@ -5,7 +5,6 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { MultilineString } from "@jupyterlab/nbformat";
 import { average } from "../utils";
 import { v4 as uuid } from "uuid";
 import { INotebookState } from "@datalayer/jupyter-react";
@@ -16,7 +15,6 @@ export interface Experiment<S extends Simulation> {
   time: Date;
   trainInstances: number;
   testInstances: number;
-  evaluationCode: MultilineString;
   simulations: S[];
   summary: SimulationSummary;
   notebookContent: INotebookContent | undefined;
@@ -61,7 +59,6 @@ export class Simulator<S extends Simulation> {
   simulate(
     inputs: number[],
     outputs: any[][],
-    evaluationCode: MultilineString,
     notebook: INotebookState | undefined
   ): Experiment<S> {
     const experiment: Experiment<S> = {
@@ -72,7 +69,6 @@ export class Simulator<S extends Simulation> {
         : undefined,
       trainInstances: inputs[0],
       testInstances: inputs[1],
-      evaluationCode,
       simulations: [],
       summary: {
         lowScore: 0,

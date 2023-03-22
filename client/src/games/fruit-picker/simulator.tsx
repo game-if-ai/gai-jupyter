@@ -71,15 +71,9 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
   simulate(
     inputs: number[],
     outputs: FruitClassifierOutput[][],
-    evaluationCode: string[],
     notebook: INotebookState
   ): Experiment<FruitSimulation> {
-    const experiment = super.simulate(
-      inputs,
-      outputs,
-      evaluationCode,
-      notebook
-    );
+    const experiment = super.simulate(inputs, outputs, notebook);
     for (let run = 0; run < outputs.length; run++) {
       const sim = this.play();
       const simClassifierData = outputs[run];

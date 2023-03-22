@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import {
   UserCodeInfo,
   useWithUserCodeExamine,
-} from "../hooks/use-with-user-code-examination";
+} from "./use-with-user-code-examination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -69,7 +69,7 @@ const improveCodeHints: ImproveCodeHint[] = [
   },
 ];
 
-export function ImproveCodeToasts(props: { numCodeRuns: number }) {
+export function useWithImproveCodeToasts(props: { numCodeRuns: number }) {
   const { numCodeRuns } = props;
 
   const [hintDisplayed, setHintDisplayed] = useState(false);
