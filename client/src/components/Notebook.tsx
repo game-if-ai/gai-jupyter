@@ -46,6 +46,7 @@ import { CellState, useWithCellOutputs } from "../hooks/use-with-cell-outputs";
 import { UseWithDialogue, useWithDialogue } from "../hooks/use-with-dialogue";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { TooltipMsg } from "./Dialogue";
+import { ImproveCodeToasts } from "./ImproveCodeToasts";
 
 function NotebookCell(props: {
   curCell: string;
@@ -214,7 +215,7 @@ function NotebookComponent(props: {
     clear,
     editCode,
     saveCode,
-    setCurCell,
+    setCurCell
   } = useWithCellOutputs();
   const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
@@ -489,6 +490,7 @@ function NotebookComponent(props: {
           <Button onClick={() => setDialogDescription(false)}>Okay</Button>
         </DialogActions>
       </Dialog>
+      <ImproveCodeToasts />
     </div>
   );
 }

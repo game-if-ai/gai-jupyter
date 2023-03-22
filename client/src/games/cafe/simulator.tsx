@@ -72,6 +72,7 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
       notebook
     );
     for (let run = 0; run < outputs.length; run++) {
+
       const sim = this.play();
       const simClassifierOutput = outputs[run];
       for (let i = 0; i < sim.spawns.length; i++) {

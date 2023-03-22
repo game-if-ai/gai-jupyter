@@ -15,6 +15,8 @@ import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
 import Cmi5 from "@xapi/cmi5";
+import { useWithCellOutputs } from "./hooks/use-with-cell-outputs";
+import { useWithUserCodeExamine } from "./hooks/use-with-user-code-examination";
 
 enum STEP {
   PICK_GAME,
@@ -33,6 +35,8 @@ function App(): JSX.Element {
   const [sawNotebookTutorial, setSawNotebookTutorial] =
     useState<boolean>(false);
   const [sawSimTutorial, setSawSimTutorial] = useState<boolean>(false);
+
+
 
   useEffect(() => {
     if (Cmi5.isCmiAvailable) {
@@ -95,6 +99,7 @@ function App(): JSX.Element {
 
   function viewSummary(): void {
     if (!game) {
+
       return;
     }
     setStep(STEP.SUMMARY);
