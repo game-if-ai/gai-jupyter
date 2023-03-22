@@ -9,7 +9,7 @@ The full terms of this copyright and license should always be found in the root 
 import { useEffect, useState } from "react";
 import { selectNotebook, selectNotebookModel } from "@datalayer/jupyter-react";
 import { INotebookModel } from "@jupyterlab/notebook";
-import {CellList} from "@jupyterlab/notebook/lib/celllist"
+import { CellList } from "@jupyterlab/notebook/lib/celllist";
 import {
   INotebookContent,
   IOutput,
@@ -18,7 +18,11 @@ import {
 import { ICellModel } from "@jupyterlab/cells";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
-import { extractInputFromCell, extractOutputFromCell, extractInputCellCode } from "../utils";
+import {
+  extractInputFromCell,
+  extractOutputFromCell,
+  extractInputCellCode,
+} from "../utils";
 
 export interface CellState {
   cell: ICellModel;
@@ -28,7 +32,8 @@ export interface CellState {
 export type UserInputCellsCode = Record<string, string[]>;
 
 export function useWithCellOutputs() {
-  const [userInputCellsCode, setUserInputCellsCode] = useState<UserInputCellsCode>({});
+  const [userInputCellsCode, setUserInputCellsCode] =
+    useState<UserInputCellsCode>({});
   const [evaluationInput, setEvaluationInput] = useState<number[]>([]);
   const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
   const [evaluationCode, setEvaluationCode] = useState<MultilineString>("");
@@ -86,25 +91,25 @@ export function useWithCellOutputs() {
       }
     }
     extractAndSetEvaluationCellCode(activeNotebookModel.cells);
-    activeNotebookModel.contentChanged.connect((changedNotebook)=>{
+    activeNotebookModel.contentChanged.connect((changedNotebook) => {
       extractAndSetEvaluationCellCode(changedNotebook.cells);
-    })
+    });
     setCells(cs);
     setNotebookConnected(true);
   }
 
-  function extractAndSetEvaluationCellCode(notebookCells: CellList){
+  function extractAndSetEvaluationCellCode(notebookCells: CellList) {
     let evalCellCount = 0;
-    for(let i = 0; i < notebookCells.length; i++){
+    for (let i = 0; i < notebookCells.length; i++) {
       const cell = notebookCells.get(i);
       const cellSource = extractInputCellCode(cell);
       const cellType = cell.getMetadata("gai_cell_type");
       if (cellType === GaiCellTypes.EVALUATION) {
-        setUserInputCellsCode(prevValue =>{
-          return{
+        setUserInputCellsCode((prevValue) => {
+          return {
             ...prevValue,
-            [`EVALUATION-CELL-${evalCellCount}`] : cellSource
-          }
+            [`EVALUATION-CELL-${evalCellCount}`]: cellSource,
+          };
         });
         evalCellCount++;
       }
@@ -155,6 +160,6 @@ export function useWithCellOutputs() {
     editCode,
     saveCode,
     setCurCell,
-    userInputCellsCode
+    userInputCellsCode,
   };
 }

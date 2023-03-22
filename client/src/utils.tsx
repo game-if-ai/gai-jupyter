@@ -77,10 +77,18 @@ export function extractNotebookCellCode(notebook: INotebookState): string[][] {
   return cellSources;
 }
 
-export function extractInputCellCode(cell: ICellModel): string[]{
+export function extractInputCellCode(cell: ICellModel): string[] {
   const cellData = cell.toJSON();
   const cellSource = cellData.source;
-  return Array.isArray(cellSource) ? cellSource.filter((codeLine)=>!codeLine.trim().startsWith("#") && codeLine.length > 0) : cellSource.split("\n").filter((codeLine)=>!codeLine.trim().startsWith("#") && codeLine.length > 0);
+  return Array.isArray(cellSource)
+    ? cellSource.filter(
+        (codeLine) => !codeLine.trim().startsWith("#") && codeLine.length > 0
+      )
+    : cellSource
+        .split("\n")
+        .filter(
+          (codeLine) => !codeLine.trim().startsWith("#") && codeLine.length > 0
+        );
 }
 
 export function extractInputFromCell(cell: ICellModel): number[] {
