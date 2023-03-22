@@ -34,7 +34,7 @@ export interface ShortcutKey {
 }
 
 export const SHORTCUT_KEYS: ShortcutKey[] = [
-  { text: "TAB", key: "  " },
+  { text: "TAB", key: "    " },
   { text: "( )", key: "()" },
   { text: "[ ]", key: "[]" },
   { text: "{ }", key: "{}" },

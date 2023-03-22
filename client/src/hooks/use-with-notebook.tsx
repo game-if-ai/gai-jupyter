@@ -90,7 +90,7 @@ export function useWithCellOutputs() {
     setEvaluationOutput([]);
   }
 
-  function editCell(cell: string, code: string): void {
+  function editCode(cell: string, code: string): void {
     cells[cell].code = code;
     let edited = false;
     for (const c of Object.values(cells)) {
@@ -103,7 +103,7 @@ export function useWithCellOutputs() {
     setCells({ ...cells });
   }
 
-  function undoCells(): void {
+  function undoCode(): void {
     for (const [type, cell] of Object.entries(cells)) {
       cells[type].code = cell.cell.toJSON().source;
     }
@@ -111,7 +111,7 @@ export function useWithCellOutputs() {
     setCells({ ...cells });
   }
 
-  function saveCells(): void {
+  function saveCode(): void {
     if (!notebook || !notebook.model || !notebook.adapter || !isEdited) {
       return;
     }
@@ -127,7 +127,7 @@ export function useWithCellOutputs() {
     notebook.adapter.setNotebookModel(source);
   }
 
-  function formatCells(): void {
+  function formatCode(): void {
     // const f = prettier.format("foo ( );", {
     //   parser: "babel",
     //   plugins: [parser],
@@ -142,9 +142,9 @@ export function useWithCellOutputs() {
     evaluationOutput,
     run,
     clearOutputs,
-    editCell,
-    undoCells,
-    saveCells,
-    formatCells,
+    editCode,
+    undoCode,
+    saveCode,
+    formatCode,
   };
 }

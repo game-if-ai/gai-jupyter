@@ -7,7 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
-import { Notebook, selectNotebook } from "@datalayer/jupyter-react";
+import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import {
   AppBar,
   Button,
@@ -63,10 +63,10 @@ function NotebookComponent(props: {
     evaluationOutput,
     run,
     clearOutputs,
-    editCell,
-    undoCells,
-    saveCells,
-    formatCells,
+    editCode,
+    undoCode,
+    saveCode,
+    formatCode,
   } = useWithCellOutputs();
   const [mode, setMode] = useState<"dark" | "light">("light");
   const [showUnsaved, setShowUnsaved] = useState<boolean>(false);
@@ -176,12 +176,12 @@ function NotebookComponent(props: {
             onChange={() => setMode(mode === "dark" ? "light" : "dark")}
           />
           <TooltipMsg elemId="save" dialogue={dialogue}>
-            <IconButton disabled={!isEdited} onClick={saveCells}>
+            <IconButton disabled={!isEdited} onClick={saveCode}>
               <Save />
             </IconButton>
           </TooltipMsg>
           <TooltipMsg elemId="undo" dialogue={dialogue}>
-            <IconButton disabled={!isEdited} onClick={undoCells}>
+            <IconButton disabled={!isEdited} onClick={undoCode}>
               <Undo />
             </IconButton>
           </TooltipMsg>
@@ -218,7 +218,7 @@ function NotebookComponent(props: {
             cellType={v[0]}
             cellState={v[1]}
             mode={mode}
-            editCode={editCell}
+            editCode={editCode}
             dialogue={dialogue}
             shortcutKeyboard={shortcutKeyboard}
           />
@@ -234,12 +234,13 @@ function NotebookComponent(props: {
         <Button startIcon={<Info />} onClick={() => setShowDescription(true)}>
           Info
         </Button>
-        <Button startIcon={<FormatColorText />} onClick={formatCells}>
+        <Button startIcon={<FormatColorText />} onClick={formatCode}>
           Format
         </Button>
         <Button startIcon={<BugReport />}>Debug</Button>
       </Toolbar>
       <div style={{ display: "none" }}>
+        <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
           model={
             loadedWithExperiment && curExperiment?.notebookContent
