@@ -89,7 +89,6 @@ export function useWithImproveCafeCode(props: {
     }
     while (activeHintIndexCopy >= 0) {
       const hintToShow = improveCodeHints[activeHintIndexCopy];
-      console.log(hintToShow);
       const hintAlreadyShowing = Boolean(
         activeToasts.find((toast) => toast.message === hintToShow.message)
       );

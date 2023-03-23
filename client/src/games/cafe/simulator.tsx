@@ -18,7 +18,6 @@ export const ITEMS = ["egg", "dumpling", "riceball", "sushi", "flan"];
 export const CUSTOMERS = ["brown", "panda", "polar", "redpanda", "pink"];
 
 export interface ClassifierOutput {
-  review: Review;
   inputText: string; // review text
   realLabel: number; // what the review's rating was
   classifierLabel: number; // what the classifier thought it was
@@ -76,7 +75,10 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
         if (classifierOutput.classifierLabel === classifierOutput.realLabel) {
           sim.accuracy++;
         }
-        sim.spawns[i].review = outputs[run][i].review;
+        sim.spawns[i].review = {
+          review: classifierOutput.inputText,
+          rating: classifierOutput.realLabel,
+        };
         sim.spawns[i].classifierOutput = classifierOutput;
       }
       const numTruePositive = simClassifierOutput.filter(

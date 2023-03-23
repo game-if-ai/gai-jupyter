@@ -11,16 +11,13 @@ import { Output } from "@datalayer/jupyter-react";
 import { Button, Collapse, IconButton, Typography } from "@mui/material";
 import { EditOff, Undo, Visibility, VisibilityOff } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
-import { minimalSetup, EditorView } from "codemirror";
+import { minimalSetup, EditorView, basicSetup } from "codemirror";
 import { CompletionContext } from "@codemirror/autocomplete";
 import { python } from "@codemirror/lang-python";
 import { linter, lintGutter, Diagnostic } from "@codemirror/lint";
 import { lineNumbers } from "@codemirror/view";
 import { Compartment, EditorState } from "@codemirror/state";
-import {
-  githubDark as darkTheme,
-  githubLight as lightTheme,
-} from "@uiw/codemirror-theme-github";
+import { githubDark as darkTheme } from "@uiw/codemirror-theme-github";
 import { material as disabledTheme } from "@uiw/codemirror-theme-material";
 
 import { Game } from "../games";
@@ -79,7 +76,7 @@ export function NotebookEditor(props: {
         : darkTheme
       : isDisabled
       ? minimalSetup
-      : lightTheme;
+      : basicSetup;
   }
 
   useEffect(() => {
