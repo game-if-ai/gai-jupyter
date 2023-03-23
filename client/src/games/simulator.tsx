@@ -5,10 +5,14 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { average } from "../utils";
+import { average, extractAllNotebookEditableCode } from "../utils";
 import { v4 as uuid } from "uuid";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { INotebookContent } from "@jupyterlab/nbformat";
+import { UserInputCellsCode } from "hooks/use-with-notebook";
+import { UserCodeInfo } from "hooks/use-with-user-code-examination";
+import { getAllUserCodeInfo } from "../examine-code-utils";
+import { GameID } from "games";
 
 export interface Experiment<S extends Simulation> {
   id: string;
@@ -18,6 +22,8 @@ export interface Experiment<S extends Simulation> {
   simulations: S[];
   summary: SimulationSummary;
   notebookContent: INotebookContent | undefined;
+  codeInfo: UserCodeInfo;
+  gameId: GameID;
 }
 
 export interface Simulation {
@@ -59,17 +65,26 @@ export class Simulator<S extends Simulation> {
   simulate(
     inputs: number[],
     outputs: any[][],
-    notebook: INotebookState | undefined
+    notebook: INotebookState | undefined,
+    gameId: GameID
   ): Experiment<S> {
+    const notebookContent = notebook?.model
+      ? (notebook.model.toJSON() as INotebookContent)
+      : undefined;
+    const notebookEditableCode: UserInputCellsCode = notebookContent
+      ? extractAllNotebookEditableCode(notebookContent)
+      : {};
+    const allUserInputCode = Object.values(notebookEditableCode).flat();
+    const codeInfo: UserCodeInfo = getAllUserCodeInfo(allUserInputCode);
     const experiment: Experiment<S> = {
       id: uuid(),
+      gameId,
       time: new Date(),
-      notebookContent: notebook?.model
-        ? (notebook.model.toJSON() as INotebookContent)
-        : undefined,
+      notebookContent,
       trainInstances: inputs[0],
       testInstances: inputs[1],
       simulations: [],
+      codeInfo,
       summary: {
         lowScore: 0,
         highScore: 0,

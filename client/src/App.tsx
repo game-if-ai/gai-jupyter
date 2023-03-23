@@ -50,15 +50,15 @@ function App(): JSX.Element {
   }, [game]);
 
   function sendCmi5Results(): void {
+    if (!experiment) {
+      console.log("no experiment to evaluate");
+      return;
+    }
+    const experimentScore = evaluteExperiment(experiment);
     if (!Cmi5.isCmiAvailable) {
       console.log("cmi5 not available to send results");
       return;
     }
-    if(!experiment){
-      console.log("no experiment to evaluate");
-      return;
-    }
-    const experimentScore =  evaluteExperiment(experiment);
 
     Cmi5.instance.complete({
       transform: (s) => {
@@ -66,7 +66,7 @@ function App(): JSX.Element {
           ...s,
           result: {
             score: {
-              scaled: experimentScore
+              scaled: experimentScore,
             },
           },
         };

@@ -223,7 +223,6 @@ export function NotebookEditor(props: {
           let diagnostics: Diagnostic[] = [];
           const lintLines = lintOutput.split("\n");
           for (const l of lintLines) {
-            console.log(l);
             const start = l.split(":")[0];
             if (!start) continue;
             if (view.state.doc.lines < Number.parseInt(start) - 1) continue;

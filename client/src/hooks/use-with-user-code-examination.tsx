@@ -4,15 +4,14 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+import {
+  ClassifierModel,
+  FeatureExtractionMethods,
+  getAllUserCodeInfo,
+} from "../examine-code-utils";
 import { useEffect, useState } from "react";
 import { useWithCellOutputs } from "./use-with-notebook";
 
-type ClassifierModel = "NAIVE_BAYES" | "LOGISTIC_REGRESSION" | "DUMMY" | "NONE";
-type FeatureExtractionMethods =
-  | "HASHING"
-  | "TFIDF"
-  | "COUNT_VECTORIZER"
-  | "NONE";
 type LoadStatus = "LOADING" | "LOADED";
 
 export interface UserCodeInfo {
@@ -21,13 +20,16 @@ export interface UserCodeInfo {
   cleansContractions: boolean;
   classifierModelUsed: ClassifierModel;
   featureExtractionUsed: FeatureExtractionMethods;
+}
+
+export interface UserCodeInfoLoad extends UserCodeInfo {
   loadStatus: LoadStatus;
 }
 
 export function useWithUserCodeExamine() {
   const { userInputCellsCode: userCode } = useWithCellOutputs();
 
-  const [userCodeInfo, setUserCodeInfo] = useState<UserCodeInfo>({
+  const [userCodeInfo, setUserCodeInfo] = useState<UserCodeInfoLoad>({
     usingLemmatization: false,
     classifierModelUsed: "NONE",
     featureExtractionUsed: "NONE",
@@ -42,84 +44,10 @@ export function useWithUserCodeExamine() {
     }
     const allUserInputCode = Object.values(userCode).flat();
     setUserCodeInfo({
-      usingLemmatization: isUsingLemmatization(allUserInputCode),
-      classifierModelUsed: getClassifierModelUsed(allUserInputCode),
-      featureExtractionUsed: getFeatureExtractionMethodUsed(allUserInputCode),
-      removesStopwords: isRemovingStopwords(allUserInputCode),
-      cleansContractions: isCleaningContractions(allUserInputCode),
+      ...getAllUserCodeInfo(allUserInputCode),
       loadStatus: "LOADED",
     });
   }, [userCode]);
-
-  function isUsingLemmatization(userCode: string[]): boolean {
-    const importsLemmatizer = Boolean(
-      userCode.find((codeLine) => codeLine.match(/import.*WordNetLemmatizer/))
-    );
-    const usesLemmatizer = Boolean(
-      userCode.find((codeLine) => codeLine.match(/lemmatize\(.+\)/))
-    );
-    return importsLemmatizer && usesLemmatizer;
-  }
-
-  function isRemovingStopwords(userCode: string[]): boolean {
-    const importsStopwords = Boolean(
-      userCode.find((codeLine) => codeLine.match(/import.*stopwords/))
-    );
-    const initializesStopwords = Boolean(
-      userCode.find((codeLine) => codeLine.match(/stopwords.words\(.*\)/))
-    );
-    return importsStopwords && initializesStopwords;
-  }
-
-  function isCleaningContractions(userCode: string[]): boolean {
-    const importsContractions = Boolean(
-      userCode.find((codeLine) => codeLine.match(/import.*contractions/))
-    );
-    const usesContractionsFix = Boolean(
-      userCode.find((codeLine) => codeLine.match(/contractions.fix\(.+\)/))
-    );
-    return importsContractions && usesContractionsFix;
-  }
-
-  function getFeatureExtractionMethodUsed(
-    userCode: string[]
-  ): FeatureExtractionMethods {
-    const usesHashing = Boolean(
-      userCode.find((codeLine) => codeLine.match(/HashingVectorizer\(.*\)/))
-    );
-    const usesTfidf = Boolean(
-      userCode.find((codeLine) => codeLine.match(/TfidfVectorizer\(.*\)/))
-    );
-    const usesCounting = Boolean(
-      userCode.find((codeLine) => codeLine.match(/CountVectorizer\(.*\)/))
-    );
-    return usesHashing
-      ? "HASHING"
-      : usesTfidf
-      ? "TFIDF"
-      : usesCounting
-      ? "COUNT_VECTORIZER"
-      : "NONE";
-  }
-
-  function getClassifierModelUsed(userCode: string[]): ClassifierModel {
-    const usesLogisticRegression = Boolean(
-      userCode.find((codeLine) => codeLine.match(/LogisticRegression\(.*\)/))
-    );
-    const usesNiavesBay = Boolean(
-      userCode.find((codeLine) => codeLine.match(/MultinomialNB\(.*\)/))
-    );
-    const usesDummy = Boolean(
-      userCode.find((codeLine) => codeLine.match(/DummyClassifier\(.*\)/))
-    );
-    return usesLogisticRegression
-      ? "LOGISTIC_REGRESSION"
-      : usesNiavesBay
-      ? "NAIVE_BAYES"
-      : usesDummy
-      ? "DUMMY"
-      : "NONE";
-  }
 
   return {
     userCodeInfo,

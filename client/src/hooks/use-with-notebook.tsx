@@ -21,7 +21,7 @@ import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import {
   extractInputFromCell,
   extractOutputFromCell,
-  extractInputCellCode,
+  extractCellCode,
 } from "../utils";
 
 export interface CellState {
@@ -95,7 +95,7 @@ export function useWithCellOutputs() {
     let evalCellCount = 0;
     for (let i = 0; i < notebookCells.length; i++) {
       const cell = notebookCells.get(i);
-      const cellSource = extractInputCellCode(cell);
+      const cellSource = extractCellCode(cell);
       const cellType = cell.getMetadata("gai_cell_type");
       if (cellType === GaiCellTypes.EVALUATION) {
         setUserInputCellsCode((prevValue) => {
