@@ -21,9 +21,7 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import {
-  BugReport,
   DarkMode,
-  FormatColorText,
   Info,
   LightMode,
   PlayArrow,
@@ -184,12 +182,6 @@ function NotebookComponent(props: {
             ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
-          <IconButton
-            disabled={!cafeHintsAvailable || game.id !== "cafe"}
-            onClick={toastCafeHint}
-          >
-            <QuestionMark />
-          </IconButton>
           <Switch
             color="secondary"
             checked={mode === "dark"}
@@ -202,6 +194,12 @@ function NotebookComponent(props: {
             }
             onChange={() => setMode(mode === "dark" ? "light" : "dark")}
           />
+          <IconButton
+            disabled={!cafeHintsAvailable || game.id !== "cafe"}
+            onClick={toastCafeHint}
+          >
+            <QuestionMark />
+          </IconButton>
           <TooltipMsg elemId="save" dialogue={dialogue}>
             <IconButton disabled={!isEdited} onClick={saveCode}>
               <Save />
@@ -220,23 +218,29 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <div
-        className={classes.buttons}
-        style={{
-          display: shortcutKeyboard.isOpen ? "block" : "none",
-          backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa",
-        }}
-      >
-        {SHORTCUT_KEYS.map((s) => (
-          <Button
-            key={s.text}
-            color="primary"
-            onClick={() => shortcutKeyboard.setKey(s.key || s.text)}
-          >
-            {s.text}
-          </Button>
-        ))}
-      </div>
+      {shortcutKeyboard.isOpen ? (
+        <div
+          className={classes.buttons}
+          style={{ backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa" }}
+        >
+          {SHORTCUT_KEYS.map((s) => (
+            <Button
+              key={s.text}
+              color="primary"
+              onClick={() => shortcutKeyboard.setKey(s.key || s.text)}
+            >
+              {s.text}
+            </Button>
+          ))}
+        </div>
+      ) : (
+        <Button
+          sx={{ textTransform: "none" }}
+          onClick={() => setShowDescription(true)}
+        >
+          Build a sentiment classifier model.
+        </Button>
+      )}
       <div className={classes.cells}>
         {Object.entries(cells).map((v) => (
           <NotebookEditor
@@ -261,8 +265,6 @@ function NotebookComponent(props: {
         <Button startIcon={<Info />} onClick={() => setShowDescription(true)}>
           Info
         </Button>
-        <Button startIcon={<FormatColorText />}>Format</Button>
-        <Button startIcon={<BugReport />}>Debug</Button>
       </Toolbar>
       <div style={{ display: "none" }}>
         <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
