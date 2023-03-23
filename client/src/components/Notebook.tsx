@@ -22,12 +22,15 @@ import {
 import { makeStyles } from "@mui/styles";
 import {
   DarkMode,
-  Info,
   LightMode,
   PlayArrow,
   Save,
   Undo,
   QuestionMark,
+  Info,
+  Keyboard,
+  KeyboardArrowRight,
+  KeyboardArrowLeft,
 } from "@mui/icons-material";
 
 import { Game } from "../games";
@@ -219,10 +222,11 @@ function NotebookComponent(props: {
       </AppBar>
       <Toolbar />
       {shortcutKeyboard.isOpen ? (
-        <div
-          className={classes.buttons}
-          style={{ backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa" }}
-        >
+        <div className={classes.shortcutButtons}>
+          <IconButton color="primary" onClick={shortcutKeyboard.toggleOpen}>
+            <KeyboardArrowLeft />
+            <Keyboard />
+          </IconButton>
           {SHORTCUT_KEYS.map((s) => (
             <Button
               key={s.text}
@@ -234,12 +238,20 @@ function NotebookComponent(props: {
           ))}
         </div>
       ) : (
-        <Button
-          sx={{ textTransform: "none" }}
-          onClick={() => setShowDescription(true)}
-        >
-          Build a sentiment classifier model.
-        </Button>
+        <div className={classes.infoButtons}>
+          <Button
+            sx={{ textTransform: "none" }}
+            startIcon={<Info />}
+            onClick={() => setShowDescription(true)}
+          >
+            Build a sentiment classifier model.
+          </Button>
+          <div style={{ flexGrow: 1 }} />
+          <IconButton color="primary" onClick={shortcutKeyboard.toggleOpen}>
+            <Keyboard />
+            <KeyboardArrowRight />
+          </IconButton>
+        </div>
       )}
       <div className={classes.cells}>
         {Object.entries(cells).map((v) => (
@@ -255,17 +267,6 @@ function NotebookComponent(props: {
           />
         ))}
       </div>
-      <Toolbar
-        className={classes.buttons}
-        style={{
-          justifyContent: "center",
-          backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa",
-        }}
-      >
-        <Button startIcon={<Info />} onClick={() => setShowDescription(true)}>
-          Info
-        </Button>
-      </Toolbar>
       <div style={{ display: "none" }}>
         <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
@@ -368,13 +369,18 @@ const useStyles = makeStyles(() => ({
     backgroundColor: "white",
     color: "red",
   },
-  buttons: {
+  shortcutButtons: {
     display: "flex",
     flexDirection: "row",
-    height: 40,
     width: "100%",
     overflowX: "scroll",
     whiteSpace: "nowrap",
+  },
+  infoButtons: {
+    display: "flex",
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "center",
   },
 }));
 

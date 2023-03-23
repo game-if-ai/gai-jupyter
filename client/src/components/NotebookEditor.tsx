@@ -11,11 +11,17 @@ import { Output } from "@datalayer/jupyter-react";
 import { Button, Collapse, IconButton, Typography } from "@mui/material";
 import { EditOff, Undo, Visibility, VisibilityOff } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
-import { basicSetup, EditorView } from "codemirror";
+import { minimalSetup, EditorView } from "codemirror";
 import { CompletionContext } from "@codemirror/autocomplete";
-import { linter, lintGutter, Diagnostic } from "@codemirror/lint";
 import { python } from "@codemirror/lang-python";
-import { Compartment, EditorState, StateEffect } from "@codemirror/state";
+import { linter, lintGutter, Diagnostic } from "@codemirror/lint";
+import { lineNumbers } from "@codemirror/view";
+import { Compartment, EditorState } from "@codemirror/state";
+import {
+  githubDark as darkTheme,
+  githubLight as lightTheme,
+} from "@uiw/codemirror-theme-github";
+import { material as disabledTheme } from "@uiw/codemirror-theme-material";
 
 import { Game } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
@@ -39,6 +45,7 @@ export function NotebookEditor(props: {
   const [outputElement, setOutputElement] = useState<JSX.Element>();
   const [editor, setEditor] = useState<EditorView>();
   const [lintCompartment] = useState(new Compartment());
+  const [themeCompartment] = useState(new Compartment());
   const isDisabled = cell.getMetadata("contenteditable") === false;
   const isEdited = cell.toJSON().source !== cellState.code;
 
@@ -65,31 +72,37 @@ export function NotebookEditor(props: {
     editor.dispatch(transaction);
   }
 
+  function getTheme() {
+    return props.mode === "dark"
+      ? isDisabled
+        ? disabledTheme
+        : darkTheme
+      : isDisabled
+      ? minimalSetup
+      : lightTheme;
+  }
+
   useEffect(() => {
     const doc = document.getElementById(`code-input-${cellType}`);
     if (!doc || editor) {
       return;
     }
     const extensions = [
-      basicSetup,
+      minimalSetup,
       python(),
-      lintGutter(),
       EditorState.tabSize.of(4),
       EditorState.readOnly.of(isDisabled),
+      themeCompartment.of(getTheme()),
       lintCompartment.of(linter(() => [])),
     ];
     if (!isDisabled) {
+      extensions.push(lintGutter());
+      extensions.push(lineNumbers());
       extensions.push(
         EditorView.updateListener.of((v) => {
           if (v.docChanged) {
             props.editCode(cellType, v.state.doc.toString());
           }
-        })
-      );
-      extensions.push(
-        EditorView.focusChangeEffect.of((_, focusing) => {
-          props.shortcutKeyboard.setFocused(focusing);
-          return StateEffect.define(undefined).of(null);
         })
       );
     }
@@ -211,19 +224,19 @@ export function NotebookEditor(props: {
     });
   }, [lintOutput, errorOutput]);
 
+  useEffect(() => {
+    editor?.dispatch({
+      effects: themeCompartment.reconfigure(getTheme()),
+    });
+  }, [props.mode, isDisabled]);
+
   return (
     <div
       id={`cell-${cellType}`}
       style={{
         color: mode === "dark" ? "white" : "",
         backgroundColor:
-          mode === "dark"
-            ? isDisabled
-              ? "#232323"
-              : "#171a22"
-            : isDisabled
-            ? "#E3E3E3"
-            : "#f6f8fa",
+          mode === "dark" ? "#333338" : isDisabled ? "#E3E3E3" : "#FFFFFF",
       }}
     >
       <div className={classes.cellHeader}>

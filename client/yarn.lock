@@ -4493,6 +4493,29 @@
     "@typescript-eslint/types" "5.53.0"
     eslint-visitor-keys "^3.3.0"
 
+"@uiw/codemirror-theme-github@^4.19.9":
+  version "4.19.9"
+  resolved "https://registry.yarnpkg.com/@uiw/codemirror-theme-github/-/codemirror-theme-github-4.19.9.tgz#eecc75527e56e1278680335f1163eb2a92a11e5d"
+  integrity sha512-TxAJu7eFrIWUvekJ/jbev8fGx4fAYRH3FCxS21rm8B1OzF/aRcJM28zlC1rgKxMV5uG4KjWHOdvT3rNIVs1Meg==
+  dependencies:
+    "@uiw/codemirror-themes" "4.19.9"
+
+"@uiw/codemirror-theme-material@^4.19.9":
+  version "4.19.9"
+  resolved "https://registry.yarnpkg.com/@uiw/codemirror-theme-material/-/codemirror-theme-material-4.19.9.tgz#fc140b5085841100daa42fef4d1fc8ac92b2628f"
+  integrity sha512-0KzOgywKEs+p3/V38u8VW8eu2m8vAkbCVcxvupnTnv0MG5pf8JaS/gVWCQqRv7lSDtwlfVB9UdGmDR2NHEZNew==
+  dependencies:
+    "@uiw/codemirror-themes" "4.19.9"
+
+"@uiw/codemirror-themes@4.19.9":
+  version "4.19.9"
+  resolved "https://registry.yarnpkg.com/@uiw/codemirror-themes/-/codemirror-themes-4.19.9.tgz#988876213a2e350244ac2a0d479ebb792afbe94d"
+  integrity sha512-PH3hl1w42z7GXe/zoD9gSadOGBWyKPl7vHm/8V1PUuHXT21+neyfRc7v0xPwb05pGP6ExfbmPi78y4+g6cHopg==
+  dependencies:
+    "@codemirror/language" "^6.0.0"
+    "@codemirror/state" "^6.0.0"
+    "@codemirror/view" "^6.0.0"
+
 "@webassemblyjs/ast@1.11.1":
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/@webassemblyjs/ast/-/ast-1.11.1.tgz#2bfd767eae1a6996f432ff7e8d7fc75679c0b6a7"

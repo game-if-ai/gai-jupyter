@@ -10,18 +10,18 @@ import { useState } from "react";
 export interface UseWithShortcutKeys {
   key: string | undefined;
   isOpen: boolean;
-  setFocused: (tf: boolean) => void;
+  toggleOpen: () => void;
   setKey: (k: string | undefined) => void;
 }
 
 export function useWithShortcutKeys(): UseWithShortcutKeys {
-  const [focused, setFocused] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [key, setKey] = useState<string>();
 
   return {
     key,
-    isOpen: focused,
-    setFocused,
+    isOpen,
+    toggleOpen: () => setIsOpen(!isOpen),
     setKey,
   };
 }
