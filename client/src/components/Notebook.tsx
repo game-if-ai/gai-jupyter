@@ -145,13 +145,23 @@ function NotebookComponent(props: {
   }, [dialogue.messages, dialogue.curMessage]);
 
   function toSimulation(): void {
-    game.simulator.simulate(evaluationInput, evaluationOutput, notebook);
+    game.simulator.simulate(
+      evaluationInput,
+      evaluationOutput,
+      notebook,
+      game.id
+    );
     props.setExperiment(game.simulator.experiments.length - 1);
     props.runSimulation(0);
   }
 
   function toSummary(): void {
-    game.simulator.simulate(evaluationInput, evaluationOutput, notebook);
+    game.simulator.simulate(
+      evaluationInput,
+      evaluationOutput,
+      notebook,
+      game.id
+    );
     props.setExperiment(game.simulator.experiments.length - 1);
     props.viewSummary();
   }

@@ -6,10 +6,12 @@ The full terms of this copyright and license should always be found in the root 
 */
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
-import { IOutput } from "@jupyterlab/nbformat";
+import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
 import { LaunchParameters } from "@xapi/cmi5";
 import { Experiment, Simulation } from "games/simulator";
+import { GaiCellTypes } from "./local-constants";
+import { UserInputCellsCode } from "./hooks/use-with-notebook";
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
   return [...a.slice(0, i), item, ...a.slice(i + 1)];
@@ -77,8 +79,32 @@ export function extractNotebookCellCode(notebook: INotebookState): string[][] {
   return cellSources;
 }
 
-export function extractInputCellCode(cell: ICellModel): string[] {
-  const cellData = cell.toJSON();
+export function extractAllNotebookEditableCode(
+  notebookContent: INotebookContent
+): UserInputCellsCode {
+  const notebookCells = notebookContent.cells;
+  let evalCellCount = 0;
+  let inputCellsCode: UserInputCellsCode = {};
+  for (let i = 0; i < notebookCells.length; i++) {
+    const cell = notebookCells[i];
+    const cellSource = extractCellCode(cell);
+    const cellType = cell.metadata["gai_cell_type"];
+    if (cellType === GaiCellTypes.EVALUATION) {
+      inputCellsCode = {
+        ...inputCellsCode,
+        [`EVALUATION-CELL-${evalCellCount}`]: cellSource,
+      };
+      evalCellCount++;
+    }
+  }
+  return inputCellsCode;
+}
+
+export function extractCellCode(cell: ICellModel | ICell): string[] {
+  const cellData =
+    typeof cell.toJSON === "function"
+      ? (cell as ICellModel).toJSON()
+      : (cell as ICell);
   const cellSource = cellData.source;
   return Array.isArray(cellSource)
     ? cellSource.filter(

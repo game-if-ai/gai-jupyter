@@ -142,7 +142,7 @@ export function useWithImproveCafeCode(props: {
       },
     });
   }, [
-    userCodeInfo,
+    userCodeInfo, //most important
     hintDisplayed,
     numCodeRuns,
     returningToNotebook,
