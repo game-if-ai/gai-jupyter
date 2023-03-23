@@ -67,6 +67,7 @@ function NotebookComponent(props: {
     isEdited,
     evaluationInput,
     evaluationOutput,
+    lintModel,
     run,
     clearOutputs,
     editCode,
@@ -278,6 +279,7 @@ function NotebookComponent(props: {
           }
           uid={NOTEBOOK_UID}
         />
+        <Notebook model={lintModel} uid={`${NOTEBOOK_UID}-lint`} />
       </div>
       <ActionPopup
         open={Boolean(evaluationInput.length && evaluationOutput.length)}
