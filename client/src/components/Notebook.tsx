@@ -21,15 +21,16 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import {
-  BugReport,
   DarkMode,
-  FormatColorText,
-  Info,
   LightMode,
   PlayArrow,
   Save,
   Undo,
   QuestionMark,
+  Info,
+  Keyboard,
+  KeyboardArrowRight,
+  KeyboardArrowLeft,
 } from "@mui/icons-material";
 
 import { Game } from "../games";
@@ -67,12 +68,12 @@ function NotebookComponent(props: {
     isEdited,
     evaluationInput,
     evaluationOutput,
+    lintModel,
     run,
     clearOutputs,
     editCode,
     undoCode,
     saveCode,
-    formatCode,
   } = useWithCellOutputs();
   const [mode, setMode] = useState<"dark" | "light">("light");
   const [showUnsaved, setShowUnsaved] = useState<boolean>(false);
@@ -86,9 +87,6 @@ function NotebookComponent(props: {
 
   useEffect(() => {
     if (!showDescription && !sawTutorial) {
-      document
-        .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
-        ?.scrollIntoView();
       const messages = [];
       for (const c of Object.values(cells)) {
         const title = c.cell.getMetadata("gai_title") as string;
@@ -131,6 +129,21 @@ function NotebookComponent(props: {
     }
   }, [evaluationInput, evaluationOutput]);
 
+  const [scrolledToCell, setScrolledToCell] = useState<boolean>(false);
+  useEffect(() => {
+    if (
+      sawTutorial &&
+      !scrolledToCell &&
+      dialogue.messages.length === 0 &&
+      !dialogue.curMessage
+    ) {
+      setScrolledToCell(true);
+      document
+        .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
+        ?.scrollIntoView();
+    }
+  }, [dialogue.messages, dialogue.curMessage]);
+
   function toSimulation(): void {
     game.simulator.simulate(
       evaluationInput,
@@ -168,13 +181,10 @@ function NotebookComponent(props: {
         <Toolbar>
           <Select
             variant="standard"
-            value={GaiCellTypes.EVALUATION}
             onChange={(e) => {
-              if (e.target.value) {
-                document
-                  .getElementById(`cell-${e.target.value}`)
-                  ?.scrollIntoView();
-              }
+              document
+                .getElementById(`cell-${e.target.value}`)
+                ?.scrollIntoView();
             }}
             style={{ color: "white" }}
           >
@@ -185,12 +195,6 @@ function NotebookComponent(props: {
             ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
-          <IconButton
-            disabled={!cafeHintsAvailable || game.id !== "cafe"}
-            onClick={toastCafeHint}
-          >
-            <QuestionMark />
-          </IconButton>
           <Switch
             color="secondary"
             checked={mode === "dark"}
@@ -203,6 +207,12 @@ function NotebookComponent(props: {
             }
             onChange={() => setMode(mode === "dark" ? "light" : "dark")}
           />
+          <IconButton
+            disabled={!cafeHintsAvailable || game.id !== "cafe"}
+            onClick={toastCafeHint}
+          >
+            <QuestionMark />
+          </IconButton>
           <TooltipMsg elemId="save" dialogue={dialogue}>
             <IconButton disabled={!isEdited} onClick={saveCode}>
               <Save />
@@ -221,23 +231,38 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <div
-        className={classes.buttons}
-        style={{
-          display: shortcutKeyboard.isOpen ? "block" : "none",
-          backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa",
-        }}
-      >
-        {SHORTCUT_KEYS.map((s) => (
+      {shortcutKeyboard.isOpen ? (
+        <div className={classes.shortcutButtons}>
+          <IconButton color="primary" onClick={shortcutKeyboard.toggleOpen}>
+            <KeyboardArrowLeft />
+            <Keyboard />
+          </IconButton>
+          {SHORTCUT_KEYS.map((s) => (
+            <Button
+              key={s.text}
+              color="primary"
+              onClick={() => shortcutKeyboard.setKey(s.key || s.text)}
+            >
+              {s.text}
+            </Button>
+          ))}
+        </div>
+      ) : (
+        <div className={classes.infoButtons}>
           <Button
-            key={s.text}
-            color="primary"
-            onClick={() => shortcutKeyboard.setKey(s.key || s.text)}
+            sx={{ textTransform: "none" }}
+            startIcon={<Info />}
+            onClick={() => setShowDescription(true)}
           >
-            {s.text}
+            Build a sentiment classifier model.
           </Button>
-        ))}
-      </div>
+          <div style={{ flexGrow: 1 }} />
+          <IconButton color="primary" onClick={shortcutKeyboard.toggleOpen}>
+            <Keyboard />
+            <KeyboardArrowRight />
+          </IconButton>
+        </div>
+      )}
       <div className={classes.cells}>
         {Object.entries(cells).map((v) => (
           <NotebookEditor
@@ -252,21 +277,6 @@ function NotebookComponent(props: {
           />
         ))}
       </div>
-      <Toolbar
-        className={classes.buttons}
-        style={{
-          justifyContent: "center",
-          backgroundColor: mode === "dark" ? "#171a22" : "#f6f8fa",
-        }}
-      >
-        <Button startIcon={<Info />} onClick={() => setShowDescription(true)}>
-          Info
-        </Button>
-        <Button startIcon={<FormatColorText />} onClick={formatCode}>
-          Format
-        </Button>
-        <Button startIcon={<BugReport />}>Debug</Button>
-      </Toolbar>
       <div style={{ display: "none" }}>
         <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
@@ -282,6 +292,7 @@ function NotebookComponent(props: {
           }
           uid={NOTEBOOK_UID}
         />
+        <Notebook model={lintModel} uid={`${NOTEBOOK_UID}-lint`} />
       </div>
       <ActionPopup
         open={Boolean(evaluationInput.length && evaluationOutput.length)}
@@ -368,13 +379,18 @@ const useStyles = makeStyles(() => ({
     backgroundColor: "white",
     color: "red",
   },
-  buttons: {
+  shortcutButtons: {
     display: "flex",
     flexDirection: "row",
-    height: 40,
     width: "100%",
     overflowX: "scroll",
     whiteSpace: "nowrap",
+  },
+  infoButtons: {
+    display: "flex",
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "center",
   },
 }));
 

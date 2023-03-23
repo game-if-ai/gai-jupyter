@@ -119,7 +119,11 @@ export function extractCellCode(cell: ICellModel | ICell): string[] {
 
 export function extractInputFromCell(cell: ICellModel): number[] {
   const cellData = cell.toJSON();
-  const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
+  const outputs = cellData.outputs as IOutput[];
+  if (!outputs || outputs.length === 0) {
+    return [0, 0];
+  }
+  const cellOutput = outputs[outputs.length - 1] as IOutput;
   const data = (cellOutput?.data &&
     ((cellOutput?.data as PartialJSONObject)["application/json"] as any)) || [
     0, 0,

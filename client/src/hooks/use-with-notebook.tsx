@@ -13,6 +13,7 @@ import { CellList } from "@jupyterlab/notebook/lib/celllist";
 import {
   INotebookContent,
   IOutput,
+  ICell,
   MultilineString,
 } from "@jupyterlab/nbformat";
 import { ICellModel } from "@jupyterlab/cells";
@@ -28,6 +29,8 @@ export interface CellState {
   cell: ICellModel;
   code: MultilineString;
   output: IOutput[];
+  lintOutput?: string;
+  errorOutput?: IOutput;
 }
 
 export type UserInputCellsCode = Record<string, string[]>;
@@ -40,8 +43,11 @@ export function useWithCellOutputs() {
   const [cells, setCells] = useState<Record<string, CellState>>({});
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [isEdited, setIsEdited] = useState<boolean>(false);
+
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
+  const lintNotebook = selectNotebook(`${NOTEBOOK_UID}-lint`);
+  const [lintModel, setLintModel] = useState<INotebookContent>();
 
   useEffect(() => {
     if (
@@ -123,15 +129,15 @@ export function useWithCellOutputs() {
 
   function editCode(cell: string, code: string): void {
     cells[cell].code = code;
-    let edited = false;
+    setCells({ ...cells });
+    checkFormatAndErrors(cells);
     for (const c of Object.values(cells)) {
       if (c.cell.toJSON().source !== c.code) {
-        edited = true;
-        break;
+        setIsEdited(true);
+        return;
       }
     }
-    setIsEdited(edited);
-    setCells({ ...cells });
+    setIsEdited(false);
   }
 
   function undoCode(): void {
@@ -140,6 +146,7 @@ export function useWithCellOutputs() {
     }
     setIsEdited(false);
     setCells({ ...cells });
+    checkFormatAndErrors(cells);
   }
 
   function saveCode(): void {
@@ -158,13 +165,58 @@ export function useWithCellOutputs() {
     notebook.adapter.setNotebookModel(source);
   }
 
-  function formatCode(): void {
-    // const f = prettier.format("foo ( );", {
-    //   parser: "babel",
-    //   plugins: [parser],
-    // });
-    // console.log('test format ', f)
+  function checkFormatAndErrors(cells: Record<string, CellState>): void {
+    if (!notebook || !notebook.model || !notebook.model.cells) {
+      return;
+    }
+    const source = notebook.model.toJSON() as INotebookContent;
+    const newCells = source.cells.reduce(
+      (acc: ICell[], cur: ICell, i: number) => {
+        const cell = notebook!.model!.cells.get(i);
+        const cellType = cell.getMetadata("gai_cell_type") as string;
+        const lintCell: ICell = {
+          ...cur,
+          source: `%%pycodestyle\n${cells[cellType].code}`,
+          metadata: { ...cell.metadata, gai_lint_type: "lint" },
+        };
+        const outputCell: ICell = {
+          ...cur,
+          source: cells[cellType].code,
+          metadata: { ...cell.metadata, gai_lint_type: "error" },
+        };
+        acc.push(outputCell);
+        acc.push(lintCell);
+        return acc;
+      },
+      []
+    );
+    setLintModel({
+      ...source,
+      cells: newCells,
+    });
   }
+
+  useEffect(() => {
+    for (const cell of lintNotebook?.model?.cells || []) {
+      cell.stateChanged.connect((changedCell) => {
+        const output = changedCell.toJSON().outputs as IOutput[];
+        const cellType = changedCell.getMetadata("gai_cell_type") as string;
+        const outputType = changedCell.getMetadata("gai_lint_type") as string;
+        if (outputType === "lint") {
+          cells[cellType].lintOutput = output[0]?.text as string;
+        }
+        if (outputType === "error") {
+          if (output[0]?.output_type === "error") {
+            cells[cellType].errorOutput = output[0];
+          } else {
+            cells[cellType].errorOutput = undefined;
+          }
+        }
+        setCells({ ...cells });
+      });
+    }
+    lintNotebook?.adapter?.commands.execute("notebook:run-all");
+  }, [lintModel]);
 
   return {
     cells,
@@ -177,6 +229,6 @@ export function useWithCellOutputs() {
     undoCode,
     saveCode,
     userInputCellsCode,
-    formatCode,
+    lintModel,
   };
 }
