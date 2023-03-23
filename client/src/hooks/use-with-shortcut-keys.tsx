@@ -6,24 +6,22 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { useState } from "react";
-import useDetectKeyboardOpen from "use-detect-keyboard-open";
 
 export interface UseWithShortcutKeys {
   key: string | undefined;
   isOpen: boolean;
-  setFocused: (tf: boolean) => void;
+  toggleOpen: () => void;
   setKey: (k: string | undefined) => void;
 }
 
 export function useWithShortcutKeys(): UseWithShortcutKeys {
-  const isKeyboardOpen = useDetectKeyboardOpen();
-  const [focused, setFocused] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [key, setKey] = useState<string>();
 
   return {
     key,
-    isOpen: isKeyboardOpen || focused,
-    setFocused,
+    isOpen,
+    toggleOpen: () => setIsOpen(!isOpen),
     setKey,
   };
 }

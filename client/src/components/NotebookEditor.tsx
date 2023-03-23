@@ -7,21 +7,21 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
-import {
-  Notebook,
-  Output,
-  selectNotebook,
-  selectNotebookModel,
-} from "@datalayer/jupyter-react";
-import { INotebookContent, IOutput } from "@jupyterlab/nbformat";
+import { Output } from "@datalayer/jupyter-react";
 import { Button, Collapse, IconButton, Typography } from "@mui/material";
 import { EditOff, Undo, Visibility, VisibilityOff } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
-import { basicSetup, EditorView } from "codemirror";
+import { minimalSetup, EditorView } from "codemirror";
 import { CompletionContext } from "@codemirror/autocomplete";
-import { linter, lintGutter, Diagnostic } from "@codemirror/lint";
 import { python } from "@codemirror/lang-python";
-import { Compartment, EditorState, StateEffect } from "@codemirror/state";
+import { linter, lintGutter, Diagnostic } from "@codemirror/lint";
+import { lineNumbers } from "@codemirror/view";
+import { Compartment, EditorState } from "@codemirror/state";
+import {
+  githubDark as darkTheme,
+  githubLight as lightTheme,
+} from "@uiw/codemirror-theme-github";
+import { material as disabledTheme } from "@uiw/codemirror-theme-material";
 
 import { Game } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
@@ -40,18 +40,14 @@ export function NotebookEditor(props: {
 }): JSX.Element {
   const classes = useStyles();
   const { mode, cellType, cellState, dialogue, shortcutKeyboard } = props;
-  const { cell, output } = cellState;
+  const { cell, output, lintOutput, errorOutput } = cellState;
   const [showOutput, setShowOutput] = useState<boolean>(true);
   const [outputElement, setOutputElement] = useState<JSX.Element>();
   const [editor, setEditor] = useState<EditorView>();
+  const [lintCompartment] = useState(new Compartment());
+  const [themeCompartment] = useState(new Compartment());
   const isDisabled = cell.getMetadata("contenteditable") === false;
   const isEdited = cell.toJSON().source !== cellState.code;
-
-  const notebook = selectNotebook(cellType);
-  const activeNotebookModel = selectNotebookModel(cellType);
-  const [model, setModel] = useState<INotebookContent>();
-  const [lintOutput, setLintOutput] = useState<string>("");
-  const [lintCompartment] = useState(new Compartment());
 
   function autocomplete(context: CompletionContext) {
     const word = context.matchBefore(/\w*/);
@@ -76,31 +72,37 @@ export function NotebookEditor(props: {
     editor.dispatch(transaction);
   }
 
+  function getTheme() {
+    return props.mode === "dark"
+      ? isDisabled
+        ? disabledTheme
+        : darkTheme
+      : isDisabled
+      ? minimalSetup
+      : lightTheme;
+  }
+
   useEffect(() => {
     const doc = document.getElementById(`code-input-${cellType}`);
     if (!doc || editor) {
       return;
     }
     const extensions = [
-      basicSetup,
+      minimalSetup,
       python(),
-      lintGutter(),
       EditorState.tabSize.of(4),
       EditorState.readOnly.of(isDisabled),
+      themeCompartment.of(getTheme()),
       lintCompartment.of(linter(() => [])),
     ];
     if (!isDisabled) {
+      extensions.push(lintGutter());
+      extensions.push(lineNumbers());
       extensions.push(
         EditorView.updateListener.of((v) => {
           if (v.docChanged) {
             props.editCode(cellType, v.state.doc.toString());
           }
-        })
-      );
-      extensions.push(
-        EditorView.focusChangeEffect.of((_, focusing) => {
-          props.shortcutKeyboard.setFocused(focusing);
-          return StateEffect.define(undefined).of(null);
         })
       );
     }
@@ -126,27 +128,6 @@ export function NotebookEditor(props: {
     if (isDisabled) {
       return;
     }
-    setModel({
-      cells: [
-        {
-          source: `%%pycodestyle\n${cellState.code}`,
-          cell_type: "code",
-          metadata: { trusted: true, editable: false, deletable: false },
-          outputs: [],
-          execution_count: 0,
-        },
-        {
-          source: cellState.code,
-          cell_type: "code",
-          metadata: { trusted: true, editable: false, deletable: false },
-          outputs: [],
-          execution_count: 0,
-        },
-      ],
-      metadata: {},
-      nbformat_minor: 1,
-      nbformat: 1,
-    });
     if (cellState.code !== editor?.state.doc.toJSON().join("\n")) {
       editor?.dispatch(
         editor.state.update({
@@ -202,28 +183,13 @@ export function NotebookEditor(props: {
   }, [outputElement]);
 
   useEffect(() => {
-    if (isDisabled || !activeNotebookModel?.model?.cells) {
-      return;
-    }
-    const notebookCells = activeNotebookModel.model.cells;
-    notebookCells.get(0).stateChanged.connect((changedCell) => {
-      const o = changedCell.toJSON().outputs as IOutput[];
-      if (o.length > 0) {
-        setLintOutput(o[0].text as string);
-      }
-    });
-    notebook?.adapter?.commands.execute("notebook:run-all");
-  }, [model]);
-
-  useEffect(() => {
     if (isDisabled) return;
     editor?.dispatch({
       effects: lintCompartment.reconfigure(
         linter((view) => {
           let diagnostics: Diagnostic[] = [];
-          const lintLines = lintOutput.split("\n");
+          const lintLines = lintOutput?.split("\n") || [];
           for (const l of lintLines) {
-            console.log(l);
             const start = l.split(":")[0];
             if (!start) continue;
             if (view.state.doc.lines < Number.parseInt(start) - 1) continue;
@@ -235,11 +201,34 @@ export function NotebookEditor(props: {
               message: l,
             });
           }
+          if (errorOutput) {
+            const traceback = errorOutput.traceback?.toString();
+            let line;
+            if (traceback?.indexOf("----> ") !== -1) {
+              const lineNum = traceback!.split("----> ")[1].split(" ")[0];
+              line = view.state.doc.line(Number.parseInt(lineNum));
+            } else if (traceback?.indexOf(", line ") !== -1) {
+              const lineNum = traceback!.split(", line ")[1].split(")")[0];
+              line = view.state.doc.line(Number.parseInt(lineNum));
+            }
+            diagnostics.push({
+              from: line?.from || 0,
+              to: line?.to || 0,
+              severity: "error",
+              message: `${errorOutput.ename}: ${errorOutput.evalue}`,
+            });
+          }
           return diagnostics;
         })
       ),
     });
-  }, [lintOutput]);
+  }, [lintOutput, errorOutput]);
+
+  useEffect(() => {
+    editor?.dispatch({
+      effects: themeCompartment.reconfigure(getTheme()),
+    });
+  }, [props.mode, isDisabled]);
 
   return (
     <div
@@ -249,11 +238,11 @@ export function NotebookEditor(props: {
         backgroundColor:
           mode === "dark"
             ? isDisabled
-              ? "#232323"
-              : "#171a22"
+              ? "#333338"
+              : "#0d1116"
             : isDisabled
             ? "#E3E3E3"
-            : "#f6f8fa",
+            : "#FFFFFF",
       }}
     >
       <div className={classes.cellHeader}>
@@ -285,11 +274,6 @@ export function NotebookEditor(props: {
       <Collapse in={showOutput} timeout="auto" unmountOnExit>
         {outputElement}
       </Collapse>
-      {isDisabled ? undefined : (
-        <div style={{ display: "none" }}>
-          <Notebook uid={cellType} model={model} />
-        </div>
-      )}
     </div>
   );
 }
