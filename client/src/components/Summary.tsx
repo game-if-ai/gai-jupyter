@@ -158,10 +158,12 @@ function CurrentExperimentView(props: {
   classes: Record<string, any>;
   currentExperiment: Experiment<Simulation>;
   dialogue: UseWithDialogue;
+  isGameActivity: boolean;
   runSimulation: (i: number) => void;
   goToNotebook: () => void;
   onSubmit: () => void;
 }) {
+  const { isGameActivity } = props;
   const classes = props.classes;
   const {
     summary,
@@ -247,9 +249,11 @@ function CurrentExperimentView(props: {
             <TableCell align="right">Precision</TableCell>
             <TableCell align="right">Recall</TableCell>
             <TableCell align="right">F1 Score</TableCell>
-            <TableCell align="right" className={classes.sticky}>
-              View
-            </TableCell>
+            {isGameActivity ? (
+              <TableCell align="right" className={classes.sticky}>
+                View
+              </TableCell>
+            ) : undefined}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -266,11 +270,16 @@ function CurrentExperimentView(props: {
               <TableCell align="center">{round(s.precision)}</TableCell>
               <TableCell align="center">{round(s.recall)}</TableCell>
               <TableCell align="center">{round(s.f1Score)}</TableCell>
-              <TableCell align="center" className={classes.sticky}>
-                <IconButton size="small" onClick={() => props.runSimulation(i)}>
-                  <Launch />
-                </IconButton>
-              </TableCell>
+              {isGameActivity ? (
+                <TableCell align="center" className={classes.sticky}>
+                  <IconButton
+                    size="small"
+                    onClick={() => props.runSimulation(i)}
+                  >
+                    <Launch />
+                  </IconButton>
+                </TableCell>
+              ) : undefined}
             </TableRow>
           ))}
         </TableBody>
@@ -293,13 +302,15 @@ function CurrentExperimentView(props: {
             Notebook
           </Button>
         </TooltipMsg>
-        <Button
-          variant="contained"
-          onClick={() => props.runSimulation(0)}
-          style={{ marginTop: 10, marginBottom: 10 }}
-        >
-          Simulator
-        </Button>
+        {isGameActivity ? (
+          <Button
+            variant="contained"
+            onClick={() => props.runSimulation(0)}
+            style={{ marginTop: 10, marginBottom: 10 }}
+          >
+            Simulator
+          </Button>
+        ) : undefined}
         <TooltipMsg elemId="submit" dialogue={props.dialogue}>
           <Button
             data-elemid="submit"
@@ -317,6 +328,7 @@ function CurrentExperimentView(props: {
 
 function Summary(props: {
   experiment: Experiment<Simulation>;
+  isGameActivity: boolean;
   previousExperiments: Experiment<Simulation>[];
   runSimulation: (i: number) => void;
   goToNotebook: () => void;
@@ -332,6 +344,7 @@ function Summary(props: {
     previousExperiments,
     setExperiment,
     onSubmit,
+    isGameActivity,
   } = props;
   const { summary } = experiment;
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
@@ -393,6 +406,7 @@ function Summary(props: {
             classes,
             currentExperiment: experiment,
             dialogue,
+            isGameActivity,
             runSimulation,
             goToNotebook,
             onSubmit,

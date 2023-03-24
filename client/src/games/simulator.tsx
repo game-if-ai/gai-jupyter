@@ -12,7 +12,7 @@ import { INotebookContent } from "@jupyterlab/nbformat";
 import { UserInputCellsCode } from "hooks/use-with-notebook";
 import { UserCodeInfo } from "hooks/use-with-user-code-examination";
 import { getAllUserCodeInfo } from "../examine-code-utils";
-import { GameID } from "games";
+import { ActivityID } from "games";
 
 export interface Experiment<S extends Simulation> {
   id: string;
@@ -23,7 +23,7 @@ export interface Experiment<S extends Simulation> {
   summary: SimulationSummary;
   notebookContent: INotebookContent | undefined;
   codeInfo: UserCodeInfo;
-  gameId: GameID;
+  gameId: ActivityID;
 }
 
 export interface Simulation {
@@ -66,7 +66,7 @@ export class Simulator<S extends Simulation> {
     inputs: number[],
     outputs: any[][],
     notebook: INotebookState | undefined,
-    gameId: GameID
+    gameId: ActivityID
   ): Experiment<S> {
     const notebookContent = notebook?.model
       ? (notebook.model.toJSON() as INotebookContent)

@@ -9,7 +9,7 @@ import { Experiment, Simulation, Simulator } from "../simulator";
 import { Review, Reviews } from "./types";
 import { randomInt } from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
-import { GameID } from "games";
+import { ActivityID } from "games";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
@@ -63,7 +63,7 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
     inputs: number[],
     outputs: ClassifierOutput[][],
     notebook: INotebookState,
-    gameId: GameID
+    gameId: ActivityID
   ): Experiment<CafeSimulation> {
     const experiment = super.simulate(inputs, outputs, notebook, gameId);
     for (let run = 0; run < outputs.length; run++) {

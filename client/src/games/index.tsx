@@ -9,18 +9,29 @@ import { Completion } from "@codemirror/autocomplete";
 import { Simulator, Simulation } from "./simulator";
 import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
+import NeuralNetwork from "./neural_network";
 
-export type GameID = "fruitpicker" | "cafe";
+export type ActivityID = "fruitpicker" | "cafe" | "neural_network";
+export type ActivityType = "GAME" | "NOTEBOOK_ONLY";
 
-export interface Game {
-  id: GameID;
+export interface Activity {
+  id: ActivityID;
   title: string;
+  activityType: ActivityType;
   description: string;
-  config: Phaser.Types.Core.GameConfig;
   autocompletion?: Completion[];
   resizes?: boolean;
   simulator: Simulator<Simulation>;
   summaryPanel: (props: { simulation: Simulation }) => JSX.Element;
+}
+
+export interface Game extends Activity {
+  activityType: "GAME";
+  config: Phaser.Types.Core.GameConfig;
+}
+
+export function isGameActivity(object: Activity): object is Game {
+  return object.activityType === "GAME";
 }
 
 export interface GameParams<S extends Simulation> {
@@ -32,4 +43,4 @@ export interface GameParams<S extends Simulation> {
   simulation?: S;
 }
 
-export const Games: Game[] = [FruitPicker, Cafe];
+export const Activities: Activity[] = [NeuralNetwork, FruitPicker, Cafe];

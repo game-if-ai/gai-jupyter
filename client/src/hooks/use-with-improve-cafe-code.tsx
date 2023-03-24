@@ -11,7 +11,7 @@ import {
 } from "./use-with-user-code-examination";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Game } from "../games";
+import { Activity } from "../games";
 
 type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
 
@@ -72,7 +72,7 @@ const improveCodeHints: ImproveCodeHint[] = [
 
 export function useWithImproveCafeCode(props: {
   numCodeRuns: number;
-  activeGame: Game;
+  activeGame: Activity;
 }) {
   const { numCodeRuns, activeGame } = props;
 
