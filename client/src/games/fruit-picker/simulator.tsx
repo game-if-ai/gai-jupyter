@@ -9,7 +9,7 @@ import { Fruit, Fruits, FruitTrait } from "./types";
 import { Experiment, Simulation, Simulator } from "../simulator";
 import { randomInt } from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
-import { GameID } from "games";
+import { ActivityID } from "games";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
@@ -73,7 +73,7 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
     inputs: number[],
     outputs: FruitClassifierOutput[][],
     notebook: INotebookState,
-    gameId: GameID
+    gameId: ActivityID
   ): Experiment<FruitSimulation> {
     const experiment = super.simulate(inputs, outputs, notebook, gameId);
     for (let run = 0; run < outputs.length; run++) {

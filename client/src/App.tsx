@@ -9,8 +9,8 @@ import React, { useEffect, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Experiment, Simulation } from "./games/simulator";
-import { Game } from "./games";
-import GamePicker from "./components/GamePicker";
+import { Activity, isGameActivity } from "./games";
+import ActivityPicker from "./components/ActivityPicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
@@ -28,7 +28,7 @@ enum STEP {
 function App(): JSX.Element {
   const classes = useStyles();
   const [step, setStep] = useState<STEP>(STEP.PICK_GAME);
-  const [game, setGame] = useState<Game>();
+  const [activity, setActivity] = useState<Activity>();
   const [experiment, setExperiment] = useState<Experiment<Simulation>>();
   const [simulation, setSimulation] = useState<number>(0);
   const [numRuns, setNumRuns] = useState(0);
@@ -47,7 +47,7 @@ function App(): JSX.Element {
         console.error("cmi5 not available", err);
       }
     }
-  }, [game]);
+  }, [activity]);
 
   function sendCmi5Results(): void {
     if (!experiment) {
@@ -74,8 +74,8 @@ function App(): JSX.Element {
     });
   }
 
-  function loadGame(game: Game): void {
-    setGame(game);
+  function loadActivity(activity: Activity): void {
+    setActivity(activity);
     setStep(STEP.NOTEBOOK);
   }
 
@@ -84,15 +84,15 @@ function App(): JSX.Element {
   }
 
   function viewExperiment(e: number): void {
-    if (!game || game.simulator.experiments.length < e - 1) {
+    if (!activity || activity.simulator.experiments.length < e - 1) {
       return;
     }
-    setExperiment(game.simulator.experiments[e]);
+    setExperiment(activity.simulator.experiments[e]);
     setSawNotebookTutorial(true);
   }
 
   function viewSimulation(i: number): void {
-    if (!game) {
+    if (!activity) {
       return;
     }
     setSimulation(i);
@@ -100,7 +100,7 @@ function App(): JSX.Element {
   }
 
   function viewSummary(): void {
-    if (!game) {
+    if (!activity) {
       return;
     }
     setStep(STEP.SUMMARY);
@@ -112,11 +112,11 @@ function App(): JSX.Element {
 
   function getComponent(): JSX.Element {
     if (step === STEP.PICK_GAME) {
-      return <GamePicker loadGame={loadGame} />;
+      return <ActivityPicker loadActivity={loadActivity} />;
     } else if (step === STEP.NOTEBOOK) {
       return (
         <Notebook
-          game={game!}
+          activity={activity!}
           sawTutorial={sawNotebookTutorial}
           setSawTutorial={setSawNotebookTutorial}
           curExperiment={experiment}
@@ -128,7 +128,7 @@ function App(): JSX.Element {
         />
       );
     } else if (step === STEP.SUMMARY) {
-      if (!game) {
+      if (!activity) {
         throw Error("No game available for summary");
       }
       if (!experiment) {
@@ -137,17 +137,22 @@ function App(): JSX.Element {
       return (
         <Summary
           experiment={experiment}
-          previousExperiments={game.simulator.experiments}
+          isGameActivity={isGameActivity(activity)}
+          previousExperiments={activity.simulator.experiments}
           runSimulation={viewSimulation}
           goToNotebook={viewNotebook}
           setExperiment={setExperiment}
           onSubmit={sendCmi5Results}
         />
       );
-    } else if (step === STEP.SIMULATION) {
+    } else if (
+      step === STEP.SIMULATION &&
+      activity &&
+      isGameActivity(activity)
+    ) {
       return (
         <SimulationPanel
-          game={game!}
+          game={activity}
           sawTutorial={sawSimTutorial}
           setSawTutorial={setSawSimTutorial}
           experiment={experiment!}

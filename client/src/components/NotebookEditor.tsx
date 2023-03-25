@@ -20,7 +20,7 @@ import { Compartment, EditorState } from "@codemirror/state";
 import { githubDark as darkTheme } from "@uiw/codemirror-theme-github";
 import { material as disabledTheme } from "@uiw/codemirror-theme-material";
 
-import { Game } from "../games";
+import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
 import { UseWithDialogue } from "../hooks/use-with-dialogue";
 import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
@@ -28,7 +28,7 @@ import { TooltipMsg } from "./Dialogue";
 
 export function NotebookEditor(props: {
   mode: "dark" | "light";
-  game: Game;
+  activity: Activity;
   cellType: string;
   cellState: CellState;
   dialogue: UseWithDialogue;
@@ -51,7 +51,7 @@ export function NotebookEditor(props: {
     if (!word || (word.from === word.to && !context.explicit)) return null;
     return {
       from: word.from,
-      options: props.game.autocompletion,
+      options: props.activity.autocompletion,
     };
   }
 
@@ -103,7 +103,7 @@ export function NotebookEditor(props: {
         })
       );
     }
-    if (props.game.autocompletion) {
+    if (props.activity.autocompletion) {
       extensions.push(
         python().language.data.of({
           autocomplete: autocomplete,

@@ -34,6 +34,7 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
 export const Cafe: Game = {
   id: "cafe",
   title: "Bought or Not!",
+  activityType: "GAME",
   description:
     "You are trying to build a classifier to recommend products based on their reviews.",
   config: GameConfig,

@@ -33,7 +33,7 @@ import {
   KeyboardArrowLeft,
 } from "@mui/icons-material";
 
-import { Game } from "../games";
+import { Activity, isGameActivity } from "../games";
 import { Experiment, Simulation } from "../games/simulator";
 import { useWithCellOutputs } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
@@ -48,7 +48,7 @@ import { ActionPopup } from "./Popup";
 import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
 
 function NotebookComponent(props: {
-  game: Game;
+  activity: Activity;
   curExperiment: Experiment<Simulation> | undefined;
   sawTutorial: boolean;
   setSawTutorial: (tf: boolean) => void;
@@ -62,7 +62,7 @@ function NotebookComponent(props: {
   const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const shortcutKeyboard = useWithShortcutKeys();
-  const { game, curExperiment, sawTutorial, notebookRan, numRuns } = props;
+  const { activity, curExperiment, sawTutorial, notebookRan, numRuns } = props;
   const {
     cells,
     isEdited,
@@ -82,7 +82,7 @@ function NotebookComponent(props: {
   const { toastHint: toastCafeHint, hintsAvailable: cafeHintsAvailable } =
     useWithImproveCafeCode({
       numCodeRuns: numRuns,
-      activeGame: game,
+      activeGame: activity,
     });
 
   useEffect(() => {
@@ -145,24 +145,24 @@ function NotebookComponent(props: {
   }, [dialogue.messages, dialogue.curMessage]);
 
   function toSimulation(): void {
-    game.simulator.simulate(
+    activity.simulator.simulate(
       evaluationInput,
       evaluationOutput,
       notebook,
-      game.id
+      activity.id
     );
-    props.setExperiment(game.simulator.experiments.length - 1);
+    props.setExperiment(activity.simulator.experiments.length - 1);
     props.runSimulation(0);
   }
 
   function toSummary(): void {
-    game.simulator.simulate(
+    activity.simulator.simulate(
       evaluationInput,
       evaluationOutput,
       notebook,
-      game.id
+      activity.id
     );
-    props.setExperiment(game.simulator.experiments.length - 1);
+    props.setExperiment(activity.simulator.experiments.length - 1);
     props.viewSummary();
   }
 
@@ -208,7 +208,7 @@ function NotebookComponent(props: {
             onChange={() => setMode(mode === "dark" ? "light" : "dark")}
           />
           <IconButton
-            disabled={!cafeHintsAvailable || game.id !== "cafe"}
+            disabled={!cafeHintsAvailable || activity.id !== "cafe"}
             onClick={toastCafeHint}
           >
             <QuestionMark />
@@ -267,7 +267,7 @@ function NotebookComponent(props: {
         {Object.entries(cells).map((v) => (
           <NotebookEditor
             key={v[0]}
-            game={game}
+            activity={activity}
             cellType={v[0]}
             cellState={v[1]}
             mode={mode}
@@ -288,7 +288,7 @@ function NotebookComponent(props: {
           path={
             loadedWithExperiment && curExperiment?.notebookContent
               ? undefined
-              : `${props.game.id}/test.ipynb`
+              : `${props.activity.id}/test.ipynb`
           }
           uid={NOTEBOOK_UID}
         />
@@ -301,9 +301,12 @@ function NotebookComponent(props: {
         text="Would you like to view your results?"
       >
         <Button onClick={clearOutputs}>Cancel</Button>
-        <TooltipMsg elemId="view-sim" dialogue={dialogue} placement="bottom">
-          <Button onClick={toSimulation}>View Simulation</Button>
-        </TooltipMsg>
+        {isGameActivity(activity) ? (
+          <TooltipMsg elemId="view-sim" dialogue={dialogue} placement="bottom">
+            <Button onClick={toSimulation}>View Simulation</Button>
+          </TooltipMsg>
+        ) : undefined}
+
         <TooltipMsg
           elemId="view-summary"
           dialogue={dialogue}
@@ -342,7 +345,7 @@ function NotebookComponent(props: {
       <ActionPopup
         open={showDescription}
         onClose={() => setShowDescription(false)}
-        title={game.title}
+        title={activity.title}
         text="Please complete this notebook to build a sentiment classifier. You will receive hints on how to improve its performance as you go."
       >
         <Button onClick={() => setShowDescription(false)}>Okay</Button>
