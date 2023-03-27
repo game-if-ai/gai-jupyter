@@ -16,11 +16,6 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
   title: "Fruit Picker",
   parent: "phaser-container",
   backgroundColor: "#282c34",
-  scale: {
-    mode: Phaser.Scale.ScaleModes.FIT,
-    width: 800,
-    height: 600,
-  },
   physics: {
     default: "arcade",
     arcade: {

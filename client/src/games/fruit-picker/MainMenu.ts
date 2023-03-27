@@ -4,18 +4,31 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import Phaser from "phaser";
 import { GameParams } from "..";
 import { FruitSimulation } from "./simulator";
+import {
+  addBackgroundImage,
+  addImage,
+  addText,
+  scaleImage,
+  scaleText,
+} from "../phaser-helpers";
 
 export default class MainMenu extends Phaser.Scene {
+  images: Phaser.GameObjects.Image[];
+  text: Phaser.GameObjects.Text[];
+
   constructor() {
     super("MainMenu");
+    this.images = [];
+    this.text = [];
   }
 
   preload() {
     this.load.setPath("assets/fruit-picker");
-    this.load.image("background", "background.png");
+    this.load.image("background", "background.jpg");
     this.load.image("logo", "logo.png");
     this.load.image("logo2", "logo2.png");
     this.load.setPath("assets/fruit-picker/sounds");
@@ -23,22 +36,42 @@ export default class MainMenu extends Phaser.Scene {
   }
 
   create(data: GameParams<FruitSimulation>) {
-    let background = this.add.image(400, 300, "background");
+    window.addEventListener("resize", () => {
+      this.resize();
+    });
+    const background = addBackgroundImage(this, "background");
+    const logo = addImage(this, "logo").setY(-200);
+    const logo2 = addImage(this, "logo2").setY(-200).setAlpha(0);
+    this.images.push(background);
+    this.images.push(logo);
+    this.images.push(logo2);
+    this.text.push(
+      addText(this, "Catch the fruits!", {
+        xRel: 0.5,
+        width: 0.9,
+        maxFontSize: 78,
+      })
+    );
+    this.text.push(
+      addText(this, "Background Image by brgfx on Freepik", {
+        xRel: 0.5,
+        yRel: 1,
+      })
+    );
+
     this.tweens.add({
       targets: background,
       alpha: { from: 0, to: 1 },
       duration: 1000,
     });
-    let logo = this.add.image(400, -200, "logo");
     this.tweens.add({
-      targets: logo,
-      y: 300,
+      targets: [logo, logo2],
+      y: this.cameras.main.height * 0.7,
       ease: "bounce.out",
       duration: 1200,
     });
     this.input.once("pointerdown", () => {
       this.sound.play("match");
-      let logo2 = this.add.image(400, 300, "logo2");
       this.tweens.add({
         targets: logo2,
         alpha: { from: 0, to: 1 },
@@ -55,5 +88,15 @@ export default class MainMenu extends Phaser.Scene {
         },
       });
     });
+  }
+
+  resize() {
+    if (!this?.cameras?.main) return;
+    for (const image of this.images) {
+      scaleImage(this, image);
+    }
+    for (const text of this.text) {
+      scaleText(this, text);
+    }
   }
 }

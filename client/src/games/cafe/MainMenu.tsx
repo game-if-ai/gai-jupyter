@@ -6,44 +6,32 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { GameParams } from "..";
 import { CafeSimulation } from "./simulator";
-
-const fontStyle = {
-  fontFamily: "Arial",
-  fontSize: "16px",
-  color: "#ffffff",
-  fontStyle: "bold",
-  shadow: {
-    color: "#000000",
-    fill: true,
-    offsetX: 2,
-    offsetY: 2,
-    blur: 4,
-  },
-};
-
-const labelFont = {
-  fontFamily: "Arial",
-  fontStyle: "bold",
-  fontSize: "18px",
-  color: "#ffffff",
-  wordWrap: { width: 480 },
-  shadow: {
-    color: "#000000",
-    fill: true,
-    offsetX: 2,
-    offsetY: 2,
-    blur: 4,
-  },
-};
+import { GameParams } from "..";
+import {
+  addImage,
+  addSprite,
+  addText,
+  scaleImage,
+  scaleText,
+} from "../phaser-helpers";
 
 export default class MainMenu extends Phaser.Scene {
+  text?: Phaser.GameObjects.Text;
+  timerText?: Phaser.GameObjects.Text;
+  scoreText?: Phaser.GameObjects.Text;
+  accuracyText?: Phaser.GameObjects.Text;
+
+  images: Phaser.GameObjects.Image[];
+
   constructor() {
     super("MainMenu");
+    this.images = [];
   }
 
   preload() {
+    this.load.setPath("assets/cafe");
+    this.load.image("background", "background.png");
     this.load.setPath("assets/cafe/sprites");
     this.load.atlas("bg_kitchen", "bg_kitchen.png", "bg_kitchen.json");
     this.load.atlas("char_bears", "char_bears.png", "char_bears.json");
@@ -53,74 +41,81 @@ export default class MainMenu extends Phaser.Scene {
 
   create(data: GameParams<CafeSimulation>) {
     this.cameras.main.setBackgroundColor("#4f4135");
-    const offset =
-      this.game.canvas.height > 180 ? (this.game.canvas.height / 2) % 180 : 0;
-    this.add.image(160, 90 + offset, "bg_kitchen", "top");
-    this.add.image(120, 20 + offset, "bg_kitchen", "hanging_plant").flipX =
-      true;
-    this.add.image(200, 20 + offset, "bg_kitchen", "hanging_plant");
-    this.add.image(75, 10 + offset, "bg_kitchen", "hanging_light");
-    this.add.image(245, 10 + offset, "bg_kitchen", "hanging_light");
-    this.add.image(100, 62 + offset, "bg_kitchen", "plant1");
-    this.add.image(160, 62 + offset, "bg_kitchen", "plant1");
-    this.add.image(220, 62 + offset, "bg_kitchen", "plant1");
-    this.add.image(60, 57 + offset, "bg_kitchen", "plant2");
-    this.add.image(260, 57 + offset, "bg_kitchen", "plant2");
-    this.add.image(17, 45 + offset, "bg_kitchen", "painting1");
-    this.add.image(302, 45 + offset, "bg_kitchen", "painting2");
-    this.add.image(17, 18 + offset, "bg_kitchen", "clock");
-
-    const bear = this.add
-      .image(160, 72 + offset, "char_bears", "brown")
-      .setScale(2);
-    const bubble = this.add
-      .image(160, 35 + offset, "char_speech", "...")
-      .setScale(2.5);
-    this.time.addEvent({
-      delay: 200,
-      loop: true,
-      callback: () => {
-        if (bear.frame.name.endsWith("2")) {
-          bear.setTexture("char_bears", "brown");
-        } else {
-          bear.setTexture("char_bears", "brown2");
-        }
-      },
-      callbackScope: this,
+    const bgTop = addImage(this, "background", undefined, { widthScale: 1 });
+    this.images.push(bgTop);
+    const bear = addImage(this, "char_bears", "brown", {
+      height: bgTop.displayHeight / 3,
     });
+    this.images.push(bear);
+    bear.setY(bear.y - (bgTop.displayHeight / 8 + 5));
+    const bubble = addImage(this, "char_speech", "...", {
+      height: bgTop.displayHeight / 4,
+    });
+    this.images.push(bubble);
+    bubble.setX(bubble.x - bear.displayWidth / 2);
+    bubble.setY(bubble.y - bear.displayHeight);
+    const bgBot = addImage(this, "bg_kitchen", "bottom", {
+      width: bgTop.displayWidth,
+      y: bgTop.displayHeight / 2,
+    });
+    this.images.push(bgBot);
+    const trash = addImage(this, "bg_kitchen", "trash", {
+      height: bgBot.displayHeight / 2,
+      y: bgTop.displayHeight / 2,
+      xRel: 1,
+    });
+    this.images.push(trash);
+    this.timerText = addText(this, `Time: 120:00`, {
+      x: 5,
+      width: 0.5,
+      maxFontSize: 32,
+    });
+    this.scoreText = addText(this, "Score: 0", {
+      x: -5,
+      xRel: 1,
+      width: 0.5,
+      maxFontSize: 32,
+    });
+    this.accuracyText = addText(this, "Accuracy: 0", {
+      x: -5,
+      yRel: 0.1,
+      xRel: 1,
+      width: 0.5,
+      maxFontSize: 32,
+    });
+    const yTextOffset =
+      (this.cameras.main.displayHeight - bgTop.displayHeight) / 2 +
+      bgTop.displayHeight / 2 +
+      bgBot.displayHeight / 2;
+    const maxTextWidth = this.cameras.main.displayWidth - trash.displayWidth;
+    addText(
+      this,
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      { x: 5, y: yTextOffset, yRel: 0, width: 1, maxWidth: maxTextWidth }
+    );
+    this.images.push(
+      addSprite(this, "food", "riceball", { height: bgBot.displayHeight / 1.5 })
+    );
+
+    let a2 = 1;
     this.time.addEvent({
       delay: 500,
       loop: true,
       callback: () => {
-        bear.flipX = !bear.flipX;
-        if (bear.frame.name.endsWith("2")) {
-          bubble.y = 34 + offset;
-        } else {
-          bubble.y = 35 + offset;
-        }
+        bubble.y = bubble.y + 2 * a2;
+        a2 *= -1;
       },
       callbackScope: this,
     });
 
-    this.add.image(160, 130 + offset, "bg_kitchen", "bottom");
-    this.add.image(242.5, 165 + offset, "bg_kitchen", "divider");
-    this.add.image(285, 172 + offset, "bg_kitchen", "trash");
-
-    this.add.text(5, 5, "Time: 120:00", fontStyle);
-    this.add.text(-5, 5, "Score: 0", {
-      ...fontStyle,
-      fixedWidth: Number(this.game.config.width),
-      align: "right",
-    });
-    this.add.text(-5, 25, "Accuracy: 100%", {
-      ...fontStyle,
-      fixedWidth: Number(this.game.config.width),
-      align: "right",
-    });
-    this.add.text(5, 145 + offset, "", labelFont);
-
     this.input.once("pointerdown", () => {
       this.scene.start("MainGame", data);
     });
+  }
+
+  resize() {
+    for (const image of this.images) {
+      scaleImage(this, image);
+    }
   }
 }

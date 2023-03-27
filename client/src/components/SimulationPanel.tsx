@@ -48,10 +48,6 @@ function GamePlayer(props: {
   const dialogue = useWithDialogue();
   const [simulation, setSimulation] = useState<number>(props.simulation);
   const [showSummary, setShowSummary] = useState<boolean>(false);
-  const aspect =
-    (props.game.config.scale!.width! as number) /
-    (props.game.config.scale!.height! as number);
-  const gameHeight = Math.min(width / aspect, height - 100);
 
   const { simulations } = props.experiment;
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
@@ -178,7 +174,7 @@ function GamePlayer(props: {
       </div>
       <div
         id="game-container"
-        style={{ width, height: gameHeight }}
+        style={{ width, height: height - 100 }}
         ref={gameContainerRef}
       />
       <div className={classes.controls}>

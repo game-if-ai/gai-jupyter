@@ -17,11 +17,6 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
   title: "Bought or Not!",
   parent: "phaser-container",
   backgroundColor: "#282c34",
-  scale: {
-    mode: Phaser.Scale.ScaleModes.FIT,
-    width: 320,
-    height: 180,
-  },
   physics: {
     default: "arcade",
     arcade: {
@@ -38,7 +33,6 @@ export const Cafe: Game = {
   description:
     "You are trying to build a classifier to recommend products based on their reviews.",
   config: GameConfig,
-  resizes: true,
   autocompletion: [
     {
       label: "sklearn.naive_bayes",
