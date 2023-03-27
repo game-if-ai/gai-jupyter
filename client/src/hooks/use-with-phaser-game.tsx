@@ -30,17 +30,13 @@ export function useWithPhaserGame(
     }
     const config = {
       ...game.config,
+      scale: {
+        mode: Phaser.Scale.RESIZE,
+        height: gameContainerRef?.current?.clientHeight!,
+        width: gameContainerRef?.current?.clientWidth!,
+      },
       parent: gameContainerRef.current as HTMLElement,
     };
-    if (game.resizes) {
-      config.scale = {
-        ...game.config.scale,
-        height: Math.max(
-          game.config.scale!.height! as number,
-          gameContainerRef?.current?.clientHeight!
-        ),
-      };
-    }
     const pg = new Phaser.Game(config);
     const playManually = simulation === undefined;
     const scene = playManually ? "MainMenu" : "MainGame";

@@ -6,7 +6,6 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { GameParams } from "..";
 import {
   ITEM_TIME,
   GAME_TIME,
@@ -14,35 +13,8 @@ import {
   CLASSIFIER_DELAY,
   CafeSimulation,
 } from "./simulator";
-
-const fontStyle = {
-  fontFamily: "Arial",
-  fontSize: "16px",
-  color: "#ffffff",
-  fontStyle: "bold",
-  shadow: {
-    color: "#000000",
-    fill: true,
-    offsetX: 2,
-    offsetY: 2,
-    blur: 4,
-  },
-};
-
-const labelFont = {
-  fontFamily: "Arial",
-  fontStyle: "bold",
-  fontSize: "18px",
-  color: "#ffffff",
-  wordWrap: { width: 250 },
-  shadow: {
-    color: "#000000",
-    fill: true,
-    offsetX: 2,
-    offsetY: 2,
-    blur: 4,
-  },
-};
+import { GameParams } from "..";
+import { addImage, addSprite, addText, scaleText } from "../phaser-helpers";
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
@@ -50,21 +22,19 @@ export default class MainGame extends Phaser.Scene {
   isMuted: boolean;
   score: number;
   numCorrect: number;
-
   items: Phaser.GameObjects.Sprite[];
   itemIdx: number;
   trash?: Phaser.GameObjects.Sprite;
   bear?: Phaser.GameObjects.Image;
   speech?: Phaser.GameObjects.Image;
+  bgBot?: Phaser.GameObjects.Image;
   offset: number;
-
   text?: Phaser.GameObjects.Text;
   timerText?: Phaser.GameObjects.Text;
   scoreText?: Phaser.GameObjects.Text;
   accuracyText?: Phaser.GameObjects.Text;
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
-
   config?: GameParams<CafeSimulation>;
   eventSystem?: Phaser.Events.EventEmitter;
 
@@ -81,6 +51,8 @@ export default class MainGame extends Phaser.Scene {
   }
 
   preload() {
+    this.load.setPath("assets/cafe");
+    this.load.image("background", "background.png");
     this.load.setPath("assets/cafe/sprites");
     this.load.atlas("bg_kitchen", "bg_kitchen.png", "bg_kitchen.json");
     this.load.atlas("char_bears", "char_bears.png", "char_bears.json");
@@ -95,51 +67,60 @@ export default class MainGame extends Phaser.Scene {
     this.eventSystem = data.eventSystem;
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
+    // create scene
     this.cameras.main.setBackgroundColor("#4f4135");
-    this.offset =
-      this.game.canvas.height > 180 ? (this.game.canvas.height / 2) % 180 : 0;
-    // upper bg
-    this.add.image(160, 90 + this.offset, "bg_kitchen", "top");
-    this.add.image(120, 20 + this.offset, "bg_kitchen", "hanging_plant").flipX =
-      true;
-    this.add.image(200, 20 + this.offset, "bg_kitchen", "hanging_plant");
-    this.add.image(75, 10 + this.offset, "bg_kitchen", "hanging_light");
-    this.add.image(245, 10 + this.offset, "bg_kitchen", "hanging_light");
-    this.add.image(100, 62 + this.offset, "bg_kitchen", "plant1");
-    this.add.image(160, 62 + this.offset, "bg_kitchen", "plant1");
-    this.add.image(220, 62 + this.offset, "bg_kitchen", "plant1");
-    this.add.image(60, 57 + this.offset, "bg_kitchen", "plant2");
-    this.add.image(260, 57 + this.offset, "bg_kitchen", "plant2");
-    this.add.image(17, 45 + this.offset, "bg_kitchen", "painting1");
-    this.add.image(302, 45 + this.offset, "bg_kitchen", "painting2");
-    this.add.image(17, 18 + this.offset, "bg_kitchen", "clock");
-    // character sprites
-    this.bear = this.add
-      .image(160, 72 + this.offset, "char_bears", "brown")
-      .setScale(2);
-    this.speech = this.add
-      .image(160, 35 + this.offset, "char_speech", "...")
-      .setScale(2.5);
-    // lower bg
-    this.add.image(160, 130 + this.offset, "bg_kitchen", "bottom");
-    this.add.image(242.5, 165 + this.offset, "bg_kitchen", "divider");
-    this.trash = this.add.sprite(285, 172 + this.offset, "bg_kitchen", "trash");
+    const bgTop = addImage(this, "background", undefined, { widthScale: 1 });
+    this.bear = addImage(this, "char_bears", "brown", {
+      height: bgTop.displayHeight / 3,
+    });
+    this.bear.setY(this.bear.y - (bgTop.displayHeight / 8 + 5));
+    this.speech = addImage(this, "char_speech", "...", {
+      height: bgTop.displayHeight / 4,
+    });
+    this.speech.setX(this.speech.x - this.bear.displayWidth / 2);
+    this.speech.setY(this.speech.y - this.bear.displayHeight);
+    this.bgBot = addImage(this, "bg_kitchen", "bottom", {
+      width: bgTop.displayWidth,
+      y: bgTop.displayHeight / 2,
+    });
+    this.trash = addSprite(this, "bg_kitchen", "trash", {
+      height: this.bgBot.displayHeight / 2,
+      y: bgTop.displayHeight / 2,
+      xRel: 1,
+    });
     this.trash.state = "trash";
-    // text
-    this.timerText = this.add.text(5, 5, `Time: ${GAME_TIME}:00`, fontStyle);
-    this.scoreText = this.add.text(-5, 5, "Score: 0", {
-      ...fontStyle,
-      fixedWidth: Number(this.game.config.width),
-      align: "right",
+    this.timerText = addText(this, `Time: ${GAME_TIME}:00`, {
+      x: 5,
+      width: 0.5,
+      maxFontSize: 32,
+    });
+    this.scoreText = addText(this, "Score: 0", {
+      x: -5,
+      xRel: 1,
+      width: 0.5,
+      maxFontSize: 32,
     });
     if (!this.config.playManually) {
-      this.accuracyText = this.add.text(-5, 25, "Accuracy: 100%", {
-        ...fontStyle,
-        fixedWidth: Number(this.game.config.width),
-        align: "right",
+      this.accuracyText = addText(this, "Accuracy: 0", {
+        x: -5,
+        yRel: 0.1,
+        xRel: 1,
+        width: 0.5,
+        maxFontSize: 32,
       });
     }
-    this.text = this.add.text(5, 145 + this.offset, "", labelFont);
+    const yTextOffset =
+      (this.cameras.main.displayHeight - bgTop.displayHeight) / 2 +
+      bgTop.displayHeight / 2 +
+      this.bgBot.displayHeight / 2;
+    const maxTextWidth =
+      this.cameras.main.displayWidth - this.trash.displayWidth;
+    this.text = addText(this, " ", {
+      x: 5,
+      y: yTextOffset,
+      yRel: 0,
+      maxWidth: maxTextWidth,
+    });
     this.text.state = "text";
     // start
     this.eventSystem.on("pause", this.pause, this);
@@ -159,43 +140,19 @@ export default class MainGame extends Phaser.Scene {
     this.numCorrect = 0;
     this.items = [];
     this.itemIdx = 0;
-    this.timerText?.setText(`Time: ${GAME_TIME}:00`);
-    this.scoreText?.setText("Score: 0");
-    this.accuracyText?.setText("Accuracy: 100%");
-    this.text?.setText("");
-    // animations
     this.bear?.setTexture("char_bears", this.config?.simulation?.customer);
-    this.time.addEvent({
-      delay: 200,
-      timeScale: this.speed,
-      loop: true,
-      callback: () => {
-        if (this.bear!.frame.name.endsWith("2")) {
-          this.bear!.setTexture(
-            "char_bears",
-            this.bear!.frame.name.split("2")[0]
-          );
-        } else {
-          this.bear!.setTexture("char_bears", `${this.bear!.frame.name}2`);
-        }
-      },
-      callbackScope: this,
-    });
+    // spawn and timer events
+    let a2 = 1;
     this.time.addEvent({
       delay: 500,
       timeScale: this.speed,
       loop: true,
       callback: () => {
-        this.bear!.flipX = !this.bear!.flipX;
-        if (this.bear!.frame.name.endsWith("2")) {
-          this.speech!.y = 34 + this.offset;
-        } else {
-          this.speech!.y = 35 + this.offset;
-        }
+        this.speech!.y = this.speech!.y + 2 * a2;
+        a2 *= -1;
       },
       callbackScope: this,
     });
-    // spawn and timer events
     this.timerEvent = this.time.addEvent({
       delay: GAME_TIME * 1000,
       timeScale: this.speed,
@@ -217,7 +174,7 @@ export default class MainGame extends Phaser.Scene {
       return;
     }
     if (this.timerEvent.getProgress() === 1) {
-      this.timerText?.setText("Time: 00:00");
+      scaleText(this, this.timerText!, "Time: 00:00");
       return;
     }
     const remaining = this.timerEvent.getRemainingSeconds().toPrecision(4);
@@ -225,7 +182,7 @@ export default class MainGame extends Phaser.Scene {
     const ms = remaining.substr(pos + 1, 2);
     let seconds = remaining.substring(0, pos);
     seconds = Phaser.Utils.String.Pad(seconds, 2, "0", 1);
-    this.timerText?.setText(`Time: ${seconds + ":" + ms}`);
+    scaleText(this, this.timerText!, `Time: ${seconds}:${ms}`);
     this.items = this.items.filter((f) => f.state !== "deleted");
   }
 
@@ -235,9 +192,10 @@ export default class MainGame extends Phaser.Scene {
     }
     const simulation = this.config.simulation;
     const spawn = simulation.spawns[this.itemIdx];
-    const item = this.add
-      .sprite(0, 100 + this.offset, "food", spawn.item)
-      .setScale(3);
+    const item = addSprite(this, "food", spawn.item, {
+      height: this.bgBot!.displayHeight / 1.5,
+    });
+    item.setX(0);
     item.setData("review", spawn.review.review);
     item.setData("rating", spawn.review.rating);
     item.setData("idx", this.itemIdx);
@@ -249,7 +207,7 @@ export default class MainGame extends Phaser.Scene {
         if (response.classifierLabel === response.realLabel) {
           this.numCorrect++;
           const acc = Math.round((this.numCorrect / (this.itemIdx + 1)) * 100);
-          this.accuracyText?.setText(`Accuracy: ${acc}%`);
+          scaleText(this, this.accuracyText!, `Accuracy: ${acc}%`);
         }
         this.time.addEvent({
           delay: CLASSIFIER_DELAY - response.confidence * CLASSIFIER_DELAY,
@@ -267,7 +225,7 @@ export default class MainGame extends Phaser.Scene {
     }
     this.tweens.add({
       targets: item,
-      x: 320,
+      x: this.bgBot?.displayWidth,
       duration: (ITEM_TIME * 1000) / this.speed,
       onComplete: () => {
         if (item.state !== "deleted") {
@@ -276,7 +234,7 @@ export default class MainGame extends Phaser.Scene {
       },
     });
     if (this.items.length === 0) {
-      this.text?.setText(spawn.review.review);
+      scaleText(this, this.text!, spawn.review.review);
     }
     this.items.push(item);
     this.itemIdx++;
@@ -298,67 +256,103 @@ export default class MainGame extends Phaser.Scene {
       item = i;
     }
     if (item.data.list["rating"] === 1) {
-      this.speech?.setTexture("char_speech", "good");
-      this.score++;
-      this.tweens.add({
-        targets: item,
-        scale: 1.4,
-        angle: "-=30",
-        yoyo: true,
-        ease: "sine.inout",
-        duration: 100 / this.speed,
-        onComplete: () => {
-          this.speech?.setTexture("char_speech", "...");
-          this.deleteItem(item);
-        },
-      });
-      this.sound.play("match");
+      this.goodResponse(item);
     } else {
-      this.speech?.setTexture("char_speech", "bad");
-      this.score--;
-      this.tweens.add({
-        targets: item,
-        alpha: 0,
-        yoyo: true,
-        repeat: 2,
-        duration: 100 / this.speed,
-        ease: "sine.inout",
-        onComplete: () => {
-          this.speech?.setTexture("char_speech", "...");
-          this.deleteItem(item);
-        },
-      });
+      this.badResponse(item);
     }
-    this.scoreText?.setText("Score: " + this.score);
+    scaleText(this, this.scoreText!, `Score: ${this.score}`);
   }
 
   trashItem() {
-    const cur = this.items.find((i) => i.state !== "deleted");
-    if (cur) {
-      if (cur.data.list["rating"] === 0) {
-        this.speech?.setTexture("char_speech", "good");
-        this.sound.play("match");
+    const item = this.items.find((i) => i.state !== "deleted");
+    if (item) {
+      if (item.data.list["rating"] === 0) {
+        this.goodResponse(item);
       } else {
-        this.speech?.setTexture("char_speech", "bad");
+        this.badResponse(item);
       }
       this.tweens.add({
-        targets: cur,
-        x: 285,
-        y: 172 + this.offset,
+        targets: item,
+        x: this.trash!.x,
+        y: this.trash!.y,
         duration: 200 / this.speed,
         ease: "sine.inout",
         onComplete: () => {
           this.speech?.setTexture("char_speech", "...");
-          this.deleteItem(cur);
+          this.deleteItem(item);
         },
       });
     }
+  }
+
+  goodResponse(item: Phaser.GameObjects.Sprite) {
+    this.speech?.setTexture("char_speech", "good");
+    this.score++;
+    this.time.addEvent({
+      delay: 100,
+      timeScale: this.speed,
+      repeat: 3,
+      callback: () => {
+        if (this.bear!.frame.name.endsWith("2")) {
+          this.bear!.setTexture(
+            "char_bears",
+            this.bear!.frame.name.slice(0, -1)
+          );
+        } else {
+          this.bear!.setTexture("char_bears", `${this.bear!.frame.name}2`);
+        }
+      },
+      callbackScope: this,
+    });
+    this.tweens.add({
+      targets: item,
+      scale: 1.4,
+      angle: "-=30",
+      yoyo: true,
+      ease: "sine.inout",
+      duration: 100 / this.speed,
+      onComplete: () => {
+        this.speech?.setTexture("char_speech", "...");
+        this.deleteItem(item);
+      },
+    });
+    this.sound.play("match");
+  }
+
+  badResponse(item: Phaser.GameObjects.Sprite) {
+    this.speech?.setTexture("char_speech", "bad");
+    this.score--;
+    let a1 = false;
+    this.time.addEvent({
+      delay: 100,
+      timeScale: this.speed,
+      repeat: 3,
+      callback: () => {
+        a1 = !a1;
+        this.bear!.flipX = a1;
+      },
+      callbackScope: this,
+    });
+    this.tweens.add({
+      targets: item,
+      alpha: 0,
+      yoyo: true,
+      repeat: 2,
+      duration: 100 / this.speed,
+      ease: "sine.inout",
+      onComplete: () => {
+        this.speech?.setTexture("char_speech", "...");
+        this.deleteItem(item);
+      },
+    });
   }
 
   deleteItem(item: Phaser.GameObjects.Sprite) {
     item.state = "deleted";
     item.destroy();
-    this.text?.setText(
+    scaleText(
+      this,
+      this.text!,
       this.items.find((i) => i.state !== "deleted")?.data.list["review"] || ""
     );
   }
