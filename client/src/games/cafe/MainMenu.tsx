@@ -8,13 +8,7 @@ The full terms of this copyright and license should always be found in the root 
 import Phaser from "phaser";
 import { CafeSimulation } from "./simulator";
 import { GameParams } from "..";
-import {
-  addImage,
-  addSprite,
-  addText,
-  scaleImage,
-  scaleText,
-} from "../phaser-helpers";
+import { addImage, addSprite, addText, scaleImage } from "../phaser-helpers";
 
 export default class MainMenu extends Phaser.Scene {
   text?: Phaser.GameObjects.Text;

@@ -25,31 +25,27 @@ import {
 } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Experiment, Simulation } from "../games/simulator";
 import { Game } from "../games";
+import { Experiment, Simulation } from "../games/simulator";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
+import { sessionStorageGet, sessionStorageStore } from "../local-storage";
 import { TooltipMsg } from "./Dialogue";
 
 const SPEEDS = [1, 2, 4, 10];
 
 function GamePlayer(props: {
   game: Game;
-  sawTutorial: boolean;
   experiment: Experiment<Simulation>;
   simulation: number;
-  setSawTutorial: (tf: boolean) => void;
   toNotebook: () => void;
   toSummary: () => void;
 }): JSX.Element {
-  const classes = useStyles();
-  const { width, height } = useWithWindowSize();
-  const dialogue = useWithDialogue();
-  const [simulation, setSimulation] = useState<number>(props.simulation);
-  const [showSummary, setShowSummary] = useState<boolean>(false);
-
   const { simulations } = props.experiment;
+  const classes = useStyles();
+  const dialogue = useWithDialogue();
+  const { width, height } = useWithWindowSize();
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
   const {
     eventSystem,
@@ -63,8 +59,13 @@ function GamePlayer(props: {
     changeSpeed,
   } = useWithPhaserGame(gameContainerRef);
 
+  const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
+  const sawTutorial = Boolean(sessionStorageGet("saw_simulator_walkthrough"));
+  const [simulation, setSimulation] = useState<number>(props.simulation);
+  const [showSummary, setShowSummary] = useState<boolean>(false);
+
   useEffect(() => {
-    if (props.sawTutorial) {
+    if (showTutorial && !sawTutorial) {
       return;
     }
     dialogue.addMessages([
@@ -99,8 +100,8 @@ function GamePlayer(props: {
         noSave: true,
       },
     ]);
-    props.setSawTutorial(true);
-  }, [props.game.id]);
+    sessionStorageStore("saw_simulator_walkthrough", "true");
+  }, [props.game.id, showTutorial, sawTutorial]);
 
   useEffect(() => {
     eventSystem.on("gameOver", endSimulation);

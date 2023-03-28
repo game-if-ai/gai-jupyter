@@ -42,7 +42,6 @@ export function useWithCellOutputs() {
   const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
   const [cells, setCells] = useState<Record<string, CellState>>({});
   const [notebookConnected, setNotebookConnected] = useState(false);
-  const [isEdited, setIsEdited] = useState<boolean>(false);
 
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
@@ -93,7 +92,6 @@ export function useWithCellOutputs() {
       extractAndSetEvaluationCellCode(changedNotebook.cells);
     });
     setCells(cs);
-    setIsEdited(false);
     setNotebookConnected(true);
   }
 
@@ -119,6 +117,7 @@ export function useWithCellOutputs() {
     if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
+    saveCode();
     notebook.adapter.commands.execute("notebook:run-all");
   }
 
@@ -131,26 +130,18 @@ export function useWithCellOutputs() {
     cells[cell].code = code;
     setCells({ ...cells });
     checkFormatAndErrors(cells);
-    for (const c of Object.values(cells)) {
-      if (c.cell.toJSON().source !== c.code) {
-        setIsEdited(true);
-        return;
-      }
-    }
-    setIsEdited(false);
   }
 
   function undoCode(): void {
     for (const [type, cell] of Object.entries(cells)) {
       cells[type].code = cell.cell.toJSON().source;
     }
-    setIsEdited(false);
     setCells({ ...cells });
     checkFormatAndErrors(cells);
   }
 
   function saveCode(): void {
-    if (!notebook || !notebook.model || !notebook.adapter || !isEdited) {
+    if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
     setNotebookConnected(false);
@@ -220,7 +211,6 @@ export function useWithCellOutputs() {
 
   return {
     cells,
-    isEdited,
     evaluationInput,
     evaluationOutput,
     run,

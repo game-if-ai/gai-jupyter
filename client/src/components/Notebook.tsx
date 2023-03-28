@@ -4,27 +4,22 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-/* eslint-disable */
 
 import React, { useEffect, useState } from "react";
-import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import {
   AppBar,
   Button,
   IconButton,
   MenuItem,
   Select,
-  Switch,
   Toolbar,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import {
-  DarkMode,
-  LightMode,
   PlayArrow,
-  Save,
   Undo,
   QuestionMark,
   Info,
@@ -41,31 +36,29 @@ import {
   SHORTCUT_KEYS,
   useWithShortcutKeys,
 } from "../hooks/use-with-shortcut-keys";
+import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
+import { sessionStorageGet, sessionStorageStore } from "../local-storage";
 import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
-import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
 
 function NotebookComponent(props: {
   activity: Activity;
   curExperiment: Experiment<Simulation> | undefined;
-  sawTutorial: boolean;
-  setSawTutorial: (tf: boolean) => void;
+  numRuns: number;
   setExperiment: (e: number) => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
   notebookRan: () => void;
-  numRuns: number;
 }): JSX.Element {
+  const { activity, curExperiment, numRuns, notebookRan } = props;
   const classes = useStyles();
   const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const shortcutKeyboard = useWithShortcutKeys();
-  const { activity, curExperiment, sawTutorial, notebookRan, numRuns } = props;
   const {
     cells,
-    isEdited,
     evaluationInput,
     evaluationOutput,
     lintModel,
@@ -73,20 +66,22 @@ function NotebookComponent(props: {
     clearOutputs,
     editCode,
     undoCode,
-    saveCode,
   } = useWithCellOutputs();
-  const [mode, setMode] = useState<"dark" | "light">("light");
-  const [showUnsaved, setShowUnsaved] = useState<boolean>(false);
-  const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
-  const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
   const { toastHint: toastCafeHint, hintsAvailable: cafeHintsAvailable } =
     useWithImproveCafeCode({
       numCodeRuns: numRuns,
       activeGame: activity,
     });
 
+  const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
+  const sawTutorial = Boolean(sessionStorageGet("saw_notebook_walkthrough"));
+  const [showDescription, setShowDescription] = useState<boolean>(
+    showTutorial && !sawTutorial
+  );
+  const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
+
   useEffect(() => {
-    if (!showDescription && !sawTutorial) {
+    if (!showDescription && showTutorial && !sawTutorial) {
       const messages = [];
       for (const c of Object.values(cells)) {
         const title = c.cell.getMetadata("gai_title") as string;
@@ -99,11 +94,6 @@ function NotebookComponent(props: {
       dialogue.addMessages([
         ...messages,
         {
-          id: "save",
-          title: "Save Code",
-          text: "This is the save button. It will save all the changes you've made to edited notebook cells.",
-        },
-        {
           id: "undo",
           title: "Undo Code",
           text: "This is the undo button. It will reset all edited notebook cells to the state they were in during the last save. If you want to undo changes to an individual cell, use that notebook's undo button instead.",
@@ -114,25 +104,14 @@ function NotebookComponent(props: {
           text: "This is the run button. It will run all the notebook cells and generate the simulated output.",
         },
       ]);
-      props.setSawTutorial(true);
+      sessionStorageStore("saw_notebook_walkthrough", "true");
     }
-  }, [showDescription]);
-
-  useEffect(() => {
-    if (Boolean(evaluationInput.length && evaluationOutput.length)) {
-      dialogue.addMessage({
-        id: "view-sim",
-        title: "Congrats!",
-        text: "Go to see the results",
-        noSave: true,
-      });
-    }
-  }, [evaluationInput, evaluationOutput]);
+  }, [showDescription, showTutorial, sawTutorial]);
 
   const [scrolledToCell, setScrolledToCell] = useState<boolean>(false);
   useEffect(() => {
     if (
-      sawTutorial &&
+      showTutorial &&
       !scrolledToCell &&
       dialogue.messages.length === 0 &&
       !dialogue.curMessage
@@ -167,12 +146,8 @@ function NotebookComponent(props: {
   }
 
   function simulate(): void {
-    if (isEdited) {
-      setShowUnsaved(true);
-    } else {
-      notebookRan();
-      run();
-    }
+    notebookRan();
+    run();
   }
 
   return (
@@ -195,31 +170,14 @@ function NotebookComponent(props: {
             ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
-          <Switch
-            color="secondary"
-            checked={mode === "dark"}
-            icon={<LightMode className={classes.switchIcon} />}
-            checkedIcon={
-              <DarkMode
-                className={classes.switchIcon}
-                style={{ backgroundColor: "purple", color: "white" }}
-              />
-            }
-            onChange={() => setMode(mode === "dark" ? "light" : "dark")}
-          />
           <IconButton
             disabled={!cafeHintsAvailable || activity.id !== "cafe"}
             onClick={toastCafeHint}
           >
             <QuestionMark />
           </IconButton>
-          <TooltipMsg elemId="save" dialogue={dialogue}>
-            <IconButton disabled={!isEdited} onClick={saveCode}>
-              <Save />
-            </IconButton>
-          </TooltipMsg>
           <TooltipMsg elemId="undo" dialogue={dialogue}>
-            <IconButton disabled={!isEdited} onClick={undoCode}>
+            <IconButton onClick={undoCode}>
               <Undo />
             </IconButton>
           </TooltipMsg>
@@ -248,21 +206,21 @@ function NotebookComponent(props: {
           ))}
         </div>
       ) : (
-        <div className={classes.infoButtons}>
-          <Button
-            sx={{ textTransform: "none" }}
-            startIcon={<Info />}
-            onClick={() => setShowDescription(true)}
-          >
-            Build a sentiment classifier model.
+          <div className={classes.infoButtons}>
+            <Button
+              sx={{ textTransform: "none" }}
+              startIcon={<Info />}
+              onClick={() => setShowDescription(true)}
+            >
+              Build a sentiment classifier model.
           </Button>
-          <div style={{ flexGrow: 1 }} />
-          <IconButton color="primary" onClick={shortcutKeyboard.toggleOpen}>
-            <Keyboard />
-            <KeyboardArrowRight />
-          </IconButton>
-        </div>
-      )}
+            <div style={{ flexGrow: 1 }} />
+            <IconButton color="primary" onClick={shortcutKeyboard.toggleOpen}>
+              <Keyboard />
+              <KeyboardArrowRight />
+            </IconButton>
+          </div>
+        )}
       <div className={classes.cells}>
         {Object.entries(cells).map((v) => (
           <NotebookEditor
@@ -270,7 +228,6 @@ function NotebookComponent(props: {
             activity={activity}
             cellType={v[0]}
             cellState={v[1]}
-            mode={mode}
             editCode={editCode}
             dialogue={dialogue}
             shortcutKeyboard={shortcutKeyboard}
@@ -316,33 +273,6 @@ function NotebookComponent(props: {
         </TooltipMsg>
       </ActionPopup>
       <ActionPopup
-        open={showUnsaved}
-        onClose={() => setShowUnsaved(false)}
-        title="Unsaved Code Changes"
-        text="Would you like to run without saving? You will lose any unsaved code changes."
-      >
-        <Button
-          onClick={() => {
-            dialogue.addMessage({
-              id: "save",
-              text: "Don't forget to save your changes before running again!",
-              noSave: true,
-            });
-            setShowUnsaved(false);
-          }}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={() => {
-            run();
-            setShowUnsaved(false);
-          }}
-        >
-          Run Anyway
-        </Button>
-      </ActionPopup>
-      <ActionPopup
         open={showDescription}
         onClose={() => setShowDescription(false)}
         title={activity.title}
@@ -373,14 +303,6 @@ const useStyles = makeStyles(() => ({
     width: "100%",
     flex: 1,
     overflowY: "scroll",
-  },
-  switchIcon: {
-    width: 16,
-    height: 16,
-    padding: 2,
-    borderRadius: 16,
-    backgroundColor: "white",
-    color: "red",
   },
   shortcutButtons: {
     display: "flex",

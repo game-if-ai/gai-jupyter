@@ -14,11 +14,8 @@ import { makeStyles } from "@mui/styles";
 import { minimalSetup, EditorView, basicSetup } from "codemirror";
 import { CompletionContext } from "@codemirror/autocomplete";
 import { python } from "@codemirror/lang-python";
-import { linter, lintGutter, Diagnostic } from "@codemirror/lint";
-import { lineNumbers } from "@codemirror/view";
+import { linter, Diagnostic } from "@codemirror/lint";
 import { Compartment, EditorState } from "@codemirror/state";
-import { githubDark as darkTheme } from "@uiw/codemirror-theme-github";
-import { material as disabledTheme } from "@uiw/codemirror-theme-material";
 
 import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
@@ -27,7 +24,6 @@ import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
 import { TooltipMsg } from "./Dialogue";
 
 export function NotebookEditor(props: {
-  mode: "dark" | "light";
   activity: Activity;
   cellType: string;
   cellState: CellState;
@@ -36,13 +32,12 @@ export function NotebookEditor(props: {
   editCode: (cell: string, code: string) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { mode, cellType, cellState, dialogue, shortcutKeyboard } = props;
+  const { cellType, cellState, dialogue, shortcutKeyboard } = props;
   const { cell, output, lintOutput, errorOutput } = cellState;
   const [showOutput, setShowOutput] = useState<boolean>(true);
   const [outputElement, setOutputElement] = useState<JSX.Element>();
   const [editor, setEditor] = useState<EditorView>();
   const [lintCompartment] = useState(new Compartment());
-  const [themeCompartment] = useState(new Compartment());
   const isDisabled = cell.getMetadata("contenteditable") === false;
   const isEdited = cell.toJSON().source !== cellState.code;
 
@@ -69,40 +64,23 @@ export function NotebookEditor(props: {
     editor.dispatch(transaction);
   }
 
-  function getTheme() {
-    return props.mode === "dark"
-      ? isDisabled
-        ? disabledTheme
-        : darkTheme
-      : isDisabled
-      ? minimalSetup
-      : basicSetup;
-  }
-
   useEffect(() => {
     const doc = document.getElementById(`code-input-${cellType}`);
     if (!doc || editor) {
       return;
     }
     const extensions = [
-      minimalSetup,
       python(),
       EditorState.tabSize.of(4),
       EditorState.readOnly.of(isDisabled),
-      themeCompartment.of(getTheme()),
+      EditorView.updateListener.of((v) => {
+        if (!isDisabled && v.docChanged) {
+          props.editCode(cellType, v.state.doc.toString());
+        }
+      }),
       lintCompartment.of(linter(() => [])),
+      isDisabled ? minimalSetup : basicSetup,
     ];
-    if (!isDisabled) {
-      extensions.push(lintGutter());
-      extensions.push(lineNumbers());
-      extensions.push(
-        EditorView.updateListener.of((v) => {
-          if (v.docChanged) {
-            props.editCode(cellType, v.state.doc.toString());
-          }
-        })
-      );
-    }
     if (props.activity.autocompletion) {
       extensions.push(
         python().language.data.of({
@@ -221,25 +199,11 @@ export function NotebookEditor(props: {
     });
   }, [lintOutput, errorOutput]);
 
-  useEffect(() => {
-    editor?.dispatch({
-      effects: themeCompartment.reconfigure(getTheme()),
-    });
-  }, [props.mode, isDisabled]);
-
   return (
     <div
       id={`cell-${cellType}`}
       style={{
-        color: mode === "dark" ? "white" : "",
-        backgroundColor:
-          mode === "dark"
-            ? isDisabled
-              ? "#333338"
-              : "#0d1116"
-            : isDisabled
-            ? "#E3E3E3"
-            : "#FFFFFF",
+        backgroundColor: isDisabled ? "#E3E3E3" : "#FFFFFF",
       }}
     >
       <div className={classes.cellHeader}>
