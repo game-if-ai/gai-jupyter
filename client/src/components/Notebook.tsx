@@ -7,7 +7,6 @@ The full terms of this copyright and license should always be found in the root 
 
 import React, { useEffect, useState } from "react";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import {
   AppBar,
@@ -18,19 +17,11 @@ import {
   Toolbar,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import {
-  PlayArrow,
-  Undo,
-  QuestionMark,
-  Info,
-  Keyboard,
-  KeyboardArrowRight,
-  KeyboardArrowLeft,
-} from "@mui/icons-material";
+import { PlayArrow, QuestionMark, Info, Restore } from "@mui/icons-material";
 
 import { Activity, isGameActivity } from "../games";
 import { Experiment, Simulation } from "../games/simulator";
-import { useWithCellOutputs } from "../hooks/use-with-notebook";
+import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
 import {
   SHORTCUT_KEYS,
@@ -42,6 +33,8 @@ import { sessionStorageGet, sessionStorageStore } from "../local-storage";
 import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
+
+import "react-toastify/dist/ReactToastify.css";
 
 function NotebookComponent(props: {
   activity: Activity;
@@ -61,27 +54,31 @@ function NotebookComponent(props: {
     cells,
     evaluationInput,
     evaluationOutput,
-    lintModel,
-    run,
-    clearOutputs,
+    userInputCellsCode,
+    hasError,
     editCode,
-    undoCode,
-  } = useWithCellOutputs();
+    resetCode,
+  } = useWithNotebook();
   const { toastHint: toastCafeHint, hintsAvailable: cafeHintsAvailable } =
     useWithImproveCafeCode({
+      userCode: userInputCellsCode,
       numCodeRuns: numRuns,
       activeGame: activity,
     });
 
   const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
   const sawTutorial = Boolean(sessionStorageGet("saw_notebook_walkthrough"));
-  const [showDescription, setShowDescription] = useState<boolean>(
-    showTutorial && !sawTutorial
-  );
+  const [curCell, setCurCell] = useState<string>("");
+  const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
+  const [showResults, setShowResults] = useState<boolean>(false);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
 
   useEffect(() => {
-    if (!showDescription && showTutorial && !sawTutorial) {
+    if (showDescription || sawTutorial) {
+      return;
+    }
+    sessionStorageStore("saw_notebook_walkthrough", "true");
+    if (showTutorial) {
       const messages = [];
       for (const c of Object.values(cells)) {
         const title = c.cell.getMetadata("gai_title") as string;
@@ -94,34 +91,39 @@ function NotebookComponent(props: {
       dialogue.addMessages([
         ...messages,
         {
-          id: "undo",
-          title: "Undo Code",
-          text: "This is the undo button. It will reset all edited notebook cells to the state they were in during the last save. If you want to undo changes to an individual cell, use that notebook's undo button instead.",
+          id: "reset",
+          title: "Reset Code",
+          text: "This is the reset button. It will reset all edited notebook cells to the state they were in during the last save. If you want to undo changes to an individual cell, use that notebook's undo button instead.",
         },
         {
           id: "run",
           title: "Run Code",
-          text: "This is the run button. It will run all the notebook cells and generate the simulated output.",
+          text: "This is the run button. It will save the current changes then run all notebook cells and generate the simulated output.",
         },
       ]);
-      sessionStorageStore("saw_notebook_walkthrough", "true");
     }
   }, [showDescription, showTutorial, sawTutorial]);
 
-  const [scrolledToCell, setScrolledToCell] = useState<boolean>(false);
   useEffect(() => {
     if (
-      showTutorial &&
-      !scrolledToCell &&
+      sawTutorial &&
+      !showDescription &&
       dialogue.messages.length === 0 &&
-      !dialogue.curMessage
+      !dialogue.curMessage &&
+      Object.values(cells).length > 0
     ) {
-      setScrolledToCell(true);
+      setCurCell(GaiCellTypes.EVALUATION);
       document
         .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
         ?.scrollIntoView();
     }
-  }, [dialogue.messages, dialogue.curMessage]);
+  }, [
+    showDescription,
+    sawTutorial,
+    dialogue.messages,
+    dialogue.curMessage,
+    cells,
+  ]);
 
   function toSimulation(): void {
     activity.simulator.simulate(
@@ -147,7 +149,7 @@ function NotebookComponent(props: {
 
   function simulate(): void {
     notebookRan();
-    run();
+    setShowResults(true);
   }
 
   return (
@@ -155,11 +157,12 @@ function NotebookComponent(props: {
       <AppBar position="fixed">
         <Toolbar>
           <Select
-            variant="standard"
+            value={curCell}
             onChange={(e) => {
               document
                 .getElementById(`cell-${e.target.value}`)
                 ?.scrollIntoView();
+              setCurCell(e.target.value);
             }}
             style={{ color: "white" }}
           >
@@ -170,57 +173,50 @@ function NotebookComponent(props: {
             ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
-          <IconButton
-            disabled={!cafeHintsAvailable || activity.id !== "cafe"}
-            onClick={toastCafeHint}
-          >
-            <QuestionMark />
+          <IconButton onClick={() => setShowDescription(true)}>
+            <Info />
           </IconButton>
-          <TooltipMsg elemId="undo" dialogue={dialogue}>
-            <IconButton onClick={undoCode}>
-              <Undo />
+          <TooltipMsg elemId="hint" dialogue={dialogue}>
+            <IconButton
+              disabled={!cafeHintsAvailable || activity.id !== "cafe"}
+              onClick={toastCafeHint}
+            >
+              <QuestionMark />
+            </IconButton>
+          </TooltipMsg>
+          <TooltipMsg elemId="reset" dialogue={dialogue}>
+            <IconButton onClick={resetCode}>
+              <Restore />
             </IconButton>
           </TooltipMsg>
           <TooltipMsg elemId="run" dialogue={dialogue}>
-            <IconButton onClick={simulate}>
+            <IconButton
+              disabled={
+                hasError ||
+                !Boolean(evaluationInput.length && evaluationOutput.length)
+              }
+              onClick={simulate}
+            >
               <PlayArrow />
             </IconButton>
           </TooltipMsg>
         </Toolbar>
       </AppBar>
       <Toolbar />
-      {shortcutKeyboard.isOpen ? (
-        <div className={classes.shortcutButtons}>
-          <IconButton color="primary" onClick={shortcutKeyboard.toggleOpen}>
-            <KeyboardArrowLeft />
-            <Keyboard />
-          </IconButton>
-          {SHORTCUT_KEYS.map((s) => (
-            <Button
-              key={s.text}
-              color="primary"
-              onClick={() => shortcutKeyboard.setKey(s.key || s.text)}
-            >
-              {s.text}
-            </Button>
-          ))}
-        </div>
-      ) : (
-          <div className={classes.infoButtons}>
-            <Button
-              sx={{ textTransform: "none" }}
-              startIcon={<Info />}
-              onClick={() => setShowDescription(true)}
-            >
-              Build a sentiment classifier model.
+      <div
+        className={classes.shortcutButtons}
+        style={{ display: shortcutKeyboard.isOpen ? "block" : "none" }}
+      >
+        {SHORTCUT_KEYS.map((s) => (
+          <Button
+            key={s.text}
+            color="primary"
+            onClick={() => shortcutKeyboard.setKey(s)}
+          >
+            {s.text}
           </Button>
-            <div style={{ flexGrow: 1 }} />
-            <IconButton color="primary" onClick={shortcutKeyboard.toggleOpen}>
-              <Keyboard />
-              <KeyboardArrowRight />
-            </IconButton>
-          </div>
-        )}
+        ))}
+      </div>
       <div className={classes.cells}>
         {Object.entries(cells).map((v) => (
           <NotebookEditor
@@ -229,6 +225,7 @@ function NotebookComponent(props: {
             cellType={v[0]}
             cellState={v[1]}
             editCode={editCode}
+            setCell={setCurCell}
             dialogue={dialogue}
             shortcutKeyboard={shortcutKeyboard}
           />
@@ -249,21 +246,18 @@ function NotebookComponent(props: {
           }
           uid={NOTEBOOK_UID}
         />
-        <Notebook model={lintModel} uid={`${NOTEBOOK_UID}-lint`} />
       </div>
       <ActionPopup
-        open={Boolean(evaluationInput.length && evaluationOutput.length)}
-        onClose={clearOutputs}
+        open={showResults}
+        onClose={() => setShowResults(false)}
         title="See results"
         text="Would you like to view your results?"
       >
-        <Button onClick={clearOutputs}>Cancel</Button>
         {isGameActivity(activity) ? (
           <TooltipMsg elemId="view-sim" dialogue={dialogue} placement="bottom">
             <Button onClick={toSimulation}>View Simulation</Button>
           </TooltipMsg>
         ) : undefined}
-
         <TooltipMsg
           elemId="view-summary"
           dialogue={dialogue}

@@ -13,7 +13,6 @@ import { CellList } from "@jupyterlab/notebook/lib/celllist";
 import {
   INotebookContent,
   IOutput,
-  ICell,
   MultilineString,
 } from "@jupyterlab/nbformat";
 import { ICellModel } from "@jupyterlab/cells";
@@ -24,41 +23,59 @@ import {
   extractOutputFromCell,
   extractCellCode,
 } from "../utils";
+import { useInterval } from "./use-interval";
 
 export interface CellState {
   cell: ICellModel;
   code: MultilineString;
   output: IOutput[];
-  lintOutput?: string;
   errorOutput?: IOutput;
 }
 
 export type UserInputCellsCode = Record<string, string[]>;
 
-export function useWithCellOutputs() {
-  const [userInputCellsCode, setUserInputCellsCode] =
-    useState<UserInputCellsCode>({});
+export function useWithNotebook() {
   const [evaluationInput, setEvaluationInput] = useState<number[]>([]);
   const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
   const [cells, setCells] = useState<Record<string, CellState>>({});
-  const [notebookConnected, setNotebookConnected] = useState(false);
+  const [userInputCellsCode, setUserInputCellsCode] =
+    useState<UserInputCellsCode>({});
 
+  const [notebookConnected, setNotebookConnected] = useState(false);
+  const [hasError, setHasError] = useState<boolean>(false);
+  const [saveTimeout, setSaveTimeout] = useState<number>(0);
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
-  const lintNotebook = selectNotebook(`${NOTEBOOK_UID}-lint`);
-  const [lintModel, setLintModel] = useState<INotebookContent>();
 
   useEffect(() => {
-    if (
-      !activeNotebookModel ||
-      !activeNotebookModel.model ||
-      !activeNotebookModel.model.cells ||
-      notebookConnected
-    ) {
+    if (!activeNotebookModel?.model?.cells || notebookConnected) {
       return;
     }
     connect(activeNotebookModel.model);
   }, [activeNotebookModel]);
+
+  useEffect(() => {
+    for (const cell of Object.values(cells)) {
+      if (cell.errorOutput) {
+        setHasError(true);
+        return;
+      }
+    }
+    setHasError(false);
+  }, [cells]);
+
+  useInterval(
+    (isCancelled) => {
+      if (isCancelled()) {
+        return;
+      }
+      if (saveTimeout <= 1000) {
+        save();
+      }
+      setSaveTimeout(saveTimeout - 1000);
+    },
+    saveTimeout > 0 ? 1000 : null
+  );
 
   function connect(activeNotebookModel: INotebookModel) {
     const cs: Record<string, CellState> = {};
@@ -72,19 +89,23 @@ export function useWithCellOutputs() {
         output: [],
       };
       cellData.stateChanged.connect((changedCell) => {
-        const type = changedCell.getMetadata("gai_cell_type") as string;
-        cells[type] = {
+        const cellType = changedCell.getMetadata("gai_cell_type") as string;
+        const output = changedCell.toJSON().outputs as IOutput[];
+        cells[cellType] = {
           cell: changedCell,
           code: changedCell.toJSON().source,
-          output: changedCell.toJSON().outputs as IOutput[],
+          output: output,
         };
-        setCells({ ...cells });
-        if (type === GaiCellTypes.INPUT) {
+        if (output[0]?.output_type === "error") {
+          cells[cellType].errorOutput = output[0];
+        }
+        if (cellType === GaiCellTypes.INPUT) {
           setEvaluationInput(extractInputFromCell(changedCell));
         }
-        if (type === GaiCellTypes.OUTPUT) {
+        if (cellType === GaiCellTypes.OUTPUT) {
           setEvaluationOutput(extractOutputFromCell(changedCell));
         }
+        setCells({ ...cells });
       });
     }
     extractAndSetEvaluationCellCode(activeNotebookModel.cells);
@@ -93,6 +114,7 @@ export function useWithCellOutputs() {
     });
     setCells(cs);
     setNotebookConnected(true);
+    notebook?.adapter?.commands.execute("notebook:run-all");
   }
 
   function extractAndSetEvaluationCellCode(notebookCells: CellList) {
@@ -113,34 +135,26 @@ export function useWithCellOutputs() {
     }
   }
 
-  function run(): void {
-    if (!notebook || !notebook.model || !notebook.adapter) {
-      return;
-    }
-    saveCode();
-    notebook.adapter.commands.execute("notebook:run-all");
-  }
-
-  function clearOutputs(): void {
-    setEvaluationInput([]);
-    setEvaluationOutput([]);
-  }
-
   function editCode(cell: string, code: string): void {
     cells[cell].code = code;
     setCells({ ...cells });
-    checkFormatAndErrors(cells);
+    for (const c of Object.values(cells)) {
+      if (c.cell.toJSON().source !== c.code) {
+        setSaveTimeout(5000); // save if code is edited
+        return;
+      }
+    }
   }
 
-  function undoCode(): void {
+  function resetCode(): void {
     for (const [type, cell] of Object.entries(cells)) {
       cells[type].code = cell.cell.toJSON().source;
     }
     setCells({ ...cells });
-    checkFormatAndErrors(cells);
+    setSaveTimeout(5000);
   }
 
-  function saveCode(): void {
+  function save(): void {
     if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
@@ -156,69 +170,13 @@ export function useWithCellOutputs() {
     notebook.adapter.setNotebookModel(source);
   }
 
-  function checkFormatAndErrors(cells: Record<string, CellState>): void {
-    if (!notebook || !notebook.model || !notebook.model.cells) {
-      return;
-    }
-    const source = notebook.model.toJSON() as INotebookContent;
-    const newCells = source.cells.reduce(
-      (acc: ICell[], cur: ICell, i: number) => {
-        const cell = notebook!.model!.cells.get(i);
-        const cellType = cell.getMetadata("gai_cell_type") as string;
-        const lintCell: ICell = {
-          ...cur,
-          source: `%%pycodestyle\n${cells[cellType].code}`,
-          metadata: { ...cell.metadata, gai_lint_type: "lint" },
-        };
-        const outputCell: ICell = {
-          ...cur,
-          source: cells[cellType].code,
-          metadata: { ...cell.metadata, gai_lint_type: "error" },
-        };
-        acc.push(outputCell);
-        acc.push(lintCell);
-        return acc;
-      },
-      []
-    );
-    setLintModel({
-      ...source,
-      cells: newCells,
-    });
-  }
-
-  useEffect(() => {
-    for (const cell of lintNotebook?.model?.cells || []) {
-      cell.stateChanged.connect((changedCell) => {
-        const output = changedCell.toJSON().outputs as IOutput[];
-        const cellType = changedCell.getMetadata("gai_cell_type") as string;
-        const outputType = changedCell.getMetadata("gai_lint_type") as string;
-        if (outputType === "lint") {
-          cells[cellType].lintOutput = output[0]?.text as string;
-        }
-        if (outputType === "error") {
-          if (output[0]?.output_type === "error") {
-            cells[cellType].errorOutput = output[0];
-          } else {
-            cells[cellType].errorOutput = undefined;
-          }
-        }
-        setCells({ ...cells });
-      });
-    }
-    lintNotebook?.adapter?.commands.execute("notebook:run-all");
-  }, [lintModel]);
-
   return {
     cells,
     evaluationInput,
     evaluationOutput,
-    run,
-    clearOutputs,
-    editCode,
-    undoCode,
-    saveCode,
     userInputCellsCode,
-    lintModel,
+    hasError,
+    editCode,
+    resetCode,
   };
 }

@@ -97,7 +97,6 @@ export function scaleImage(
       image.state === "background"
         ? Math.max(scaleX, scaleY)
         : Math.min(scaleX, scaleY);
-    console.log(`test: scale=${scale}`);
     image.setScale(scale).setScrollFactor(0);
   }
   if (props.xRel) {
