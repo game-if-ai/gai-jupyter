@@ -35,6 +35,7 @@ import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
 import { UseWithDialogue } from "../hooks/use-with-dialogue";
 import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
+import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 
 export function NotebookEditor(props: {
@@ -44,7 +45,6 @@ export function NotebookEditor(props: {
   dialogue: UseWithDialogue;
   shortcutKeyboard: UseWithShortcutKeys;
   editCode: (cell: string, code: string) => void;
-  setCell: (cell: string) => void;
 }): JSX.Element {
   const classes = useStyles();
   const { cellType, cellState, dialogue, shortcutKeyboard } = props;
@@ -80,6 +80,11 @@ export function NotebookEditor(props: {
     const extensions = [
       python(),
       EditorState.tabSize.of(4),
+      EditorView.theme({
+        $: {
+          fontSize: "16pt",
+        },
+      }),
       EditorState.readOnly.of(isDisabled),
       EditorView.focusChangeEffect.of((_, focusing) => {
         if (focusing) {
@@ -286,7 +291,7 @@ export function NotebookEditor(props: {
         )}
         <TooltipMsg elemId={`cell-${cellType}`} dialogue={dialogue}>
           <Typography data-elemid={`cell-${cellType}`}>
-            {cellType.toLowerCase()}
+            {capitalizeFirst(cellType)}
           </Typography>
         </TooltipMsg>
         <div style={{ flexGrow: 1 }} />

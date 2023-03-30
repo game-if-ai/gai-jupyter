@@ -40,6 +40,10 @@ export function average(arr: number[]) {
   return total / arr.length;
 }
 
+export function capitalizeFirst(word: string): string {
+  return word.charAt(0).toUpperCase() + word.toLowerCase().slice(1);
+}
+
 export function extractClassifierOutputFromCell<T>(cell: ICellModel): T[][] {
   const cellData = cell.toJSON();
 

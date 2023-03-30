@@ -8,22 +8,23 @@ The full terms of this copyright and license should always be found in the root 
 
 import { useEffect, useState } from "react";
 import { selectNotebook, selectNotebookModel } from "@datalayer/jupyter-react";
-import { INotebookModel } from "@jupyterlab/notebook";
 import { CellList } from "@jupyterlab/notebook/lib/celllist";
+import { ICellModel } from "@jupyterlab/cells";
+import { INotebookModel } from "@jupyterlab/notebook";
 import {
   INotebookContent,
   IOutput,
   MultilineString,
 } from "@jupyterlab/nbformat";
-import { ICellModel } from "@jupyterlab/cells";
 
+import { Experiment, Simulation } from "../games/simulator";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
+import { useInterval } from "./use-interval";
 import {
   extractInputFromCell,
   extractOutputFromCell,
   extractCellCode,
 } from "../utils";
-import { useInterval } from "./use-interval";
 
 export interface CellState {
   cell: ICellModel;
@@ -41,6 +42,7 @@ export function useWithNotebook() {
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
 
+  const [curExperiment, setCurExperiment] = useState<INotebookContent>();
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [hasError, setHasError] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -49,11 +51,20 @@ export function useWithNotebook() {
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
 
   useEffect(() => {
-    if (!activeNotebookModel?.model?.cells || notebookConnected) {
+    if (
+      !activeNotebookModel?.model?.cells ||
+      !notebook?.adapter?.commands ||
+      notebookConnected
+    ) {
+      return;
+    }
+    if (
+      !notebook.adapter.commands.listCommands().includes("notebook:run-all")
+    ) {
       return;
     }
     connect(activeNotebookModel.model);
-  }, [activeNotebookModel]);
+  }, [activeNotebookModel, notebook?.adapter?.commands]);
 
   useEffect(() => {
     for (const cell of Object.values(cells)) {
@@ -64,6 +75,12 @@ export function useWithNotebook() {
     }
     setHasError(false);
   }, [cells]);
+
+  useEffect(() => {
+    if (isSaving && evaluationInput.length > 0) {
+      setIsSaving(false);
+    }
+  }, [evaluationInput]);
 
   useInterval(
     (isCancelled) => {
@@ -115,6 +132,9 @@ export function useWithNotebook() {
     });
     setCells(cs);
     setNotebookConnected(true);
+    if (!curExperiment) {
+      setCurExperiment(notebook?.model?.toJSON() as INotebookContent);
+    }
     notebook?.adapter?.commands.execute("notebook:run-all");
   }
 
@@ -148,12 +168,21 @@ export function useWithNotebook() {
     }
   }
 
-  function resetCode(): void {
-    for (const [type, cell] of Object.entries(cells)) {
-      cells[type].code = cell.cell.toJSON().source;
+  function resetCode(experiment?: Experiment<Simulation>): void {
+    if (!notebook?.adapter) {
+      return;
     }
-    setCells({ ...cells });
-    setSaveTimeout(5000);
+    setEvaluationInput([]);
+    setEvaluationOutput([]);
+    if (experiment && experiment.notebookContent) {
+      notebook.adapter.setNotebookModel(experiment.notebookContent);
+      setIsSaving(true);
+      setNotebookConnected(false);
+    } else if (curExperiment) {
+      notebook.adapter.setNotebookModel(curExperiment);
+      setIsSaving(true);
+      setNotebookConnected(false);
+    }
   }
 
   function save(): void {
@@ -172,7 +201,6 @@ export function useWithNotebook() {
     }
     notebook.adapter.setNotebookModel(source);
     setNotebookConnected(false);
-    setIsSaving(false);
   }
 
   return {

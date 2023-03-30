@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+/* eslint-disable */
 
 import React, { useEffect, useState } from "react";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
@@ -14,6 +15,7 @@ import {
   CircularProgress,
   IconButton,
   MenuItem,
+  Popover,
   Select,
   Toolbar,
 } from "@mui/material";
@@ -37,6 +39,7 @@ import {
 import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { sessionStorageGet, sessionStorageStore } from "../local-storage";
+import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
@@ -81,6 +84,11 @@ function NotebookComponent(props: {
   const [showResults, setShowResults] = useState<boolean>(false);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
 
+  const [pastExperiments] = useState(props.activity.simulator.experiments);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
+    null
+  );
+
   useEffect(() => {
     if (showDescription || sawTutorial) {
       return;
@@ -101,7 +109,7 @@ function NotebookComponent(props: {
         {
           id: "reset",
           title: "Reset Code",
-          text: "This is the reset button. It will reset all edited notebook cells to the state they were in during the last save. If you want to undo changes to an individual cell, use that notebook's undo button instead.",
+          text: "This is the reset button. It will reset all edited notebook cells to the state they were in originally. If you want to undo changes to an individual cell, use that notebook's undo button instead.",
         },
         {
           id: "run",
@@ -112,18 +120,19 @@ function NotebookComponent(props: {
     }
   }, [showDescription, showTutorial, sawTutorial]);
 
+  const [didScroll, setDidScroll] = useState<boolean>(false);
   useEffect(() => {
     if (
+      !didScroll &&
       sawTutorial &&
       !showDescription &&
       dialogue.messages.length === 0 &&
       !dialogue.curMessage &&
       Object.values(cells).length > 0
     ) {
+      setDidScroll(true);
       setCurCell(GaiCellTypes.EVALUATION);
-      document
-        .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
-        ?.scrollIntoView();
+      scrollTo(GaiCellTypes.EVALUATION);
     }
   }, [
     showDescription,
@@ -160,6 +169,22 @@ function NotebookComponent(props: {
     setShowResults(true);
   }
 
+  function onReset(event: React.MouseEvent<HTMLButtonElement>): void {
+    if (pastExperiments.length === 0) {
+      resetCode();
+    } else {
+      setAnchorEl(event.currentTarget);
+    }
+  }
+
+  function scrollTo(cell: GaiCellTypes | string): void {
+    const element = document.getElementById(`cell-${cell}`);
+    if (!element) {
+      return;
+    }
+    element.scrollIntoView({});
+  }
+
   return (
     <div className={classes.root}>
       <AppBar position="fixed">
@@ -167,16 +192,14 @@ function NotebookComponent(props: {
           <Select
             value={curCell}
             onChange={(e) => {
-              document
-                .getElementById(`cell-${e.target.value}`)
-                ?.scrollIntoView();
+              scrollTo(e.target.value);
               setCurCell(e.target.value);
             }}
             style={{ color: "white" }}
           >
             {Object.keys(cells).map((c, i) => (
               <MenuItem key={i} value={c}>
-                {c.toLowerCase()}
+                {capitalizeFirst(c)}
               </MenuItem>
             ))}
           </Select>
@@ -193,10 +216,38 @@ function NotebookComponent(props: {
             </IconButton>
           </TooltipMsg>
           <TooltipMsg elemId="reset" dialogue={dialogue}>
-            <IconButton onClick={resetCode}>
+            <IconButton onClick={onReset}>
               <Restore />
             </IconButton>
           </TooltipMsg>
+          <Popover
+            open={Boolean(anchorEl)}
+            anchorEl={anchorEl}
+            onClose={() => setAnchorEl(null)}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "left",
+            }}
+          >
+            <Select
+              onChange={(e) => {
+                const idx = e.target.value as number;
+                if (idx === -1) {
+                  resetCode();
+                } else {
+                  resetCode(pastExperiments[idx]);
+                }
+                setAnchorEl(null);
+              }}
+              style={{ color: "white", width: 200 }}
+            >
+              {pastExperiments.map((e, i) => (
+                <MenuItem key={i} value={i}>
+                  {`${e.time}`}
+                </MenuItem>
+              ))}
+            </Select>
+          </Popover>
           <TooltipMsg elemId="run" dialogue={dialogue}>
             <div
               style={{
@@ -251,7 +302,6 @@ function NotebookComponent(props: {
             cellType={v[0]}
             cellState={v[1]}
             editCode={editCode}
-            setCell={setCurCell}
             dialogue={dialogue}
             shortcutKeyboard={shortcutKeyboard}
           />

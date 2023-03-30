@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 import Cmi5 from "@xapi/cmi5";
 
-import { Activity, isGameActivity } from "./games";
+import { Activities, Activity, isGameActivity } from "./games";
 import { Experiment, Simulation } from "./games/simulator";
 import ActivityPicker from "./components/ActivityPicker";
 import Notebook from "./components/Notebook";
@@ -36,9 +36,16 @@ function App(): JSX.Element {
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-    const walkthrough = queryParams.get("walkthrough");
-    if (walkthrough) {
+    const walkthroughParam = queryParams.get("walkthrough");
+    if (walkthroughParam) {
       sessionStorageStore("show_walkthrough", "true");
+    }
+    const activityParam = queryParams.get("activity");
+    if (activityParam) {
+      const activity = Activities.find((g) => g.id === activityParam);
+      if (activity) {
+        loadActivity(activity);
+      }
     }
   }, []);
 
