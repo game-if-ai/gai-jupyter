@@ -32,7 +32,7 @@ export interface CellState {
   cell: ICellModel;
   code: MultilineString;
   output: IOutput[];
-  errorOutput?: IOutput;
+  errorOutput?: IError;
 }
 
 export type CellsStates = Record<string, CellState>;
