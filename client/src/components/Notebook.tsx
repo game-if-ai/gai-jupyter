@@ -11,13 +11,20 @@ import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import {
   AppBar,
   Button,
+  CircularProgress,
   IconButton,
   MenuItem,
   Select,
   Toolbar,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { PlayArrow, QuestionMark, Info, Restore } from "@mui/icons-material";
+import {
+  PlayArrow,
+  QuestionMark,
+  Info,
+  Restore,
+  ErrorOutline,
+} from "@mui/icons-material";
 
 import { Activity, isGameActivity } from "../games";
 import { Experiment, Simulation } from "../games/simulator";
@@ -56,6 +63,7 @@ function NotebookComponent(props: {
     evaluationOutput,
     userInputCellsCode,
     hasError,
+    isSaving,
     editCode,
     resetCode,
   } = useWithNotebook();
@@ -190,15 +198,33 @@ function NotebookComponent(props: {
             </IconButton>
           </TooltipMsg>
           <TooltipMsg elemId="run" dialogue={dialogue}>
-            <IconButton
-              disabled={
-                hasError ||
-                !Boolean(evaluationInput.length && evaluationOutput.length)
-              }
-              onClick={simulate}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              <PlayArrow />
-            </IconButton>
+              {isSaving ? (
+                <CircularProgress
+                  style={{ color: "white", position: "absolute" }}
+                  size={28}
+                />
+              ) : undefined}
+              {hasError ? (
+                <ErrorOutline style={{ position: "absolute", fontSize: 28 }} />
+              ) : undefined}
+              <IconButton
+                disabled={
+                  hasError ||
+                  isSaving ||
+                  !Boolean(evaluationInput.length && evaluationOutput.length)
+                }
+                onClick={simulate}
+              >
+                <PlayArrow />
+              </IconButton>
+            </div>
           </TooltipMsg>
         </Toolbar>
       </AppBar>

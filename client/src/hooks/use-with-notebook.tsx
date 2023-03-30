@@ -43,6 +43,7 @@ export function useWithNotebook() {
 
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [hasError, setHasError] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveTimeout, setSaveTimeout] = useState<number>(0);
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
@@ -141,6 +142,7 @@ export function useWithNotebook() {
     for (const c of Object.values(cells)) {
       if (c.cell.toJSON().source !== c.code) {
         setSaveTimeout(5000); // save if code is edited
+        setIsSaving(true);
         return;
       }
     }
@@ -158,7 +160,8 @@ export function useWithNotebook() {
     if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
-    setNotebookConnected(false);
+    setEvaluationInput([]);
+    setEvaluationOutput([]);
     const source = notebook.model.toJSON() as INotebookContent;
     for (let i = 0; i < notebook.model.cells.length; i++) {
       const cell = notebook.model.cells.get(i);
@@ -168,6 +171,8 @@ export function useWithNotebook() {
       }
     }
     notebook.adapter.setNotebookModel(source);
+    setNotebookConnected(false);
+    setIsSaving(false);
   }
 
   return {
@@ -176,6 +181,7 @@ export function useWithNotebook() {
     evaluationOutput,
     userInputCellsCode,
     hasError,
+    isSaving,
     editCode,
     resetCode,
   };

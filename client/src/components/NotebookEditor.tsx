@@ -49,11 +49,12 @@ export function NotebookEditor(props: {
   const classes = useStyles();
   const { cellType, cellState, dialogue, shortcutKeyboard } = props;
   const { cell, output, errorOutput } = cellState;
+
   const [showOutput, setShowOutput] = useState<boolean>(false);
   const [outputElement, setOutputElement] = useState<JSX.Element>();
+  const [isDisabled, setIsDisabled] = useState<boolean>(true);
   const [editor, setEditor] = useState<EditorView>();
   const [lintCompartment] = useState(new Compartment());
-  const isDisabled = cell.getMetadata("contenteditable") === false;
 
   const notebook = selectNotebook(cellType);
   const activeNotebookModel = selectNotebookModel(cellType);
@@ -74,6 +75,8 @@ export function NotebookEditor(props: {
     if (!doc || editor) {
       return;
     }
+    const isDisabled = cell.getMetadata("contenteditable") === false;
+    setIsDisabled(isDisabled);
     const extensions = [
       python(),
       EditorState.tabSize.of(4),
@@ -113,7 +116,7 @@ export function NotebookEditor(props: {
         parent: doc,
       })
     );
-  }, []);
+  }, [cell]);
 
   useEffect(() => {
     if (isDisabled) {
@@ -176,6 +179,7 @@ export function NotebookEditor(props: {
           id: `output-${cellType}`,
           text: "There was an error while running this cell. Please review and make changes before running.",
           noSave: true,
+          timer: 5000,
         });
       }
       setOutputElement(<Output outputs={output} />);
