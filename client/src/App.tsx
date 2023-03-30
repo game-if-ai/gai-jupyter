@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Experiment, Simulation } from "./games/simulator";
-import { Activity, isGameActivity } from "./games";
+import { Activities, Activity, isGameActivity } from "./games";
 import ActivityPicker from "./components/ActivityPicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
@@ -35,6 +35,17 @@ function App(): JSX.Element {
   const [sawNotebookTutorial, setSawNotebookTutorial] =
     useState<boolean>(false);
   const [sawSimTutorial, setSawSimTutorial] = useState<boolean>(false);
+
+  useEffect(() => {
+    const searchParams = new URL(window.location.href).searchParams;
+    const templateParam = searchParams.get("template");
+    const targetTemplate = Activities.find(
+      (activity) => activity.id === templateParam
+    );
+    if (templateParam && targetTemplate) {
+      loadActivity(targetTemplate);
+    }
+  }, []);
 
   useEffect(() => {
     if (Cmi5.isCmiAvailable) {
