@@ -294,6 +294,7 @@ function NotebookComponent(props: {
           </Button>
         ))}
       </div>
+      {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
       <div className={classes.cells}>
         {Object.entries(cells).map((v) => (
           <NotebookEditor
