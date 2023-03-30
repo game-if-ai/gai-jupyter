@@ -15,6 +15,8 @@ import {
   IOutput,
   ICell,
   MultilineString,
+  isError,
+  IError,
 } from "@jupyterlab/nbformat";
 import { ICellModel } from "@jupyterlab/cells";
 
@@ -30,8 +32,10 @@ export interface CellState {
   code: MultilineString;
   output: IOutput[];
   lintOutput?: string;
-  errorOutput?: IOutput;
+  errorOutput?: IError;
 }
+
+export type CellsStates = Record<string, CellState>;
 
 export type UserInputCellsCode = Record<string, string[]>;
 
@@ -40,7 +44,7 @@ export function useWithCellOutputs() {
     useState<UserInputCellsCode>({});
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
   const [outputCellOutput, setValidationCellOutput] = useState<any[][]>([]);
-  const [cells, setCells] = useState<Record<string, CellState>>({});
+  const [cells, setCells] = useState<CellsStates>({});
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [isEdited, setIsEdited] = useState<boolean>(false);
 
@@ -74,10 +78,13 @@ export function useWithCellOutputs() {
       };
       cellData.stateChanged.connect((changedCell) => {
         const type = changedCell.getMetadata("gai_cell_type") as string;
+        const changedCellJson = changedCell.toJSON();
+        const output = (changedCellJson.outputs as IOutput[])[0];
         cells[type] = {
           cell: changedCell,
-          code: changedCell.toJSON().source,
-          output: changedCell.toJSON().outputs as IOutput[],
+          code: changedCellJson.source,
+          output: changedCellJson.outputs as IOutput[],
+          errorOutput: isError(output) ? output : undefined,
         };
         setCells({ ...cells });
         if (type === GaiCellTypes.SETUP) {
@@ -206,7 +213,7 @@ export function useWithCellOutputs() {
           cells[cellType].lintOutput = output[0]?.text as string;
         }
         if (outputType === "error") {
-          if (output[0]?.output_type === "error") {
+          if (isError(output[0])) {
             cells[cellType].errorOutput = output[0];
           } else {
             cells[cellType].errorOutput = undefined;
@@ -217,7 +224,6 @@ export function useWithCellOutputs() {
     }
     lintNotebook?.adapter?.commands.execute("notebook:run-all");
   }, [lintModel]);
-
   return {
     cells,
     isEdited,

@@ -7,6 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
+import { isError, IError } from "@jupyterlab/nbformat";
 import { Output } from "@datalayer/jupyter-react";
 import { Button, Collapse, IconButton, Typography } from "@mui/material";
 import { EditOff, Undo, Visibility, VisibilityOff } from "@mui/icons-material";
@@ -26,6 +27,21 @@ import { UseWithDialogue } from "../hooks/use-with-dialogue";
 import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
 import { TooltipMsg } from "./Dialogue";
 import { capitalFirstLetter } from "../utils";
+
+interface CustomErrorMessage {
+  condition: (errorOutput: IError) => boolean;
+  message: string;
+}
+
+const customErrorMessages: CustomErrorMessage[] = [
+  {
+    condition: (errorOutput) => {
+      return errorOutput.ename === "SyntaxError";
+    },
+    message:
+      "Your code contains syntax errors. Please review your code and address these errors.",
+  },
+];
 
 export function NotebookEditor(props: {
   mode: "dark" | "light";
@@ -163,10 +179,15 @@ export function NotebookEditor(props: {
       setOutputElement(undefined);
     } else if (output.length) {
       const o = output[0];
-      if (o.traceback) {
+      if (isError(o)) {
+        const customErrorMessage = customErrorMessages.find((customError) =>
+          customError.condition(o)
+        );
         dialogue.addMessage({
           id: `output-${cellType}`,
-          text: "There was an error while running this cell. Please review and make changes before re-running.",
+          text:
+            customErrorMessage?.message ||
+            "There was an error while running this cell. Please review and make changes before re-running.",
           noSave: true,
         });
       }
