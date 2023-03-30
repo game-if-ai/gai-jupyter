@@ -62,8 +62,8 @@ function NotebookComponent(props: {
   const shortcutKeyboard = useWithShortcutKeys();
   const {
     cells,
-    evaluationInput,
-    evaluationOutput,
+    setupCellOutput,
+    outputCellOutput,
     userInputCellsCode,
     hasError,
     isSaving,
@@ -131,8 +131,8 @@ function NotebookComponent(props: {
       Object.values(cells).length > 0
     ) {
       setDidScroll(true);
-      setCurCell(GaiCellTypes.EVALUATION);
-      scrollTo(GaiCellTypes.EVALUATION);
+      setCurCell(GaiCellTypes.MODEL);
+      scrollTo(GaiCellTypes.MODEL);
     }
   }, [
     showDescription,
@@ -144,8 +144,8 @@ function NotebookComponent(props: {
 
   function toSimulation(): void {
     activity.simulator.simulate(
-      evaluationInput,
-      evaluationOutput,
+      setupCellOutput,
+      outputCellOutput,
       notebook,
       activity.id
     );
@@ -155,8 +155,8 @@ function NotebookComponent(props: {
 
   function toSummary(): void {
     activity.simulator.simulate(
-      evaluationInput,
-      evaluationOutput,
+      setupCellOutput,
+      outputCellOutput,
       notebook,
       activity.id
     );
@@ -269,7 +269,7 @@ function NotebookComponent(props: {
                 disabled={
                   hasError ||
                   isSaving ||
-                  !Boolean(evaluationInput.length && evaluationOutput.length)
+                  !Boolean(setupCellOutput.length && outputCellOutput.length)
                 }
                 onClick={simulate}
               >

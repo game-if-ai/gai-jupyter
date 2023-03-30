@@ -93,10 +93,10 @@ export function extractAllNotebookEditableCode(
     const cell = notebookCells[i];
     const cellSource = extractCellCode(cell);
     const cellType = cell.metadata["gai_cell_type"];
-    if (cellType === GaiCellTypes.EVALUATION) {
+    if (cellType === GaiCellTypes.MODEL) {
       inputCellsCode = {
         ...inputCellsCode,
-        [`EVALUATION-CELL-${evalCellCount}`]: cellSource,
+        [`MODEL-CELL-${evalCellCount}`]: cellSource,
       };
       evalCellCount++;
     }
@@ -121,7 +121,7 @@ export function extractCellCode(cell: ICellModel | ICell): string[] {
         );
 }
 
-export function extractInputFromCell(cell: ICellModel): number[] {
+export function extractSetupCellOutput(cell: ICellModel): number[] {
   const cellData = cell.toJSON();
   const outputs = cellData.outputs as IOutput[];
   if (!outputs || outputs.length === 0) {
@@ -135,7 +135,7 @@ export function extractInputFromCell(cell: ICellModel): number[] {
   return data;
 }
 
-export function extractOutputFromCell<T>(cell: ICellModel): T[][] {
+export function extractValidationCellOutput<T>(cell: ICellModel): T[][] {
   const cellData = cell.toJSON();
   const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
   const data: T[][] =

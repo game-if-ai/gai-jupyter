@@ -70,7 +70,6 @@ function PreviousExperimentsView(props: {
             <TableCell align="right">Date/Time</TableCell>
             <TableCell align="right">Train</TableCell>
             <TableCell align="right">Test</TableCell>
-            <TableCell align="right">Score</TableCell>
             <TableCell align="right">Accuracy</TableCell>
             <TableCell align="right">Precision</TableCell>
             <TableCell align="right">Recall</TableCell>
@@ -239,7 +238,6 @@ function CurrentExperimentView(props: {
         <TableHead>
           <TableRow>
             <TableCell>Run #</TableCell>
-            <TableCell align="right">Score</TableCell>
             <TableCell align="right">Accuracy</TableCell>
             <TableCell align="right">Precision</TableCell>
             <TableCell align="right">Recall</TableCell>

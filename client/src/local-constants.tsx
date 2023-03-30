@@ -7,9 +7,9 @@ The full terms of this copyright and license should always be found in the root 
 
 // gai cell types
 export enum GaiCellTypes {
-  INPUT = "INPUT",
-  EVALUATION = "EVALUATION",
-  OUTPUT = "OUTPUT",
+  SETUP = "SETUP",
+  MODEL = "MODEL",
+  VALIDATION = "VALIDATION",
 }
 
 export const NOTEBOOK_UID = "123";

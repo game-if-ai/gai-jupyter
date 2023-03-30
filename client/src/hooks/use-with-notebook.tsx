@@ -21,8 +21,8 @@ import { Experiment, Simulation } from "../games/simulator";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { useInterval } from "./use-interval";
 import {
-  extractInputFromCell,
-  extractOutputFromCell,
+  extractSetupCellOutput,
+  extractValidationCellOutput,
   extractCellCode,
 } from "../utils";
 
@@ -36,11 +36,11 @@ export interface CellState {
 export type UserInputCellsCode = Record<string, string[]>;
 
 export function useWithNotebook() {
-  const [evaluationInput, setEvaluationInput] = useState<number[]>([]);
-  const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
-  const [cells, setCells] = useState<Record<string, CellState>>({});
+  const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
+  const [outputCellOutput, setValidationCellOutput] = useState<any[][]>([]);
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
+  const [cells, setCells] = useState<Record<string, CellState>>({});
 
   const [curExperiment, setCurExperiment] = useState<INotebookContent>();
   const [notebookConnected, setNotebookConnected] = useState(false);
@@ -77,10 +77,10 @@ export function useWithNotebook() {
   }, [cells]);
 
   useEffect(() => {
-    if (isSaving && evaluationInput.length > 0) {
+    if (isSaving && setupCellOutput.length > 0) {
       setIsSaving(false);
     }
-  }, [evaluationInput]);
+  }, [setupCellOutput]);
 
   useInterval(
     (isCancelled) => {
@@ -117,18 +117,18 @@ export function useWithNotebook() {
         if (output[0]?.output_type === "error") {
           cells[cellType].errorOutput = output[0];
         }
-        if (cellType === GaiCellTypes.INPUT) {
-          setEvaluationInput(extractInputFromCell(changedCell));
+        if (cellType === GaiCellTypes.SETUP) {
+          setSetupCellOutput(extractSetupCellOutput(changedCell));
         }
-        if (cellType === GaiCellTypes.OUTPUT) {
-          setEvaluationOutput(extractOutputFromCell(changedCell));
+        if (cellType === GaiCellTypes.VALIDATION) {
+          setValidationCellOutput(extractValidationCellOutput(changedCell));
         }
         setCells({ ...cells });
       });
     }
-    extractAndSetEvaluationCellCode(activeNotebookModel.cells);
+    extractAndSetModelCellCode(activeNotebookModel.cells);
     activeNotebookModel.contentChanged.connect((changedNotebook) => {
-      extractAndSetEvaluationCellCode(changedNotebook.cells);
+      extractAndSetModelCellCode(changedNotebook.cells);
     });
     setCells(cs);
     setNotebookConnected(true);
@@ -138,17 +138,17 @@ export function useWithNotebook() {
     notebook?.adapter?.commands.execute("notebook:run-all");
   }
 
-  function extractAndSetEvaluationCellCode(notebookCells: CellList) {
+  function extractAndSetModelCellCode(notebookCells: CellList) {
     let evalCellCount = 0;
     for (let i = 0; i < notebookCells.length; i++) {
       const cell = notebookCells.get(i);
       const cellSource = extractCellCode(cell);
       const cellType = cell.getMetadata("gai_cell_type");
-      if (cellType === GaiCellTypes.EVALUATION) {
+      if (cellType === GaiCellTypes.MODEL) {
         setUserInputCellsCode((prevValue) => {
           return {
             ...prevValue,
-            [`EVALUATION-CELL-${evalCellCount}`]: cellSource,
+            [`MODEL-CELL-${evalCellCount}`]: cellSource,
           };
         });
         evalCellCount++;
@@ -172,8 +172,8 @@ export function useWithNotebook() {
     if (!notebook?.adapter) {
       return;
     }
-    setEvaluationInput([]);
-    setEvaluationOutput([]);
+    setSetupCellOutput([]);
+    setValidationCellOutput([]);
     if (experiment && experiment.notebookContent) {
       notebook.adapter.setNotebookModel(experiment.notebookContent);
       setIsSaving(true);
@@ -189,8 +189,8 @@ export function useWithNotebook() {
     if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
-    setEvaluationInput([]);
-    setEvaluationOutput([]);
+    setSetupCellOutput([]);
+    setValidationCellOutput([]);
     const source = notebook.model.toJSON() as INotebookContent;
     for (let i = 0; i < notebook.model.cells.length; i++) {
       const cell = notebook.model.cells.get(i);
@@ -205,8 +205,8 @@ export function useWithNotebook() {
 
   return {
     cells,
-    evaluationInput,
-    evaluationOutput,
+    setupCellOutput,
+    outputCellOutput,
     userInputCellsCode,
     hasError,
     isSaving,
