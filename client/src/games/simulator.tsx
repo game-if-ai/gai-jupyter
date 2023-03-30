@@ -27,7 +27,6 @@ export interface Experiment<S extends Simulation> {
 }
 
 export interface Simulation {
-  score: number;
   accuracy: number;
   precision: number;
   recall: number;
@@ -35,11 +34,8 @@ export interface Simulation {
 }
 
 export interface SimulationSummary {
-  lowScore: number;
-  highScore: number;
   lowAccuracy: number;
   highAccuracy: number;
-  averageScore: number;
   averageAccuracy: number;
   averagePrecision: number;
   averageRecall: number;
@@ -57,7 +53,6 @@ export class Simulator<S extends Simulation> {
 
   play(): S {
     const o: any = {};
-    o.score = 0;
     o.accuracy = 0;
     return o;
   }
@@ -86,9 +81,6 @@ export class Simulator<S extends Simulation> {
       simulations: [],
       codeInfo,
       summary: {
-        lowScore: 0,
-        highScore: 0,
-        averageScore: 0,
         lowAccuracy: 0,
         highAccuracy: 0,
         averageAccuracy: 0,
@@ -106,14 +98,10 @@ export class Simulator<S extends Simulation> {
     simulations: S[],
     summary: SimulationSummary
   ): SimulationSummary {
-    const scores = simulations.map((s) => s.score);
     const accuracies = simulations.map((s) => s.accuracy);
     const precisions = simulations.map((s) => s.precision);
     const recalls = simulations.map((s) => s.recall);
     const f1Scores = simulations.map((s) => s.f1Score);
-    summary.lowScore = Math.min(...scores);
-    summary.highScore = Math.max(...scores);
-    summary.averageScore = average(scores);
     summary.lowAccuracy = Math.min(...accuracies);
     summary.highAccuracy = Math.max(...accuracies);
     summary.averageAccuracy = average(accuracies);

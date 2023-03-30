@@ -121,7 +121,6 @@ function PreviousExperimentsView(props: {
                   <TableCell align="center">
                     {previousExperiment.testInstances}
                   </TableCell>
-                  <TableCell align="center">{summary.averageScore}</TableCell>
                   <TableCell align="center">
                     {round(summary.averageAccuracy)}
                   </TableCell>
@@ -202,10 +201,6 @@ function CurrentExperimentView(props: {
             <TableCell align="center">{testInstances}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell align="center">Test Score</TableCell>
-            <TableCell align="center">{summary.averageScore}</TableCell>
-          </TableRow>
-          <TableRow>
             <TableCell align="center">Accuracy</TableCell>
             <TableCell align="center">
               {round(summary.averageAccuracy)}
@@ -265,7 +260,6 @@ function CurrentExperimentView(props: {
               <TableCell align="center" component="th" scope="row">
                 {i + 1}
               </TableCell>
-              <TableCell align="center">{s.score}</TableCell>
               <TableCell align="center">{round(s.accuracy)}</TableCell>
               <TableCell align="center">{round(s.precision)}</TableCell>
               <TableCell align="center">{round(s.recall)}</TableCell>

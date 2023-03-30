@@ -30,7 +30,6 @@ export interface FruitClassifierOutput {
 }
 
 export interface FruitSimulation extends Simulation {
-  // score: number;
   // accuracy: number;
   label: FruitTrait;
   matchLabel: string;
@@ -59,7 +58,6 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
       label,
       matchLabel,
       spawns,
-      score: 0,
       accuracy: 0,
       precision: 0,
       recall: 0,
@@ -87,9 +85,6 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
         );
         sim.spawns[i].fruit = fruit;
         sim.spawns[i].classifierOutput = classifierOutput;
-        if (classifierOutput?.classifierLabel === sim.matchLabel) {
-          sim.score += classifierOutput.realLabel === sim.matchLabel ? 1 : -1;
-        }
         if (classifierOutput?.classifierLabel === classifierOutput?.realLabel) {
           sim.accuracy++;
         }

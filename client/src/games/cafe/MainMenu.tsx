@@ -13,9 +13,7 @@ import { addImage, addSprite, addText, scaleImage } from "../phaser-helpers";
 export default class MainMenu extends Phaser.Scene {
   text?: Phaser.GameObjects.Text;
   timerText?: Phaser.GameObjects.Text;
-  scoreText?: Phaser.GameObjects.Text;
   accuracyText?: Phaser.GameObjects.Text;
-
   images: Phaser.GameObjects.Image[];
 
   constructor() {
@@ -64,15 +62,8 @@ export default class MainMenu extends Phaser.Scene {
       width: 0.5,
       maxFontSize: 32,
     });
-    this.scoreText = addText(this, "Score: 0", {
-      x: -5,
-      xRel: 1,
-      width: 0.5,
-      maxFontSize: 32,
-    });
     this.accuracyText = addText(this, "Accuracy: 0", {
       x: -5,
-      yRel: 0.1,
       xRel: 1,
       width: 0.5,
       maxFontSize: 32,
@@ -108,6 +99,7 @@ export default class MainMenu extends Phaser.Scene {
   }
 
   resize() {
+    if (!this?.cameras?.main) return;
     for (const image of this.images) {
       scaleImage(this, image);
     }

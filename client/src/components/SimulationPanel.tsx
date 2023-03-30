@@ -60,47 +60,46 @@ function GamePlayer(props: {
   } = useWithPhaserGame(gameContainerRef);
 
   const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
-  const sawTutorial = Boolean(sessionStorageGet("saw_simulator_walkthrough"));
+  const sawTutorial = Boolean(sessionStorageGet("saw_notebook_walkthrough"));
   const [simulation, setSimulation] = useState<number>(props.simulation);
   const [showSummary, setShowSummary] = useState<boolean>(false);
 
   useEffect(() => {
     if (showTutorial && !sawTutorial) {
-      return;
+      dialogue.addMessages([
+        {
+          id: "current",
+          text: "This is the game player. Your classifier results are being used to simulate the choices made by the AI in this game.",
+          noSave: true,
+        },
+        {
+          id: "current",
+          text: `${simulations.length} game simulations were generated with random spawns, to test your classifier with.`,
+          noSave: true,
+        },
+        {
+          id: "speed-2",
+          text: "You can speed up the game playback for the simulations.",
+          noSave: true,
+        },
+        {
+          id: "end",
+          text: "Skip to the end of this simulation to view the summary results for this set of generated spawns.",
+          noSave: true,
+        },
+        {
+          id: "next",
+          text: "Skip to the next simulation.",
+          noSave: true,
+        },
+        {
+          id: "summary",
+          text: "Or simply skip all of the simulations to go directly to the classifier summary results.",
+          noSave: true,
+        },
+      ]);
+      sessionStorageStore("saw_simulator_walkthrough", "true");
     }
-    dialogue.addMessages([
-      {
-        id: "current",
-        text: "This is the game player. Your classifier results are being used to simulate the choices made by the AI in this game.",
-        noSave: true,
-      },
-      {
-        id: "current",
-        text: `${simulations.length} game simulations were generated with random spawns, to test your classifier with.`,
-        noSave: true,
-      },
-      {
-        id: "speed-2",
-        text: "You can speed up the game playback for the simulations.",
-        noSave: true,
-      },
-      {
-        id: "end",
-        text: "Skip to the end of this simulation to view the summary results for this set of generated spawns.",
-        noSave: true,
-      },
-      {
-        id: "next",
-        text: "Skip to the next simulation.",
-        noSave: true,
-      },
-      {
-        id: "summary",
-        text: "Or simply skip all of the simulations to go directly to the classifier summary results.",
-        noSave: true,
-      },
-    ]);
-    sessionStorageStore("saw_simulator_walkthrough", "true");
   }, [props.game.id, showTutorial, sawTutorial]);
 
   useEffect(() => {
@@ -178,6 +177,10 @@ function GamePlayer(props: {
         style={{ width, height: height - 100 }}
         ref={gameContainerRef}
       />
+      <div
+        style={{ position: "absolute", top: 40, bottom: 40, left: 0, right: 0 }}
+      />
+
       <div className={classes.controls}>
         <IconButton size="small" onClick={() => mute(!isMuted)}>
           {isMuted ? <VolumeOff /> : <VolumeUp />}
