@@ -7,7 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
-import { Notebook, Output, selectNotebook, useJupyter, Kernel } from "@datalayer/jupyter-react";
+import { Notebook, Output, selectNotebook, useJupyter } from "@datalayer/jupyter-react";
 import { KernelManager } from '@jupyterlab/services';
 import { ToastContainer, ToastContainerProps } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -76,12 +76,8 @@ function NotebookComponent(props: {
     undoCode,
     saveCode,
   } = useWithCellOutputs();
-
-  const kernelManager : KernelManager = useJupyter().kernelManager as KernelManager;
-
   const [mode, setMode] = useState<"dark" | "light">("light");
   const [showUnsaved, setShowUnsaved] = useState<boolean>(false);
-  const [kernel, setKernel] = useState<Kernel|undefined>();
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
   const { toastHint: toastCafeHint, hintsAvailable: cafeHintsAvailable } =
@@ -90,13 +86,7 @@ function NotebookComponent(props: {
       activeGame: activity,
     });
 
-  if(kernel == undefined)
-  {
-   setKernel( new Kernel({
-      kernelManager: kernelManager,
-      kernelName: "Python3",
-      } ));
-  }
+  const kernelManager: KernelManager = useJupyter().kernelManager as KernelManager;
   useEffect(() => {
     if (!showDescription && !sawTutorial) {
       const messages = [];
@@ -183,7 +173,7 @@ function NotebookComponent(props: {
       setShowUnsaved(true);
     } else {
       notebookRan();
-      run();
+      run(kernelManager);
     }
   }
 
@@ -292,7 +282,6 @@ function NotebookComponent(props: {
       <div style={{ display: "none" }}>
         <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
-          kernel={kernel}
           model={
             loadedWithExperiment && curExperiment?.notebookContent
               ? curExperiment.notebookContent
@@ -348,7 +337,7 @@ function NotebookComponent(props: {
         </Button>
         <Button
           onClick={() => {
-            run();
+            run(kernelManager);
             setShowUnsaved(false);
           }}
         >
