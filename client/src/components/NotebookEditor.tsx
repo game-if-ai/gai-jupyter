@@ -25,6 +25,7 @@ import { CellState } from "../hooks/use-with-notebook";
 import { UseWithDialogue } from "../hooks/use-with-dialogue";
 import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
 import { TooltipMsg } from "./Dialogue";
+import { capitalFirstLetter } from "../utils";
 
 export function NotebookEditor(props: {
   mode: "dark" | "light";
@@ -248,7 +249,7 @@ export function NotebookEditor(props: {
         ) : undefined}
         <TooltipMsg elemId={`cell-${cellType}`} dialogue={dialogue}>
           <Typography data-elemid={`cell-${cellType}`}>
-            {cellType.toLowerCase()}
+            {capitalFirstLetter(cellType)}
           </Typography>
         </TooltipMsg>
         <div style={{ flexGrow: 1 }} />

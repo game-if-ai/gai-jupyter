@@ -66,8 +66,8 @@ function NotebookComponent(props: {
   const {
     cells,
     isEdited,
-    evaluationInput,
-    evaluationOutput,
+    setupCellOutput,
+    outputCellOutput,
     lintModel,
     run,
     clearOutputs,
@@ -119,7 +119,7 @@ function NotebookComponent(props: {
   }, [showDescription]);
 
   useEffect(() => {
-    if (Boolean(evaluationInput.length && evaluationOutput.length)) {
+    if (Boolean(setupCellOutput.length && outputCellOutput.length)) {
       dialogue.addMessage({
         id: "view-sim",
         title: "Congrats!",
@@ -127,7 +127,7 @@ function NotebookComponent(props: {
         noSave: true,
       });
     }
-  }, [evaluationInput, evaluationOutput]);
+  }, [setupCellOutput, outputCellOutput]);
 
   const [scrolledToCell, setScrolledToCell] = useState<boolean>(false);
   useEffect(() => {
@@ -138,16 +138,14 @@ function NotebookComponent(props: {
       !dialogue.curMessage
     ) {
       setScrolledToCell(true);
-      document
-        .getElementById(`cell-${GaiCellTypes.EVALUATION}`)
-        ?.scrollIntoView();
+      document.getElementById(`cell-${GaiCellTypes.MODEL}`)?.scrollIntoView();
     }
   }, [dialogue.messages, dialogue.curMessage]);
 
   function toSimulation(): void {
     activity.simulator.simulate(
-      evaluationInput,
-      evaluationOutput,
+      setupCellOutput,
+      outputCellOutput,
       notebook,
       activity.id
     );
@@ -157,8 +155,8 @@ function NotebookComponent(props: {
 
   function toSummary(): void {
     activity.simulator.simulate(
-      evaluationInput,
-      evaluationOutput,
+      setupCellOutput,
+      outputCellOutput,
       notebook,
       activity.id
     );
@@ -295,7 +293,7 @@ function NotebookComponent(props: {
         <Notebook model={lintModel} uid={`${NOTEBOOK_UID}-lint`} />
       </div>
       <ActionPopup
-        open={Boolean(evaluationInput.length && evaluationOutput.length)}
+        open={Boolean(setupCellOutput.length && outputCellOutput.length)}
         onClose={clearOutputs}
         title="See results"
         text="Would you like to view your results?"

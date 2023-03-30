@@ -20,8 +20,8 @@ import { ICellModel } from "@jupyterlab/cells";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import {
-  extractInputFromCell,
-  extractOutputFromCell,
+  extractSetupCellOutput,
+  extractValidationCellOutput,
   extractCellCode,
 } from "../utils";
 
@@ -38,8 +38,8 @@ export type UserInputCellsCode = Record<string, string[]>;
 export function useWithCellOutputs() {
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
-  const [evaluationInput, setEvaluationInput] = useState<number[]>([]);
-  const [evaluationOutput, setEvaluationOutput] = useState<any[][]>([]);
+  const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
+  const [outputCellOutput, setValidationCellOutput] = useState<any[][]>([]);
   const [cells, setCells] = useState<Record<string, CellState>>({});
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [isEdited, setIsEdited] = useState<boolean>(false);
@@ -80,34 +80,34 @@ export function useWithCellOutputs() {
           output: changedCell.toJSON().outputs as IOutput[],
         };
         setCells({ ...cells });
-        if (type === GaiCellTypes.INPUT) {
-          setEvaluationInput(extractInputFromCell(changedCell));
+        if (type === GaiCellTypes.SETUP) {
+          setSetupCellOutput(extractSetupCellOutput(changedCell));
         }
-        if (type === GaiCellTypes.OUTPUT) {
-          setEvaluationOutput(extractOutputFromCell(changedCell));
+        if (type === GaiCellTypes.VALIDATION) {
+          setValidationCellOutput(extractValidationCellOutput(changedCell));
         }
       });
     }
-    extractAndSetEvaluationCellCode(activeNotebookModel.cells);
+    extractAndSetModelCellCode(activeNotebookModel.cells);
     activeNotebookModel.contentChanged.connect((changedNotebook) => {
-      extractAndSetEvaluationCellCode(changedNotebook.cells);
+      extractAndSetModelCellCode(changedNotebook.cells);
     });
     setCells(cs);
     setIsEdited(false);
     setNotebookConnected(true);
   }
 
-  function extractAndSetEvaluationCellCode(notebookCells: CellList) {
+  function extractAndSetModelCellCode(notebookCells: CellList) {
     let evalCellCount = 0;
     for (let i = 0; i < notebookCells.length; i++) {
       const cell = notebookCells.get(i);
       const cellSource = extractCellCode(cell);
       const cellType = cell.getMetadata("gai_cell_type");
-      if (cellType === GaiCellTypes.EVALUATION) {
+      if (cellType === GaiCellTypes.MODEL) {
         setUserInputCellsCode((prevValue) => {
           return {
             ...prevValue,
-            [`EVALUATION-CELL-${evalCellCount}`]: cellSource,
+            [`MODEL-CELL-${evalCellCount}`]: cellSource,
           };
         });
         evalCellCount++;
@@ -123,8 +123,8 @@ export function useWithCellOutputs() {
   }
 
   function clearOutputs(): void {
-    setEvaluationInput([]);
-    setEvaluationOutput([]);
+    setSetupCellOutput([]);
+    setValidationCellOutput([]);
   }
 
   function editCode(cell: string, code: string): void {
@@ -221,8 +221,8 @@ export function useWithCellOutputs() {
   return {
     cells,
     isEdited,
-    evaluationInput,
-    evaluationOutput,
+    setupCellOutput,
+    outputCellOutput,
     run,
     clearOutputs,
     editCode,
