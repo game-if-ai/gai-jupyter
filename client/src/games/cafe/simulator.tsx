@@ -32,7 +32,6 @@ export interface ItemSpawn {
 }
 
 export interface CafeSimulation extends Simulation {
-  // score: number;
   // accuracy: number;
   customer: string;
   spawns: ItemSpawn[];
@@ -51,7 +50,6 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
     return {
       customer: CUSTOMERS[randomInt(CUSTOMERS.length)],
       spawns: spawns,
-      score: 0,
       accuracy: 0,
       precision: 0,
       recall: 0,
@@ -71,9 +69,6 @@ export class CafeSimulator extends Simulator<CafeSimulation> {
       const simClassifierOutput = outputs[run];
       for (let i = 0; i < sim.spawns.length; i++) {
         const classifierOutput = simClassifierOutput[i];
-        if (classifierOutput.classifierLabel) {
-          sim.score += classifierOutput.realLabel ? 1 : -1;
-        }
         if (classifierOutput.classifierLabel === classifierOutput.realLabel) {
           sim.accuracy++;
         }

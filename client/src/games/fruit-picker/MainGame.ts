@@ -25,7 +25,6 @@ export default class MainGame extends Phaser.Scene {
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
-  score: number;
   numCorrect: number;
   config?: GameParams<FruitSimulation>;
   eventSystem?: Phaser.Events.EventEmitter;
@@ -33,7 +32,6 @@ export default class MainGame extends Phaser.Scene {
   fruit: Phaser.GameObjects.Sprite[];
   fruitIdx: number;
   timerText?: Phaser.GameObjects.Text;
-  scoreText?: Phaser.GameObjects.Text;
   accuracyText?: Phaser.GameObjects.Text;
   matchText?: Phaser.GameObjects.Text;
   timerEvent?: Phaser.Time.TimerEvent;
@@ -47,11 +45,9 @@ export default class MainGame extends Phaser.Scene {
     this.speed = 1;
     this.isPaused = false;
     this.isMuted = false;
-    this.score = 0;
     this.numCorrect = 0;
     this.fruit = [];
     this.fruitIdx = 0;
-
     this.images = [];
     this.text = [];
   }
@@ -82,13 +78,6 @@ export default class MainGame extends Phaser.Scene {
       width: 0.4,
       maxFontSize: 48,
     });
-    this.scoreText = addText(this, "Score: 0", {
-      x: -5,
-      xRel: 1,
-      width: 0.4,
-      height: 0.1,
-      maxFontSize: 32,
-    });
     this.matchText = addText(this, "Catch the fruits!", {
       xRel: 0.5,
       yRel: 1,
@@ -96,13 +85,11 @@ export default class MainGame extends Phaser.Scene {
       maxFontSize: 78,
     });
     this.text.push(this.timerText);
-    this.text.push(this.scoreText);
     this.text.push(this.matchText);
     if (!this.config.playManually) {
       this.accuracyText = addText(this, "Accuracy: 100%", {
         x: -5,
         xRel: 1,
-        yRel: 0.1,
         width: 0.4,
         height: 0.1,
         maxFontSize: 32,
@@ -114,9 +101,11 @@ export default class MainGame extends Phaser.Scene {
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
     this.sound.play("music", { loop: true });
-    this.eventSystem.on("pause", this.pause, this);
-    this.eventSystem.on("mute", this.mute, this);
-    this.eventSystem.on("changeSpeed", this.changeSpeed, this);
+    if (this.eventSystem) {
+      this.eventSystem.on("pause", this.pause, this);
+      this.eventSystem.on("mute", this.mute, this);
+      this.eventSystem.on("changeSpeed", this.changeSpeed, this);
+    }
     this.start();
   }
 
@@ -125,7 +114,6 @@ export default class MainGame extends Phaser.Scene {
       this.config.simulation = this.config.simulator.play();
       this.input.on("gameobjectdown", this.selectFruit, this);
     }
-    this.score = 0;
     this.numCorrect = 0;
     this.fruit = [];
     this.fruitIdx = 0;
@@ -213,6 +201,7 @@ export default class MainGame extends Phaser.Scene {
     _pointer: Phaser.Input.Pointer | undefined,
     fruit: Phaser.GameObjects.Sprite
   ) {
+    if (!this?.cameras?.main) return;
     if (
       fruit.state === "deleting" ||
       fruit.state === "deleted" ||
@@ -226,7 +215,6 @@ export default class MainGame extends Phaser.Scene {
       fruit.data.list[this.config.simulation.label] ===
       this.config.simulation.matchLabel
     ) {
-      this.score += 1;
       this.tweens.add({
         targets: fruit,
         scale: 1.4,
@@ -242,7 +230,6 @@ export default class MainGame extends Phaser.Scene {
       });
       this.sound.play("match");
     } else {
-      this.score -= 1;
       this.tweens.add({
         targets: fruit,
         alpha: 0,
@@ -256,7 +243,6 @@ export default class MainGame extends Phaser.Scene {
         },
       });
     }
-    scaleText(this, this.scoreText!, `Score: ${this.score}`);
   }
 
   gameOver() {

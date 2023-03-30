@@ -37,7 +37,7 @@ export const Cafe: Game = {
     {
       label: "sklearn.naive_bayes",
       type: "text",
-      apply: "from sklearn.naive_bayes import MultinomialNB",
+      apply: "sklearn.naive_bayes import MultinomialNB",
       detail: "import Naive Bayes",
     },
     {

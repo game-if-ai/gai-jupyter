@@ -4,13 +4,13 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
 import {
   ClassifierModel,
   FeatureExtractionMethods,
   getAllUserCodeInfo,
 } from "../examine-code-utils";
 import { useEffect, useState } from "react";
-import { useWithCellOutputs } from "./use-with-notebook";
 
 type LoadStatus = "LOADING" | "LOADED";
 
@@ -26,9 +26,7 @@ export interface UserCodeInfoLoad extends UserCodeInfo {
   loadStatus: LoadStatus;
 }
 
-export function useWithUserCodeExamine() {
-  const { userInputCellsCode: userCode } = useWithCellOutputs();
-
+export function useWithUserCodeExamine(userCode: Record<string, string[]>) {
   const [userCodeInfo, setUserCodeInfo] = useState<UserCodeInfoLoad>({
     usingLemmatization: false,
     classifierModelUsed: "NONE",
