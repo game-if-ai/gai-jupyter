@@ -41,7 +41,7 @@ export type UserInputCellsCode = Record<string, string[]>;
 
 export function useWithNotebook() {
   const [userInputCellsCode, setUserInputCellsCode] =
-  useState<UserInputCellsCode>({});
+    useState<UserInputCellsCode>({});
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
   const [outputCellOutput, setValidationCellOutput] = useState<any[][]>([]);
   const [cells, setCells] = useState<CellsStates>({});

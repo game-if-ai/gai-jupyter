@@ -13,7 +13,13 @@ import {
   selectNotebook,
   selectNotebookModel,
 } from "@datalayer/jupyter-react";
-import { IOutput, INotebookContent, isError, IError } from "@jupyterlab/nbformat";
+import {
+  IOutput,
+  INotebookContent,
+  isError,
+  IError,
+} from "@jupyterlab/nbformat";
+
 import { Button, Collapse, IconButton, Typography } from "@mui/material";
 import {
   EditOff,
