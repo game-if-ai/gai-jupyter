@@ -6,33 +6,43 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { useState } from "react";
+import { ICellModel } from "@jupyterlab/cells";
 
 export interface UseWithShortcutKeys {
-  key: string | undefined;
+  key: ShortcutKey | undefined;
   isOpen: boolean;
-  toggleOpen: () => void;
-  setKey: (k: string | undefined) => void;
+  setKey: (k: ShortcutKey | undefined) => void;
+  setCell: (cell: ICellModel) => void;
 }
 
 export function useWithShortcutKeys(): UseWithShortcutKeys {
+  const [key, setKey] = useState<ShortcutKey>();
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [key, setKey] = useState<string>();
+
+  function setCell(cell: ICellModel): void {
+    if (cell.getMetadata("contenteditable") === false) {
+      setIsOpen(false);
+    } else {
+      setIsOpen(true);
+    }
+  }
 
   return {
     key,
     isOpen,
-    toggleOpen: () => setIsOpen(!isOpen),
     setKey,
+    setCell,
   };
 }
 
 export interface ShortcutKey {
   text: string;
   key?: string;
+  offset?: number;
 }
 
 export const SHORTCUT_KEYS: ShortcutKey[] = [
-  { text: "TAB", key: "    " },
+  { text: "TAB", key: "    ", offset: 4 },
   { text: "( )", key: "()" },
   { text: "[ ]", key: "[]" },
   { text: "{ }", key: "{}" },

@@ -32,10 +32,6 @@ export function Summary(props: { simulation: Simulation }): JSX.Element {
     >
       <TableBody>
         <TableRow>
-          <TableCell align="center">Score</TableCell>
-          <TableCell align="center">{simulation.score}</TableCell>
-        </TableRow>
-        <TableRow>
           <TableCell align="center">Accuracy</TableCell>
           <TableCell align="center">{round(simulation.accuracy)}</TableCell>
         </TableRow>

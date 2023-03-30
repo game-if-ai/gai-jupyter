@@ -20,7 +20,6 @@ export default class MainGame extends Phaser.Scene {
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
-  score: number;
   numCorrect: number;
   items: Phaser.GameObjects.Sprite[];
   itemIdx: number;
@@ -31,7 +30,6 @@ export default class MainGame extends Phaser.Scene {
   offset: number;
   text?: Phaser.GameObjects.Text;
   timerText?: Phaser.GameObjects.Text;
-  scoreText?: Phaser.GameObjects.Text;
   accuracyText?: Phaser.GameObjects.Text;
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
@@ -43,7 +41,6 @@ export default class MainGame extends Phaser.Scene {
     this.speed = 1;
     this.isPaused = false;
     this.isMuted = false;
-    this.score = 0;
     this.numCorrect = 0;
     this.items = [];
     this.itemIdx = 0;
@@ -94,16 +91,9 @@ export default class MainGame extends Phaser.Scene {
       width: 0.5,
       maxFontSize: 32,
     });
-    this.scoreText = addText(this, "Score: 0", {
-      x: -5,
-      xRel: 1,
-      width: 0.5,
-      maxFontSize: 32,
-    });
     if (!this.config.playManually) {
       this.accuracyText = addText(this, "Accuracy: 0", {
         x: -5,
-        yRel: 0.1,
         xRel: 1,
         width: 0.5,
         maxFontSize: 32,
@@ -123,9 +113,11 @@ export default class MainGame extends Phaser.Scene {
     });
     this.text.state = "text";
     // start
-    this.eventSystem.on("pause", this.pause, this);
-    this.eventSystem.on("mute", this.mute, this);
-    this.eventSystem.on("changeSpeed", this.changeSpeed, this);
+    if (this.eventSystem) {
+      this.eventSystem.on("pause", this.pause, this);
+      this.eventSystem.on("mute", this.mute, this);
+      this.eventSystem.on("changeSpeed", this.changeSpeed, this);
+    }
     this.start();
   }
 
@@ -136,7 +128,6 @@ export default class MainGame extends Phaser.Scene {
       this.text?.setInteractive();
       this.input.on("gameobjectdown", this.selectItem, this);
     }
-    this.score = 0;
     this.numCorrect = 0;
     this.items = [];
     this.itemIdx = 0;
@@ -244,6 +235,7 @@ export default class MainGame extends Phaser.Scene {
     _pointer: Phaser.Input.Pointer | undefined,
     item: Phaser.GameObjects.Sprite
   ) {
+    if (!this?.cameras?.main) return;
     if (item.state === "trash") {
       this.trashItem();
       return;
@@ -260,7 +252,6 @@ export default class MainGame extends Phaser.Scene {
     } else {
       this.badResponse(item);
     }
-    scaleText(this, this.scoreText!, `Score: ${this.score}`);
   }
 
   trashItem() {
@@ -287,7 +278,6 @@ export default class MainGame extends Phaser.Scene {
 
   goodResponse(item: Phaser.GameObjects.Sprite) {
     this.speech?.setTexture("char_speech", "good");
-    this.score++;
     this.time.addEvent({
       delay: 100,
       timeScale: this.speed,
@@ -321,7 +311,6 @@ export default class MainGame extends Phaser.Scene {
 
   badResponse(item: Phaser.GameObjects.Sprite) {
     this.speech?.setTexture("char_speech", "bad");
-    this.score--;
     let a1 = false;
     this.time.addEvent({
       delay: 100,
