@@ -32,7 +32,7 @@ export interface CellState {
   cell: ICellModel;
   code: MultilineString;
   output: IOutput[];
-  errorOutput?: IOutput;
+  errorOutput?: IError;
 }
 
 export type CellsStates = Record<string, CellState>;
@@ -40,11 +40,11 @@ export type CellsStates = Record<string, CellState>;
 export type UserInputCellsCode = Record<string, string[]>;
 
 export function useWithNotebook() {
+  const [userInputCellsCode, setUserInputCellsCode] =
+    useState<UserInputCellsCode>({});
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
   const [outputCellOutput, setValidationCellOutput] = useState<any[][]>([]);
   const [cells, setCells] = useState<CellsStates>({});
-  const [userInputCellsCode, setUserInputCellsCode] =
-    useState<UserInputCellsCode>({});
 
   const [curExperiment, setCurExperiment] = useState<INotebookContent>();
   const [notebookConnected, setNotebookConnected] = useState(false);
@@ -112,13 +112,12 @@ export function useWithNotebook() {
       };
       cellData.stateChanged.connect((changedCell) => {
         const cellType = changedCell.getMetadata("gai_cell_type") as string;
-        const output = changedCell.toJSON().outputs as IOutput[];
-        const firstOutput = output[0];
+        const outputs = changedCell.toJSON().outputs as IOutput[];
         cells[cellType] = {
           cell: changedCell,
           code: changedCell.toJSON().source,
-          output: output,
-          errorOutput: isError(firstOutput) ? firstOutput : undefined,
+          output: outputs,
+          errorOutput: isError(outputs[0]) ? outputs[0] : undefined,
         };
         if (cellType === GaiCellTypes.SETUP) {
           setSetupCellOutput(extractSetupCellOutput(changedCell));
