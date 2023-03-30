@@ -12,6 +12,7 @@ export interface DialogueMessage {
   text: string;
   title?: string;
   noSave?: boolean;
+  timer?: number; // dismisses itself after x seconds
 }
 
 export interface UseWithDialogue {

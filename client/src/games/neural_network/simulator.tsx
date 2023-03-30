@@ -15,7 +15,6 @@ export interface NeuralNetworkClassifierOutput {}
 export class NeuralNetworkSimulator extends Simulator<NeuralNetworkSimulation> {
   play() {
     return {
-      score: 0,
       accuracy: 0,
       precision: 0,
       recall: 0,

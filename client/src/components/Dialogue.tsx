@@ -11,6 +11,7 @@ import { IconButton, Tooltip, Typography } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { withStyles } from "tss-react/mui";
 import { DialogueMessage, UseWithDialogue } from "../hooks/use-with-dialogue";
+import { useInterval } from "../hooks/use-interval";
 
 export const ColorTooltip = withStyles(Tooltip, {
   tooltip: {
@@ -40,6 +41,7 @@ export function TooltipMsg(props: {
   const { curMessage, nextMessage } = props.dialogue;
   const [open, setOpen] = useState<boolean>(false);
   const [lastMessage, setLastMessage] = useState<DialogueMessage>();
+  const [timer, setTimer] = useState<number>(0);
 
   useEffect(() => {
     if (!curMessage) {
@@ -58,6 +60,25 @@ export function TooltipMsg(props: {
     }
   }, [open]);
 
+  useEffect(() => {
+    if (open && curMessage?.id === elemId && curMessage.timer) {
+      setTimer(curMessage.timer || 0);
+    }
+  }, [open, curMessage]);
+
+  useInterval(
+    (isCancelled) => {
+      if (isCancelled()) {
+        return;
+      }
+      if (timer <= 500) {
+        close();
+      }
+      setTimer(timer - 500);
+    },
+    timer > 0 ? 500 : null
+  );
+
   function close(): void {
     if (curMessage && curMessage.id === elemId) {
       nextMessage();
@@ -66,9 +87,11 @@ export function TooltipMsg(props: {
     }
   }
 
+  const isCurMsg = curMessage?.id === elemId;
   return (
     <ColorTooltip
       open={open}
+      placement={props.placement}
       disableHoverListener={open}
       onClose={close}
       onMouseEnter={() => {
@@ -81,8 +104,8 @@ export function TooltipMsg(props: {
           setOpen(false);
         }
       }}
-      placement={props.placement}
       arrow
+      leaveTouchDelay={isCurMsg ? curMessage?.timer : lastMessage?.timer}
       title={
         <div>
           <IconButton
@@ -95,10 +118,10 @@ export function TooltipMsg(props: {
             <Close />
           </IconButton>
           <Typography color="inherit" align="center">
-            {curMessage?.id === elemId ? curMessage?.title : lastMessage?.title}
+            {isCurMsg ? curMessage?.title : lastMessage?.title}
           </Typography>
           <p style={{ textAlign: "center" }}>
-            {curMessage?.id === elemId ? curMessage?.text : lastMessage?.text}
+            {isCurMsg ? curMessage?.text : lastMessage?.text}
           </p>
         </div>
       }
