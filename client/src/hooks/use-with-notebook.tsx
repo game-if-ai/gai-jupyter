@@ -125,7 +125,17 @@ export function useWithNotebook() {
         if (cellType === GaiCellTypes.VALIDATION) {
           setValidationCellOutput(extractValidationCellOutput(changedCell));
         }
-        setCells({ ...cells });
+        setCells((prevValue) => {
+          return {
+            ...prevValue,
+            [cellType]: {
+              cell: changedCell,
+              code: changedCell.toJSON().source,
+              output: outputs,
+              errorOutput: isError(outputs[0]) ? outputs[0] : undefined,
+            },
+          };
+        });
       });
     }
     extractAndSetModelCellCode(activeNotebookModel.cells);
