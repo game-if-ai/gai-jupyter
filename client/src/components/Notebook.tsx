@@ -81,7 +81,7 @@ function NotebookComponent(props: {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-    const [kernel, setKernel] = useState<Kernel>()
+  const [kernel, setKernel] = useState<Kernel>()
 
   const kernelManager: KernelManager = useJupyter().kernelManager as KernelManager;
 
@@ -89,8 +89,8 @@ function NotebookComponent(props: {
     if(!kernelManager){
       return;
     }
-    const kernel = new Kernel({ kernelManager, kernelName: "python" });
-    setKernel(kernel);
+    const newKernel = new Kernel({ kernelManager, kernelName: "python" });
+    setKernel(newKernel);
   }, [kernelManager])
 
   useEffect(() => {
@@ -220,7 +220,7 @@ function NotebookComponent(props: {
           >
             {Object.keys(cells).map((c, i) => (
               <MenuItem key={i} value={c}>
-                {capitalizeFirst(cells[c].cell.getMetadata("gai_cell_type"))}
+                {capitalizeFirst(cells[c].cell.getMetadata("gai_cell_type") || "")}
               </MenuItem>
             ))}
           </Select>
