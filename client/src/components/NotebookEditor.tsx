@@ -23,6 +23,7 @@ import {
 import { Button, Collapse, IconButton, Typography } from "@mui/material";
 import {
   EditOff,
+  HelpOutlineOutlined,
   Redo,
   Undo,
   Visibility,
@@ -32,14 +33,23 @@ import { makeStyles } from "@mui/styles";
 import { minimalSetup, EditorView, basicSetup } from "codemirror";
 import { CompletionContext } from "@codemirror/autocomplete";
 import { python } from "@codemirror/lang-python";
+import { indentUnit } from "@codemirror/language";
 import { linter, lintGutter, Diagnostic } from "@codemirror/lint";
 import { Compartment, EditorState, StateEffect } from "@codemirror/state";
-import { redo, undo, undoDepth, redoDepth } from "@codemirror/commands";
+import {
+  redo,
+  undo,
+  undoDepth,
+  redoDepth,
+  indentWithTab,
+} from "@codemirror/commands";
+import { keymap } from "@codemirror/view";
 
 import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
 import { UseWithDialogue } from "../hooks/use-with-dialogue";
 import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
+import { UseWithImproveCode } from "../hooks/use-with-improve-cafe-code";
 import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 
@@ -63,10 +73,11 @@ export function NotebookEditor(props: {
   cellState: CellState;
   dialogue: UseWithDialogue;
   shortcutKeyboard: UseWithShortcutKeys;
+  hints: UseWithImproveCode;
   editCode: (cell: string, code: string) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { cellState, dialogue, shortcutKeyboard } = props;
+  const { cellState, dialogue, shortcutKeyboard, hints } = props;
   const { cell, output, errorOutput } = cellState;
   const cellType = cell.getMetadata("gai_cell_type") || "";
   const cellId = cell.id;
@@ -99,15 +110,12 @@ export function NotebookEditor(props: {
     const isDisabled = cell.getMetadata("contenteditable") === false;
     setIsDisabled(isDisabled);
     const extensions = [
-      python(),
-      EditorState.tabSize.of(4),
-      EditorView.theme({
-        $: {
-          fontSize: "16pt",
-        },
-      }),
-      EditorState.readOnly.of(isDisabled),
+      python(), // python language
+      keymap.of([indentWithTab]), // enable TAB key
+      indentUnit.of("    "), // use 4 spaces for indents
+      EditorState.readOnly.of(isDisabled), // disable editing
       EditorView.focusChangeEffect.of((_, focusing) => {
+        // detect when cell clicked
         if (focusing) {
           shortcutKeyboard.setCell(cell);
         }
@@ -320,6 +328,16 @@ export function NotebookEditor(props: {
             {capitalizeFirst(cellType)}
           </Typography>
         </TooltipMsg>
+        {isDisabled || props.activity.id !== "cafe" ? undefined : (
+          <TooltipMsg elemId="hint" dialogue={dialogue}>
+            <IconButton
+              disabled={!hints.hintsAvailable || props.activity.id !== "cafe"}
+              onClick={hints.toastHint}
+            >
+              <HelpOutlineOutlined />
+            </IconButton>
+          </TooltipMsg>
+        )}
         <div style={{ flexGrow: 1 }} />
         <TooltipMsg elemId={`output-${cellId}`} dialogue={dialogue}>
           <Button

@@ -6,7 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
 import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import {
@@ -20,22 +20,13 @@ import {
   Toolbar,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import {
-  PlayArrow,
-  QuestionMark,
-  Info,
-  Restore,
-  ErrorOutline,
-} from "@mui/icons-material";
+import { PlayArrow, Info, Restore, ErrorOutline } from "@mui/icons-material";
 
 import { Activity, isGameActivity } from "../games";
 import { Experiment, Simulation } from "../games/simulator";
 import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
-import {
-  SHORTCUT_KEYS,
-  useWithShortcutKeys,
-} from "../hooks/use-with-shortcut-keys";
+import { useWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
 import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { sessionStorageGet, sessionStorageStore } from "../local-storage";
@@ -43,6 +34,7 @@ import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
+import { ShortcutKeyboard } from "./ShortcutKeyboard";
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -70,12 +62,11 @@ function NotebookComponent(props: {
     editCode,
     resetCode,
   } = useWithNotebook();
-  const { toastHint: toastCafeHint, hintsAvailable: cafeHintsAvailable } =
-    useWithImproveCafeCode({
-      userCode: userInputCellsCode,
-      numCodeRuns: numRuns,
-      activeGame: activity,
-    });
+  const hints = useWithImproveCafeCode({
+    userCode: userInputCellsCode,
+    numCodeRuns: numRuns,
+    activeGame: activity,
+  });
 
   const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
   const sawTutorial = Boolean(sessionStorageGet("saw_notebook_walkthrough"));
@@ -85,9 +76,8 @@ function NotebookComponent(props: {
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
 
   const [pastExperiments] = useState(props.activity.simulator.experiments);
-  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
-    null
-  );
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (showDescription || sawTutorial) {
@@ -101,8 +91,15 @@ function NotebookComponent(props: {
         const text = c.cell.getMetadata("gai_description") as string;
         const type = c.cell.getMetadata("gai_cell_type") as string;
         if (title && text && type) {
-          messages.push({ id: `cell-${type}`, title, text });
+          messages.push({ id: `cell-${c.cell.id}`, title, text });
         }
+      }
+      if (hints.hintsAvailable && activity.id === "cafe") {
+        messages.push({
+          id: "hint",
+          title: "Hints",
+          text: "This is the hint button. It will give you suggestions based on your current code implementation.",
+        });
       }
       dialogue.addMessages([
         ...messages,
@@ -131,8 +128,13 @@ function NotebookComponent(props: {
       Object.values(cells).length > 0
     ) {
       setDidScroll(true);
-      setCurCell(GaiCellTypes.MODEL);
-      scrollTo(GaiCellTypes.MODEL);
+      const modelCell = Object.values(cells).find(
+        (c) => c.cell.getMetadata("gai_cell_type") === GaiCellTypes.MODEL
+      );
+      if (modelCell) {
+        setCurCell(modelCell.cell.id);
+        scrollTo(modelCell.cell.id);
+      }
     }
   }, [
     showDescription,
@@ -177,12 +179,17 @@ function NotebookComponent(props: {
     }
   }
 
-  function scrollTo(cell: GaiCellTypes | string): void {
+  function scrollTo(cell: string): void {
     const element = document.getElementById(`cell-${cell}`);
-    if (!element) {
+    if (!element || !scrollRef.current) {
       return;
     }
-    element.scrollIntoView({});
+    const offsetPosition =
+      element.offsetTop - 75 - (shortcutKeyboard.isOpen ? 50 : 0);
+    scrollRef.current.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth",
+    });
   }
 
   return (
@@ -195,7 +202,7 @@ function NotebookComponent(props: {
               scrollTo(e.target.value);
               setCurCell(e.target.value);
             }}
-            style={{ color: "white" }}
+            style={{ color: "white", maxWidth: "50%" }}
           >
             {Object.keys(cells).map((c, i) => (
               <MenuItem key={i} value={c}>
@@ -207,47 +214,11 @@ function NotebookComponent(props: {
           <IconButton onClick={() => setShowDescription(true)}>
             <Info />
           </IconButton>
-          <TooltipMsg elemId="hint" dialogue={dialogue}>
-            <IconButton
-              disabled={!cafeHintsAvailable || activity.id !== "cafe"}
-              onClick={toastCafeHint}
-            >
-              <QuestionMark />
-            </IconButton>
-          </TooltipMsg>
           <TooltipMsg elemId="reset" dialogue={dialogue}>
             <IconButton onClick={onReset}>
               <Restore />
             </IconButton>
           </TooltipMsg>
-          <Popover
-            open={Boolean(anchorEl)}
-            anchorEl={anchorEl}
-            onClose={() => setAnchorEl(null)}
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "left",
-            }}
-          >
-            <Select
-              onChange={(e) => {
-                const idx = e.target.value as number;
-                if (idx === -1) {
-                  resetCode();
-                } else {
-                  resetCode(pastExperiments[idx]);
-                }
-                setAnchorEl(null);
-              }}
-              style={{ color: "white", width: 200 }}
-            >
-              {pastExperiments.map((e, i) => (
-                <MenuItem key={i} value={i}>
-                  {`${e.time}`}
-                </MenuItem>
-              ))}
-            </Select>
-          </Popover>
           <TooltipMsg elemId="run" dialogue={dialogue}>
             <div
               style={{
@@ -280,22 +251,9 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <div
-        className={classes.shortcutButtons}
-        style={{ display: shortcutKeyboard.isOpen ? "block" : "none" }}
-      >
-        {SHORTCUT_KEYS.map((s) => (
-          <Button
-            key={s.text}
-            color="primary"
-            onClick={() => shortcutKeyboard.setKey(s)}
-          >
-            {s.text}
-          </Button>
-        ))}
-      </div>
+      <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
-      <div className={classes.cells}>
+      <div className={classes.cells} ref={scrollRef}>
         {Object.entries(cells).map((v) => (
           <NotebookEditor
             key={v[0]}
@@ -304,6 +262,7 @@ function NotebookComponent(props: {
             editCode={editCode}
             dialogue={dialogue}
             shortcutKeyboard={shortcutKeyboard}
+            hints={hints}
           />
         ))}
       </div>
@@ -351,6 +310,34 @@ function NotebookComponent(props: {
         <Button onClick={() => setShowDescription(false)}>Okay</Button>
       </ActionPopup>
       <ToastContainer {...defaultToastOptions} />
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+      >
+        <Select
+          onChange={(e) => {
+            const idx = e.target.value as number;
+            if (idx === -1) {
+              resetCode();
+            } else {
+              resetCode(pastExperiments[idx]);
+            }
+            setAnchorEl(null);
+          }}
+          style={{ color: "white", width: 200 }}
+        >
+          {pastExperiments.map((e, i) => (
+            <MenuItem key={i} value={i}>
+              {`${e.time}`}
+            </MenuItem>
+          ))}
+        </Select>
+      </Popover>
     </div>
   );
 }
@@ -373,13 +360,6 @@ const useStyles = makeStyles(() => ({
     width: "100%",
     flex: 1,
     overflowY: "scroll",
-  },
-  shortcutButtons: {
-    display: "flex",
-    flexDirection: "row",
-    width: "100%",
-    overflowX: "scroll",
-    whiteSpace: "nowrap",
   },
   infoButtons: {
     display: "flex",

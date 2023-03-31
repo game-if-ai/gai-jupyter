@@ -8,6 +8,7 @@ The full terms of this copyright and license should always be found in the root 
 
 import React, { useEffect, useState } from "react";
 import {
+  BottomNavigation,
   Button,
   IconButton,
   Paper,
@@ -16,6 +17,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Toolbar,
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
@@ -276,44 +278,43 @@ function CurrentExperimentView(props: {
           ))}
         </TableBody>
       </TableContainer>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          width: "100%",
-        }}
+      <Toolbar />
+      <Paper
+        sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }}
+        elevation={3}
       >
-        <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
-          <Button
-            data-elemid="notebook"
-            variant="contained"
-            onClick={props.goToNotebook}
-            style={{ margin: 10 }}
-          >
-            Notebook
-          </Button>
-        </TooltipMsg>
-        {isGameActivity ? (
-          <Button
-            variant="contained"
-            onClick={() => props.runSimulation(0)}
-            style={{ marginTop: 10, marginBottom: 10 }}
-          >
-            Simulator
-          </Button>
-        ) : undefined}
-        <TooltipMsg elemId="submit" dialogue={props.dialogue}>
-          <Button
-            data-elemid="submit"
-            variant="contained"
-            style={{ margin: 10 }}
-            onClick={props.onSubmit}
-          >
-            Submit
-          </Button>
-        </TooltipMsg>
-      </div>
+        <BottomNavigation>
+          <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
+            <Button
+              data-elemid="notebook"
+              variant="contained"
+              onClick={props.goToNotebook}
+              style={{ margin: 10 }}
+            >
+              Notebook
+            </Button>
+          </TooltipMsg>
+          {isGameActivity ? (
+            <Button
+              variant="contained"
+              onClick={() => props.runSimulation(0)}
+              style={{ marginTop: 10, marginBottom: 10 }}
+            >
+              Simulator
+            </Button>
+          ) : undefined}
+          <TooltipMsg elemId="submit" dialogue={props.dialogue}>
+            <Button
+              data-elemid="submit"
+              variant="contained"
+              style={{ margin: 10 }}
+              onClick={props.onSubmit}
+            >
+              Submit
+            </Button>
+          </TooltipMsg>
+        </BottomNavigation>
+      </Paper>
     </div>
   );
 }
