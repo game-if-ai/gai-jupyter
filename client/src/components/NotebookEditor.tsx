@@ -23,6 +23,7 @@ import {
 import { Button, Collapse, IconButton, Typography } from "@mui/material";
 import {
   EditOff,
+  HelpOutlineOutlined,
   Redo,
   Undo,
   Visibility,
@@ -48,6 +49,7 @@ import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
 import { UseWithDialogue } from "../hooks/use-with-dialogue";
 import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
+import { UseWithImproveCode } from "../hooks/use-with-improve-cafe-code";
 import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 
@@ -71,10 +73,11 @@ export function NotebookEditor(props: {
   cellState: CellState;
   dialogue: UseWithDialogue;
   shortcutKeyboard: UseWithShortcutKeys;
+  hints: UseWithImproveCode;
   editCode: (cell: string, code: string) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { cellState, dialogue, shortcutKeyboard } = props;
+  const { cellState, dialogue, shortcutKeyboard, hints } = props;
   const { cell, output, errorOutput } = cellState;
   const cellType = cell.getMetadata("gai_cell_type") || "";
   const cellId = cell.id;
@@ -325,6 +328,16 @@ export function NotebookEditor(props: {
             {capitalizeFirst(cellType)}
           </Typography>
         </TooltipMsg>
+        {isDisabled || props.activity.id !== "cafe" ? undefined : (
+          <TooltipMsg elemId="hint" dialogue={dialogue}>
+            <IconButton
+              disabled={!hints.hintsAvailable || props.activity.id !== "cafe"}
+              onClick={hints.toastHint}
+            >
+              <HelpOutlineOutlined />
+            </IconButton>
+          </TooltipMsg>
+        )}
         <div style={{ flexGrow: 1 }} />
         <TooltipMsg elemId={`output-${cellId}`} dialogue={dialogue}>
           <Button
