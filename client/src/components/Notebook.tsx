@@ -300,7 +300,6 @@ function NotebookComponent(props: {
           <NotebookEditor
             key={v[0]}
             activity={activity}
-            cellType={v[0]}
             cellState={v[1]}
             editCode={editCode}
             dialogue={dialogue}

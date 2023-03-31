@@ -92,9 +92,11 @@ export function useWithNotebook() {
         return;
       }
       if (saveTimeout <= 1000) {
+        setSaveTimeout(0);
         save();
+      } else {
+        setSaveTimeout((prevValue) => prevValue - 1000);
       }
-      setSaveTimeout(saveTimeout - 1000);
     },
     saveTimeout > 0 ? 1000 : null
   );
@@ -104,8 +106,8 @@ export function useWithNotebook() {
     const notebookCells = activeNotebookModel.cells;
     for (let i = 0; i < notebookCells.length; i++) {
       const cellData = notebookCells.get(i);
-      const cellType = cellData.getMetadata("gai_cell_type") as string;
-      cs[cellType] = {
+      const cellId = cellData.id;
+      cs[cellId] = {
         cell: cellData,
         code: cellData.toJSON().source,
         output: [],
@@ -113,7 +115,7 @@ export function useWithNotebook() {
       cellData.stateChanged.connect((changedCell) => {
         const cellType = changedCell.getMetadata("gai_cell_type") as string;
         const outputs = changedCell.toJSON().outputs as IOutput[];
-        cells[cellType] = {
+        cells[cellId] = {
           cell: changedCell,
           code: changedCell.toJSON().source,
           output: outputs,
@@ -128,7 +130,7 @@ export function useWithNotebook() {
         setCells((prevValue) => {
           return {
             ...prevValue,
-            [cellType]: {
+            [cellId]: {
               cell: changedCell,
               code: changedCell.toJSON().source,
               output: outputs,
@@ -206,9 +208,9 @@ export function useWithNotebook() {
     const source = notebook.model.toJSON() as INotebookContent;
     for (let i = 0; i < notebook.model.cells.length; i++) {
       const cell = notebook.model.cells.get(i);
-      const cellType = cell.getMetadata("gai_cell_type") as string;
+      const cellId = cell.id;
       if (cell.getMetadata("contenteditable") !== false) {
-        source.cells[i].source = cells[cellType].code;
+        source.cells[i].source = cells[cellId].code;
       }
     }
     notebook.adapter.setNotebookModel(source);

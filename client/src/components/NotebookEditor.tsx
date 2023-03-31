@@ -60,15 +60,16 @@ const customErrorMessages: CustomErrorMessage[] = [
 
 export function NotebookEditor(props: {
   activity: Activity;
-  cellType: string;
   cellState: CellState;
   dialogue: UseWithDialogue;
   shortcutKeyboard: UseWithShortcutKeys;
   editCode: (cell: string, code: string) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { cellType, cellState, dialogue, shortcutKeyboard } = props;
+  const { cellState, dialogue, shortcutKeyboard } = props;
   const { cell, output, errorOutput } = cellState;
+  const cellType = cell.getMetadata("gai_cell_type") || "";
+  const cellId = cell.id;
 
   const [showOutput, setShowOutput] = useState<boolean>(false);
   const [outputElement, setOutputElement] = useState<JSX.Element>();
@@ -76,8 +77,8 @@ export function NotebookEditor(props: {
   const [editor, setEditor] = useState<EditorView>();
   const [lintCompartment] = useState(new Compartment());
 
-  const notebook = selectNotebook(cellType);
-  const activeNotebookModel = selectNotebookModel(cellType);
+  const notebook = selectNotebook(cellId);
+  const activeNotebookModel = selectNotebookModel(cellId);
   const [model, setModel] = useState<INotebookContent>();
   const [lintOutput, setLintOutput] = useState<string>("");
 
@@ -91,7 +92,7 @@ export function NotebookEditor(props: {
   }
 
   useEffect(() => {
-    const doc = document.getElementById(`code-input-${cellType}`);
+    const doc = document.getElementById(`code-input-${cellId}`);
     if (!doc || editor) {
       return;
     }
@@ -120,7 +121,7 @@ export function NotebookEditor(props: {
       extensions.push(
         EditorView.updateListener.of((v) => {
           if (v.docChanged) {
-            props.editCode(cellType, v.state.doc.toString());
+            props.editCode(cellId, v.state.doc.toString());
           }
         })
       );
@@ -204,7 +205,7 @@ export function NotebookEditor(props: {
           customError.condition(o)
         );
         dialogue.addMessage({
-          id: `output-${cellType}`,
+          id: `output-${cellId}`,
           text:
             customErrorMessage?.message ||
             "There was an error while running this cell. Please review and make changes before re-running.",
@@ -280,7 +281,7 @@ export function NotebookEditor(props: {
 
   return (
     <div
-      id={`cell-${cellType}`}
+      id={`cell-${cellId}`}
       style={{
         backgroundColor: isDisabled ? "#E3E3E3" : "#FFFFFF",
       }}
@@ -314,15 +315,15 @@ export function NotebookEditor(props: {
             </IconButton>
           </div>
         )}
-        <TooltipMsg elemId={`cell-${cellType}`} dialogue={dialogue}>
-          <Typography data-elemid={`cell-${cellType}`}>
+        <TooltipMsg elemId={`cell-${cellId}`} dialogue={dialogue}>
+          <Typography data-elemid={`cell-${cellId}`}>
             {capitalizeFirst(cellType)}
           </Typography>
         </TooltipMsg>
         <div style={{ flexGrow: 1 }} />
-        <TooltipMsg elemId={`output-${cellType}`} dialogue={dialogue}>
+        <TooltipMsg elemId={`output-${cellId}`} dialogue={dialogue}>
           <Button
-            data-elemid={`output-${cellType}`}
+            data-elemid={`output-${cellId}`}
             startIcon={showOutput ? <Visibility /> : <VisibilityOff />}
             onClick={() => setShowOutput(!showOutput)}
           >
@@ -330,13 +331,13 @@ export function NotebookEditor(props: {
           </Button>
         </TooltipMsg>
       </div>
-      <div id={`code-input-${cellType}`} />
+      <div id={`code-input-${cellId}`} />
       <Collapse in={showOutput} timeout="auto" unmountOnExit>
         {outputElement}
       </Collapse>
       {isDisabled ? undefined : (
         <div style={{ display: "none" }}>
-          <Notebook uid={cellType} model={model} />
+          <Notebook uid={cellId} model={model} />
         </div>
       )}
     </div>
