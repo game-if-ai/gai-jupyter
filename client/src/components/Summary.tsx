@@ -315,46 +315,6 @@ function CurrentExperimentView(props: {
           </TooltipMsg>
         </BottomNavigation>
       </Paper>
-      {/* <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          width: "100%",
-          position: "fixed",
-          bottom: 0,
-        }}
-      >
-        <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
-          <Button
-            data-elemid="notebook"
-            variant="contained"
-            onClick={props.goToNotebook}
-            style={{ margin: 10 }}
-          >
-            Notebook
-          </Button>
-        </TooltipMsg>
-        {isGameActivity ? (
-          <Button
-            variant="contained"
-            onClick={() => props.runSimulation(0)}
-            style={{ marginTop: 10, marginBottom: 10 }}
-          >
-            Simulator
-          </Button>
-        ) : undefined}
-        <TooltipMsg elemId="submit" dialogue={props.dialogue}>
-          <Button
-            data-elemid="submit"
-            variant="contained"
-            style={{ margin: 10 }}
-            onClick={props.onSubmit}
-          >
-            Submit
-          </Button>
-        </TooltipMsg>
-      </div> */}
     </div>
   );
 }

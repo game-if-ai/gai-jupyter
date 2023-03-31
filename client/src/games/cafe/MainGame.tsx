@@ -360,6 +360,11 @@ export default class MainGame extends Phaser.Scene {
   pause(paused: boolean) {
     this.isPaused = paused;
     this.time.paused = this.isPaused;
+    if (this.isPaused) {
+      this.tweens.pauseAll();
+    } else {
+      this.tweens.resumeAll();
+    }
   }
 
   changeSpeed(speed: number) {

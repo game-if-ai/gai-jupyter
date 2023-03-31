@@ -275,8 +275,10 @@ export default class MainGame extends Phaser.Scene {
     this.time.paused = this.isPaused;
     if (this.isPaused) {
       this.physics.world.pause();
+      this.tweens.pauseAll();
     } else {
       this.physics.world.resume();
+      this.tweens.resumeAll();
     }
   }
 
