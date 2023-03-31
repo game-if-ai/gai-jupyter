@@ -7,7 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
-import { Notebook, Output, selectNotebook, useJupyter } from "@datalayer/jupyter-react";
+import { Kernel, Notebook, Output, selectNotebook, useJupyter } from "@datalayer/jupyter-react";
 import { KernelManager } from '@jupyterlab/services';
 import { ToastContainer, ToastContainerProps } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -49,6 +49,7 @@ import { ActionPopup } from "./Popup";
 import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
 
 function NotebookComponent(props: {
+  uniqueUserId: string;
   activity: Activity;
   curExperiment: Experiment<Simulation> | undefined;
   sawTutorial: boolean;
@@ -63,7 +64,7 @@ function NotebookComponent(props: {
   const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const shortcutKeyboard = useWithShortcutKeys();
-  const { activity, curExperiment, sawTutorial, notebookRan, numRuns } = props;
+  const { activity, curExperiment, sawTutorial, notebookRan, numRuns, uniqueUserId } = props;
   const {
     cells,
     isEdited,
@@ -86,7 +87,18 @@ function NotebookComponent(props: {
       activeGame: activity,
     });
 
+    const [kernel, setKernel] = useState<Kernel>()
+
   const kernelManager: KernelManager = useJupyter().kernelManager as KernelManager;
+
+  useEffect(()=>{
+    if(!kernelManager){
+      return;
+    }
+    const kernel = new Kernel({ kernelManager, kernelName: "python" });
+    setKernel(kernel);
+  }, [kernelManager])
+
   useEffect(() => {
     if (!showDescription && !sawTutorial) {
       const messages = [];
@@ -279,9 +291,11 @@ function NotebookComponent(props: {
           />
         ))}
       </div>
+      {kernel ? 
       <div style={{ display: "none" }}>
         <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
+          kernel={kernel}
           model={
             loadedWithExperiment && curExperiment?.notebookContent
               ? curExperiment.notebookContent
@@ -290,12 +304,13 @@ function NotebookComponent(props: {
           path={
             loadedWithExperiment && curExperiment?.notebookContent
               ? undefined
-              : `${props.activity.id}/test.ipynb`
+              : `/${uniqueUserId}/${props.activity.id}/test.ipynb`
           }
-          uid={NOTEBOOK_UID}
+          uid={`${NOTEBOOK_UID}`}
         />
         <Notebook model={lintModel} uid={`${NOTEBOOK_UID}-lint`} />
       </div>
+      : undefined }
       <ActionPopup
         open={Boolean(evaluationInput.length && evaluationOutput.length)}
         onClose={clearOutputs}

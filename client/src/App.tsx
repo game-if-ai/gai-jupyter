@@ -9,13 +9,15 @@ import React, { useEffect, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Experiment, Simulation } from "./games/simulator";
-import { Activity, isGameActivity } from "./games";
+import { Activities, Activity, isGameActivity } from "./games";
 import ActivityPicker from "./components/ActivityPicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
 import Cmi5 from "@xapi/cmi5";
 import { evaluteExperiment } from "./score-evaluation";
+import { ContentsManager } from "@jupyterlab/services";
+import { newUuid } from "@datalayer/jupyter-react";
 
 enum STEP {
   PICK_GAME,
@@ -35,6 +37,27 @@ function App(): JSX.Element {
   const [sawNotebookTutorial, setSawNotebookTutorial] =
     useState<boolean>(false);
   const [sawSimTutorial, setSawSimTutorial] = useState<boolean>(false);
+  const [uniqueUserId, setUniqueUserId] = useState("");
+
+  useEffect(()=>{
+    const uniqueId = newUuid();
+    setUniqueUserId(uniqueId);
+    const cm = new ContentsManager()
+    
+    cm.save(`/${uniqueId}/`, {type:"directory"}).then(()=>{
+      Activities.forEach((activity)=>{
+        cm.save(`/${uniqueId}/${activity.id}/`, {type:"directory"}).then(()=>{
+          cm.copy(`/${activity.id}/test.ipynb`, `/${uniqueId}/${activity.id}/test.ipynb`)
+        })
+      })
+    })
+
+    return () =>{
+      Activities.forEach((activity)=>{
+        cm.delete(`/${uniqueId}/${activity.id}/test.ipynb`);
+      })
+    };
+  }, [])
 
   useEffect(() => {
     if (Cmi5.isCmiAvailable) {
@@ -116,6 +139,7 @@ function App(): JSX.Element {
     } else if (step === STEP.NOTEBOOK) {
       return (
         <Notebook
+          uniqueUserId={uniqueUserId}
           activity={activity!}
           sawTutorial={sawNotebookTutorial}
           setSawTutorial={setSawNotebookTutorial}
