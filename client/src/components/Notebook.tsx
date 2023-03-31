@@ -32,10 +32,7 @@ import { Activity, isGameActivity } from "../games";
 import { Experiment, Simulation } from "../games/simulator";
 import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
-import {
-  SHORTCUT_KEYS,
-  useWithShortcutKeys,
-} from "../hooks/use-with-shortcut-keys";
+import { useWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
 import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { sessionStorageGet, sessionStorageStore } from "../local-storage";
@@ -43,6 +40,7 @@ import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
+import { ShortcutKeyboard } from "./ShortcutKeyboard";
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -203,7 +201,7 @@ function NotebookComponent(props: {
               scrollTo(e.target.value);
               setCurCell(e.target.value);
             }}
-            style={{ color: "white" }}
+            style={{ color: "white", maxWidth: "50%" }}
           >
             {Object.keys(cells).map((c, i) => (
               <MenuItem key={i} value={c}>
@@ -228,34 +226,6 @@ function NotebookComponent(props: {
               <Restore />
             </IconButton>
           </TooltipMsg>
-          <Popover
-            open={Boolean(anchorEl)}
-            anchorEl={anchorEl}
-            onClose={() => setAnchorEl(null)}
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "left",
-            }}
-          >
-            <Select
-              onChange={(e) => {
-                const idx = e.target.value as number;
-                if (idx === -1) {
-                  resetCode();
-                } else {
-                  resetCode(pastExperiments[idx]);
-                }
-                setAnchorEl(null);
-              }}
-              style={{ color: "white", width: 200 }}
-            >
-              {pastExperiments.map((e, i) => (
-                <MenuItem key={i} value={i}>
-                  {`${e.time}`}
-                </MenuItem>
-              ))}
-            </Select>
-          </Popover>
           <TooltipMsg elemId="run" dialogue={dialogue}>
             <div
               style={{
@@ -288,20 +258,7 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <div
-        className={classes.shortcutButtons}
-        style={{ display: shortcutKeyboard.isOpen ? "block" : "none" }}
-      >
-        {SHORTCUT_KEYS.map((s) => (
-          <Button
-            key={s.text}
-            color="primary"
-            onClick={() => shortcutKeyboard.setKey(s)}
-          >
-            {s.text}
-          </Button>
-        ))}
-      </div>
+      <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
       <div className={classes.cells} ref={scrollRef}>
         {Object.entries(cells).map((v) => (
@@ -359,6 +316,34 @@ function NotebookComponent(props: {
         <Button onClick={() => setShowDescription(false)}>Okay</Button>
       </ActionPopup>
       <ToastContainer {...defaultToastOptions} />
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+      >
+        <Select
+          onChange={(e) => {
+            const idx = e.target.value as number;
+            if (idx === -1) {
+              resetCode();
+            } else {
+              resetCode(pastExperiments[idx]);
+            }
+            setAnchorEl(null);
+          }}
+          style={{ color: "white", width: 200 }}
+        >
+          {pastExperiments.map((e, i) => (
+            <MenuItem key={i} value={i}>
+              {`${e.time}`}
+            </MenuItem>
+          ))}
+        </Select>
+      </Popover>
     </div>
   );
 }
@@ -381,13 +366,6 @@ const useStyles = makeStyles(() => ({
     width: "100%",
     flex: 1,
     overflowY: "scroll",
-  },
-  shortcutButtons: {
-    display: "flex",
-    flexDirection: "row",
-    width: "100%",
-    overflowX: "scroll",
-    whiteSpace: "nowrap",
   },
   infoButtons: {
     display: "flex",

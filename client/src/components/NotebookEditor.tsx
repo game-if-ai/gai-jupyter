@@ -32,9 +32,17 @@ import { makeStyles } from "@mui/styles";
 import { minimalSetup, EditorView, basicSetup } from "codemirror";
 import { CompletionContext } from "@codemirror/autocomplete";
 import { python } from "@codemirror/lang-python";
+import { indentUnit } from "@codemirror/language";
 import { linter, lintGutter, Diagnostic } from "@codemirror/lint";
 import { Compartment, EditorState, StateEffect } from "@codemirror/state";
-import { redo, undo, undoDepth, redoDepth } from "@codemirror/commands";
+import {
+  redo,
+  undo,
+  undoDepth,
+  redoDepth,
+  indentWithTab,
+} from "@codemirror/commands";
+import { keymap } from "@codemirror/view";
 
 import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
@@ -99,15 +107,12 @@ export function NotebookEditor(props: {
     const isDisabled = cell.getMetadata("contenteditable") === false;
     setIsDisabled(isDisabled);
     const extensions = [
-      python(),
-      EditorState.tabSize.of(4),
-      EditorView.theme({
-        $: {
-          fontSize: "16pt",
-        },
-      }),
-      EditorState.readOnly.of(isDisabled),
+      python(), // python language
+      keymap.of([indentWithTab]), // enable TAB key
+      indentUnit.of("    "), // use 4 spaces for indents
+      EditorState.readOnly.of(isDisabled), // disable editing
       EditorView.focusChangeEffect.of((_, focusing) => {
+        // detect when cell clicked
         if (focusing) {
           shortcutKeyboard.setCell(cell);
         }
