@@ -6,7 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
 import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import {
@@ -85,9 +85,8 @@ function NotebookComponent(props: {
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
 
   const [pastExperiments] = useState(props.activity.simulator.experiments);
-  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
-    null
-  );
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (showDescription || sawTutorial) {
@@ -131,8 +130,13 @@ function NotebookComponent(props: {
       Object.values(cells).length > 0
     ) {
       setDidScroll(true);
-      setCurCell(GaiCellTypes.MODEL);
-      scrollTo(GaiCellTypes.MODEL);
+      const modelCell = Object.values(cells).find(
+        (c) => c.cell.getMetadata("gai_cell_type") === GaiCellTypes.MODEL
+      );
+      if (modelCell) {
+        setCurCell(modelCell.cell.id);
+        scrollTo(modelCell.cell.id);
+      }
     }
   }, [
     showDescription,
@@ -177,12 +181,16 @@ function NotebookComponent(props: {
     }
   }
 
-  function scrollTo(cell: GaiCellTypes | string): void {
+  function scrollTo(cell: string): void {
     const element = document.getElementById(`cell-${cell}`);
-    if (!element) {
+    if (!element || !scrollRef.current) {
       return;
     }
-    element.scrollIntoView({});
+    const offsetPosition = element.offsetTop - 75;
+    scrollRef.current.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth",
+    });
   }
 
   return (
@@ -295,7 +303,7 @@ function NotebookComponent(props: {
         ))}
       </div>
       {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
-      <div className={classes.cells}>
+      <div className={classes.cells} ref={scrollRef}>
         {Object.entries(cells).map((v) => (
           <NotebookEditor
             key={v[0]}
