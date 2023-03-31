@@ -20,13 +20,7 @@ import {
   Toolbar,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import {
-  PlayArrow,
-  QuestionMark,
-  Info,
-  Restore,
-  ErrorOutline,
-} from "@mui/icons-material";
+import { PlayArrow, Info, Restore, ErrorOutline } from "@mui/icons-material";
 
 import { Activity, isGameActivity } from "../games";
 import { Experiment, Simulation } from "../games/simulator";
