@@ -76,17 +76,18 @@ function NotebookComponent(props: {
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [showResults, setShowResults] = useState<boolean>(false);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
+  const [kernel, setKernel] = useState<Kernel>();
+  const [didScroll, setDidScroll] = useState<boolean>(false);
 
   const [pastExperiments] = useState(props.activity.simulator.experiments);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  const [kernel, setKernel] = useState<Kernel>()
 
   const kernelManager: KernelManager = useJupyter().kernelManager as KernelManager;
 
   useEffect(()=>{
-    if(!kernelManager){
+    if(!kernelManager || kernel){
       return;
     }
     const newKernel = new Kernel({ kernelManager, kernelName: "python" });
@@ -131,7 +132,6 @@ function NotebookComponent(props: {
     }
   }, [showDescription, showTutorial, sawTutorial]);
 
-  const [didScroll, setDidScroll] = useState<boolean>(false);
   useEffect(() => {
     if (
       !didScroll &&
@@ -280,7 +280,6 @@ function NotebookComponent(props: {
           />
         ))}
       </div>
-      {kernel ? 
       <div style={{ display: "none" }}>
         <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
@@ -298,7 +297,6 @@ function NotebookComponent(props: {
           uid={`${NOTEBOOK_UID}`}
         />
       </div>
-      : undefined }
       <ActionPopup
         open={showResults}
         onClose={() => setShowResults(false)}

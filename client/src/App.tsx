@@ -79,7 +79,7 @@ function App(): JSX.Element {
       try {
         Cmi5.instance.getLaunchParameters();
       } catch (err) {
-        console.error("cmi5 not available", err);
+        console.log("cmi5 not available");
       }
     }
   }, [activity]);
