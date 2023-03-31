@@ -199,7 +199,7 @@ function NotebookComponent(props: {
           >
             {Object.keys(cells).map((c, i) => (
               <MenuItem key={i} value={c}>
-                {capitalizeFirst(c)}
+                {capitalizeFirst(cells[c].cell.getMetadata("gai_cell_type"))}
               </MenuItem>
             ))}
           </Select>
