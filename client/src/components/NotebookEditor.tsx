@@ -208,7 +208,7 @@ export function NotebookEditor(props: {
       setOutputElement(undefined);
     } else if (output.length) {
       const o = output[0];
-      if (isError(o)) {
+      if (o && isError(o)) {
         const customErrorMessage = customErrorMessages.find((customError) =>
           customError.condition(o)
         );

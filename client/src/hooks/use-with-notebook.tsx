@@ -119,7 +119,8 @@ export function useWithNotebook() {
           cell: changedCell,
           code: changedCell.toJSON().source,
           output: outputs,
-          errorOutput: isError(outputs[0]) ? outputs[0] : undefined,
+          errorOutput:
+            outputs[0] && isError(outputs[0]) ? outputs[0] : undefined,
         };
         if (cellType === GaiCellTypes.SETUP) {
           setSetupCellOutput(extractSetupCellOutput(changedCell));
@@ -134,7 +135,8 @@ export function useWithNotebook() {
               cell: changedCell,
               code: changedCell.toJSON().source,
               output: outputs,
-              errorOutput: isError(outputs[0]) ? outputs[0] : undefined,
+              errorOutput:
+                outputs[0] && isError(outputs[0]) ? outputs[0] : undefined,
             },
           };
         });
