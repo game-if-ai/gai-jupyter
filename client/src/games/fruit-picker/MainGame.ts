@@ -6,59 +6,50 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { GameParams } from "..";
 import {
   CLASSIFIER_DELAY,
   FruitSimulation,
   GAME_TIME,
-  POINTS_CORRECT,
-  POINTS_INCORRECT,
   SPAWN_TIME,
 } from "./simulator";
 import { Fruits } from "./types";
-
-const fontStyle = {
-  fontFamily: "Arial",
-  fontSize: "48px",
-  color: "#ffffff",
-  fontStyle: "bold",
-  shadow: {
-    color: "#000000",
-    fill: true,
-    offsetX: 2,
-    offsetY: 2,
-    blur: 4,
-  },
-};
+import { GameParams } from "..";
+import {
+  addBackgroundImage,
+  addText,
+  scaleImage,
+  scaleText,
+} from "../phaser-helpers";
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
-  score: number;
   numCorrect: number;
+  config?: GameParams<FruitSimulation>;
+  eventSystem?: Phaser.Events.EventEmitter;
+
   fruit: Phaser.GameObjects.Sprite[];
   fruitIdx: number;
-
   timerText?: Phaser.GameObjects.Text;
-  scoreText?: Phaser.GameObjects.Text;
   accuracyText?: Phaser.GameObjects.Text;
   matchText?: Phaser.GameObjects.Text;
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
 
-  config?: GameParams<FruitSimulation>;
-  eventSystem?: Phaser.Events.EventEmitter;
+  images: Phaser.GameObjects.Image[];
+  text: Phaser.GameObjects.Text[];
 
   constructor() {
     super("MainGame");
     this.speed = 1;
     this.isPaused = false;
     this.isMuted = false;
-    this.score = 0;
     this.numCorrect = 0;
     this.fruit = [];
     this.fruitIdx = 0;
+    this.images = [];
+    this.text = [];
   }
 
   preload() {
@@ -76,35 +67,45 @@ export default class MainGame extends Phaser.Scene {
   }
 
   create(data: GameParams<FruitSimulation>) {
+    window.addEventListener("resize", () => {
+      this.resize();
+    });
     this.config = data;
+    // create scene
+    this.images.push(addBackgroundImage(this, "background"));
+    this.timerText = addText(this, `${GAME_TIME}:00`, {
+      x: 5,
+      width: 0.4,
+      maxFontSize: 48,
+    });
+    this.matchText = addText(this, "Catch the fruits!", {
+      xRel: 0.5,
+      yRel: 1,
+      width: 1,
+      maxFontSize: 78,
+    });
+    this.text.push(this.timerText);
+    this.text.push(this.matchText);
+    if (!this.config.playManually) {
+      this.accuracyText = addText(this, "Accuracy: 100%", {
+        x: -5,
+        xRel: 1,
+        width: 0.4,
+        height: 0.1,
+        maxFontSize: 32,
+      });
+      this.text.push(this.accuracyText);
+    }
+    // start game
     this.eventSystem = data.eventSystem;
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
-    this.add.image(400, 300, "background");
-    this.timerText = this.add.text(20, 20, `${GAME_TIME}:00`, fontStyle);
-    this.scoreText = this.add.text(-20, 20, "Score: 0", {
-      ...fontStyle,
-      fontSize: "24px",
-      fixedWidth: Number(this.game.config.width),
-      align: "right",
-    });
-    if (!this.config.playManually) {
-      this.accuracyText = this.add.text(-20, 60, "Accuracy: 100%", {
-        ...fontStyle,
-        fontSize: "24px",
-        fixedWidth: Number(this.game.config.width),
-        align: "right",
-      });
-    }
-    this.matchText = this.add.text(20, 550, "Catch the fruits!", {
-      ...fontStyle,
-      fixedWidth: Number(this.game.config.width),
-      align: "center",
-    });
     this.sound.play("music", { loop: true });
-    this.eventSystem.on("pause", this.pause, this);
-    this.eventSystem.on("mute", this.mute, this);
-    this.eventSystem.on("changeSpeed", this.changeSpeed, this);
+    if (this.eventSystem) {
+      this.eventSystem.on("pause", this.pause, this);
+      this.eventSystem.on("mute", this.mute, this);
+      this.eventSystem.on("changeSpeed", this.changeSpeed, this);
+    }
     this.start();
   }
 
@@ -113,16 +114,9 @@ export default class MainGame extends Phaser.Scene {
       this.config.simulation = this.config.simulator.play();
       this.input.on("gameobjectdown", this.selectFruit, this);
     }
-    this.score = 0;
     this.numCorrect = 0;
     this.fruit = [];
     this.fruitIdx = 0;
-    this.timerText?.setText(`${GAME_TIME}:00`);
-    this.scoreText?.setText("Score: 0");
-    this.accuracyText?.setText("Accuracy: 100%");
-    this.matchText?.setText(
-      `Catch the ${this.config?.simulation?.matchLabel} fruits!`
-    );
     this.timerEvent = this.time.addEvent({
       delay: GAME_TIME * 1000,
       timeScale: this.speed,
@@ -137,6 +131,11 @@ export default class MainGame extends Phaser.Scene {
       callback: this.spawnFruit,
       callbackScope: this,
     });
+    scaleText(
+      this,
+      this.matchText!,
+      `Catch the ${this.config?.simulation?.matchLabel} fruits!`
+    );
   }
 
   update() {
@@ -144,7 +143,7 @@ export default class MainGame extends Phaser.Scene {
       return;
     }
     if (this.timerEvent.getProgress() === 1) {
-      this.timerText?.setText("00:00");
+      scaleText(this, this.timerText!, "00:00");
       return;
     }
     const remaining = this.timerEvent.getRemainingSeconds().toPrecision(4);
@@ -152,10 +151,10 @@ export default class MainGame extends Phaser.Scene {
     const ms = remaining.substr(pos + 1, 2);
     let seconds = remaining.substring(0, pos);
     seconds = Phaser.Utils.String.Pad(seconds, 2, "0", 1);
-    this.timerText?.setText(seconds + ":" + ms);
+    scaleText(this, this.timerText!, `${seconds}:${ms}`);
     // remove fruit
     for (const fruit of this.fruit) {
-      if (fruit.y >= 600) {
+      if (fruit.y >= this.cameras.main.height) {
         fruit.state = "deleted";
         fruit.destroy();
       }
@@ -169,11 +168,13 @@ export default class MainGame extends Phaser.Scene {
     }
     const simulation = this.config.simulation;
     const fruit = simulation.spawns[this.fruitIdx];
-    const fruitObj = this.physics.add.sprite(fruit.xPos, 0, fruit.fruit.name);
-    fruitObj.setData("name", fruit.fruit.name);
-    fruitObj.setData("description", fruit.fruit.description);
-    fruitObj.setData("idx", this.fruitIdx);
+    const fruitObj = this.physics.add.sprite(
+      this.cameras.main.width * fruit.xPos,
+      0,
+      fruit.fruit.name
+    );
     fruitObj.setData(simulation.label, fruit.fruit.traits[simulation.label]);
+    fruitObj.setData("x", fruit.xPos);
     if (this.config.playManually) {
       fruitObj.setInteractive();
     } else {
@@ -181,7 +182,7 @@ export default class MainGame extends Phaser.Scene {
       if (response?.classifierLabel === response?.realLabel) {
         this.numCorrect++;
         const acc = Math.round((this.numCorrect / (this.fruitIdx + 1)) * 100);
-        this.accuracyText?.setText(`Accuracy: ${acc}%`);
+        scaleText(this, this.accuracyText!, `Accuracy: ${acc}%`);
       }
       if (response?.classifierLabel === simulation.matchLabel) {
         this.time.addEvent({
@@ -200,6 +201,7 @@ export default class MainGame extends Phaser.Scene {
     _pointer: Phaser.Input.Pointer | undefined,
     fruit: Phaser.GameObjects.Sprite
   ) {
+    if (!this?.cameras?.main) return;
     if (
       fruit.state === "deleting" ||
       fruit.state === "deleted" ||
@@ -213,7 +215,6 @@ export default class MainGame extends Phaser.Scene {
       fruit.data.list[this.config.simulation.label] ===
       this.config.simulation.matchLabel
     ) {
-      this.score += POINTS_CORRECT;
       this.tweens.add({
         targets: fruit,
         scale: 1.4,
@@ -229,7 +230,6 @@ export default class MainGame extends Phaser.Scene {
       });
       this.sound.play("match");
     } else {
-      this.score += POINTS_INCORRECT;
       this.tweens.add({
         targets: fruit,
         alpha: 0,
@@ -243,7 +243,6 @@ export default class MainGame extends Phaser.Scene {
         },
       });
     }
-    this.scoreText?.setText("Score: " + this.score);
   }
 
   gameOver() {
@@ -276,8 +275,10 @@ export default class MainGame extends Phaser.Scene {
     this.time.paused = this.isPaused;
     if (this.isPaused) {
       this.physics.world.pause();
+      this.tweens.pauseAll();
     } else {
       this.physics.world.resume();
+      this.tweens.resumeAll();
     }
   }
 
@@ -285,5 +286,18 @@ export default class MainGame extends Phaser.Scene {
     this.speed = speed;
     this.physics.config.timeScale = 1 / this.speed;
     this.time.timeScale = this.speed;
+  }
+
+  resize() {
+    if (!this?.cameras?.main) return;
+    for (const image of this.images) {
+      scaleImage(this, image);
+    }
+    for (const text of this.text) {
+      scaleText(this, text);
+    }
+    for (const fruit of this.fruit) {
+      fruit.setX(this.cameras.main.width * fruit.data.list["x"]);
+    }
   }
 }

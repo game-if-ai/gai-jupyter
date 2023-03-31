@@ -20,7 +20,6 @@ export interface Activity {
   activityType: ActivityType;
   description: string;
   autocompletion?: Completion[];
-  resizes?: boolean;
   simulator: Simulator<Simulation>;
   summaryPanel: (props: { simulation: Simulation }) => JSX.Element;
 }

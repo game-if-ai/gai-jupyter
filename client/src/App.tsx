@@ -7,14 +7,15 @@ The full terms of this copyright and license should always be found in the root 
 
 import React, { useEffect, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
+import Cmi5 from "@xapi/cmi5";
 
-import { Experiment, Simulation } from "./games/simulator";
 import { Activities, Activity, isGameActivity } from "./games";
+import { Experiment, Simulation } from "./games/simulator";
 import ActivityPicker from "./components/ActivityPicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
-import Cmi5 from "@xapi/cmi5";
+import { sessionStorageStore } from "./local-storage";
 import { evaluteExperiment } from "./score-evaluation";
 import { ContentsManager } from "@jupyterlab/services";
 import { newUuid } from "@datalayer/jupyter-react";
@@ -34,9 +35,6 @@ function App(): JSX.Element {
   const [experiment, setExperiment] = useState<Experiment<Simulation>>();
   const [simulation, setSimulation] = useState<number>(0);
   const [numRuns, setNumRuns] = useState(0);
-  const [sawNotebookTutorial, setSawNotebookTutorial] =
-    useState<boolean>(false);
-  const [sawSimTutorial, setSawSimTutorial] = useState<boolean>(false);
   const [uniqueUserId, setUniqueUserId] = useState("");
 
   useEffect(()=>{
@@ -60,8 +58,22 @@ function App(): JSX.Element {
   }, [])
 
   useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const walkthroughParam = queryParams.get("walkthrough");
+    if (walkthroughParam) {
+      sessionStorageStore("show_walkthrough", "true");
+    }
+    const activityParam = queryParams.get("activity");
+    if (activityParam) {
+      const activity = Activities.find((g) => g.id === activityParam);
+      if (activity) {
+        loadActivity(activity);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (Cmi5.isCmiAvailable) {
-      console.log("cmi5 available");
       Cmi5.instance.initialize();
     } else {
       try {
@@ -111,7 +123,6 @@ function App(): JSX.Element {
       return;
     }
     setExperiment(activity.simulator.experiments[e]);
-    setSawNotebookTutorial(true);
   }
 
   function viewSimulation(i: number): void {
@@ -141,8 +152,6 @@ function App(): JSX.Element {
         <Notebook
           uniqueUserId={uniqueUserId}
           activity={activity!}
-          sawTutorial={sawNotebookTutorial}
-          setSawTutorial={setSawNotebookTutorial}
           curExperiment={experiment}
           setExperiment={viewExperiment}
           viewSummary={viewSummary}
@@ -177,8 +186,6 @@ function App(): JSX.Element {
       return (
         <SimulationPanel
           game={activity}
-          sawTutorial={sawSimTutorial}
-          setSawTutorial={setSawSimTutorial}
           experiment={experiment!}
           simulation={simulation}
           toNotebook={viewNotebook}

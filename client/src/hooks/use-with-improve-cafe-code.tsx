@@ -70,17 +70,22 @@ const improveCodeHints: ImproveCodeHint[] = [
   },
 ];
 
+export interface UseWithImproveCode {
+  toastHint: () => void;
+  hintsAvailable: boolean;
+}
+
 export function useWithImproveCafeCode(props: {
+  userCode: Record<string, string[]>;
   numCodeRuns: number;
   activeGame: Activity;
-}) {
+}): UseWithImproveCode {
   const { numCodeRuns, activeGame } = props;
-
   const [hintDisplayed, setHintDisplayed] = useState(false);
   const [activeHintIndex, setActiveHintIndex] = useState(-1);
   const [returningToNotebook] = useState(numCodeRuns > 0); // only evaluates on initial load
   const [activeToasts, setActiveToasts] = useState<ImproveCodeHint[]>([]);
-  const { userCodeInfo } = useWithUserCodeExamine();
+  const { userCodeInfo } = useWithUserCodeExamine(props.userCode);
 
   function toastHint() {
     let activeHintIndexCopy = activeHintIndex;

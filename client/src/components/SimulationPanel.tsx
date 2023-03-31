@@ -25,35 +25,27 @@ import {
 } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Experiment, Simulation } from "../games/simulator";
 import { Game } from "../games";
+import { Experiment, Simulation } from "../games/simulator";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
+import { sessionStorageGet, sessionStorageStore } from "../local-storage";
 import { TooltipMsg } from "./Dialogue";
 
 const SPEEDS = [1, 2, 4, 10];
 
 function GamePlayer(props: {
   game: Game;
-  sawTutorial: boolean;
   experiment: Experiment<Simulation>;
   simulation: number;
-  setSawTutorial: (tf: boolean) => void;
   toNotebook: () => void;
   toSummary: () => void;
 }): JSX.Element {
-  const classes = useStyles();
-  const { width, height } = useWithWindowSize();
-  const dialogue = useWithDialogue();
-  const [simulation, setSimulation] = useState<number>(props.simulation);
-  const [showSummary, setShowSummary] = useState<boolean>(false);
-  const aspect =
-    (props.game.config.scale!.width! as number) /
-    (props.game.config.scale!.height! as number);
-  const gameHeight = Math.min(width / aspect, height - 100);
-
   const { simulations } = props.experiment;
+  const classes = useStyles();
+  const dialogue = useWithDialogue();
+  const { width, height } = useWithWindowSize();
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
   const {
     eventSystem,
@@ -67,44 +59,48 @@ function GamePlayer(props: {
     changeSpeed,
   } = useWithPhaserGame(gameContainerRef);
 
+  const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
+  const sawTutorial = Boolean(sessionStorageGet("saw_notebook_walkthrough"));
+  const [simulation, setSimulation] = useState<number>(props.simulation);
+  const [showSummary, setShowSummary] = useState<boolean>(false);
+
   useEffect(() => {
-    if (props.sawTutorial) {
-      return;
+    if (showTutorial && !sawTutorial) {
+      dialogue.addMessages([
+        {
+          id: "current",
+          text: "This is the game player. Your classifier results are being used to simulate the choices made by the AI in this game.",
+          noSave: true,
+        },
+        {
+          id: "current",
+          text: `${simulations.length} game simulations were generated with random spawns, to test your classifier with.`,
+          noSave: true,
+        },
+        {
+          id: "speed-2",
+          text: "You can speed up the game playback for the simulations.",
+          noSave: true,
+        },
+        {
+          id: "end",
+          text: "Skip to the end of this simulation to view the summary results for this set of generated spawns.",
+          noSave: true,
+        },
+        {
+          id: "next",
+          text: "Skip to the next simulation.",
+          noSave: true,
+        },
+        {
+          id: "summary",
+          text: "Or simply skip all of the simulations to go directly to the classifier summary results.",
+          noSave: true,
+        },
+      ]);
+      sessionStorageStore("saw_simulator_walkthrough", "true");
     }
-    dialogue.addMessages([
-      {
-        id: "current",
-        text: "This is the game player. Your classifier results are being used to simulate the choices made by the AI in this game.",
-        noSave: true,
-      },
-      {
-        id: "current",
-        text: `${simulations.length} game simulations were generated with random spawns, to test your classifier with.`,
-        noSave: true,
-      },
-      {
-        id: "speed-2",
-        text: "You can speed up the game playback for the simulations.",
-        noSave: true,
-      },
-      {
-        id: "end",
-        text: "Skip to the end of this simulation to view the summary results for this set of generated spawns.",
-        noSave: true,
-      },
-      {
-        id: "next",
-        text: "Skip to the next simulation.",
-        noSave: true,
-      },
-      {
-        id: "summary",
-        text: "Or simply skip all of the simulations to go directly to the classifier summary results.",
-        noSave: true,
-      },
-    ]);
-    props.setSawTutorial(true);
-  }, [props.game.id]);
+  }, [props.game.id, showTutorial, sawTutorial]);
 
   useEffect(() => {
     eventSystem.on("gameOver", endSimulation);
@@ -178,9 +174,13 @@ function GamePlayer(props: {
       </div>
       <div
         id="game-container"
-        style={{ width, height: gameHeight }}
+        style={{ width, height: height - 100 }}
         ref={gameContainerRef}
       />
+      <div
+        style={{ position: "absolute", top: 40, bottom: 40, left: 0, right: 0 }}
+      />
+
       <div className={classes.controls}>
         <IconButton size="small" onClick={() => mute(!isMuted)}>
           {isMuted ? <VolumeOff /> : <VolumeUp />}

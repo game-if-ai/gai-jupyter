@@ -7,14 +7,12 @@ The full terms of this copyright and license should always be found in the root 
 
 import { Fruit, Fruits, FruitTrait } from "./types";
 import { Experiment, Simulation, Simulator } from "../simulator";
-import { randomInt } from "../../utils";
+import { random, randomInt } from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
-export const POINTS_CORRECT = 2; // points given for a correct fruit
-export const POINTS_INCORRECT = -1; // points lost for a bad fruit
 export const CLASSIFIER_DELAY = 2000; // delay in ms for classifier catch speed at 0 confidence
 
 export interface FruitClassifierInput {
@@ -32,7 +30,6 @@ export interface FruitClassifierOutput {
 }
 
 export interface FruitSimulation extends Simulation {
-  // score: number;
   // accuracy: number;
   label: FruitTrait;
   matchLabel: string;
@@ -54,14 +51,13 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
     const spawns: FruitSpawn[] = [];
     for (let j = 0; j < numFruitSpawned; j++) {
       const fruit = Fruits[randomInt(Fruits.length)];
-      const xPos = randomInt(700, 100);
+      const xPos = random(1);
       spawns.push({ fruit, xPos });
     }
     return {
       label,
       matchLabel,
       spawns,
-      score: 0,
       accuracy: 0,
       precision: 0,
       recall: 0,
@@ -89,12 +85,6 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
         );
         sim.spawns[i].fruit = fruit;
         sim.spawns[i].classifierOutput = classifierOutput;
-        if (classifierOutput?.classifierLabel === sim.matchLabel) {
-          sim.score +=
-            classifierOutput.realLabel === sim.matchLabel
-              ? POINTS_CORRECT
-              : POINTS_INCORRECT;
-        }
         if (classifierOutput?.classifierLabel === classifierOutput?.realLabel) {
           sim.accuracy++;
         }

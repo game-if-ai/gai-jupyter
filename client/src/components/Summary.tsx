@@ -8,6 +8,7 @@ The full terms of this copyright and license should always be found in the root 
 
 import React, { useEffect, useState } from "react";
 import {
+  BottomNavigation,
   Button,
   IconButton,
   Paper,
@@ -16,6 +17,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Toolbar,
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
@@ -70,7 +72,6 @@ function PreviousExperimentsView(props: {
             <TableCell align="right">Date/Time</TableCell>
             <TableCell align="right">Train</TableCell>
             <TableCell align="right">Test</TableCell>
-            <TableCell align="right">Score</TableCell>
             <TableCell align="right">Accuracy</TableCell>
             <TableCell align="right">Precision</TableCell>
             <TableCell align="right">Recall</TableCell>
@@ -121,7 +122,6 @@ function PreviousExperimentsView(props: {
                   <TableCell align="center">
                     {previousExperiment.testInstances}
                   </TableCell>
-                  <TableCell align="center">{summary.averageScore}</TableCell>
                   <TableCell align="center">
                     {round(summary.averageAccuracy)}
                   </TableCell>
@@ -202,10 +202,6 @@ function CurrentExperimentView(props: {
             <TableCell align="center">{testInstances}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell align="center">Test Score</TableCell>
-            <TableCell align="center">{summary.averageScore}</TableCell>
-          </TableRow>
-          <TableRow>
             <TableCell align="center">Accuracy</TableCell>
             <TableCell align="center">
               {round(summary.averageAccuracy)}
@@ -244,7 +240,6 @@ function CurrentExperimentView(props: {
         <TableHead>
           <TableRow>
             <TableCell>Run #</TableCell>
-            <TableCell align="right">Score</TableCell>
             <TableCell align="right">Accuracy</TableCell>
             <TableCell align="right">Precision</TableCell>
             <TableCell align="right">Recall</TableCell>
@@ -265,7 +260,6 @@ function CurrentExperimentView(props: {
               <TableCell align="center" component="th" scope="row">
                 {i + 1}
               </TableCell>
-              <TableCell align="center">{s.score}</TableCell>
               <TableCell align="center">{round(s.accuracy)}</TableCell>
               <TableCell align="center">{round(s.precision)}</TableCell>
               <TableCell align="center">{round(s.recall)}</TableCell>
@@ -284,44 +278,43 @@ function CurrentExperimentView(props: {
           ))}
         </TableBody>
       </TableContainer>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          width: "100%",
-        }}
+      <Toolbar />
+      <Paper
+        sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }}
+        elevation={3}
       >
-        <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
-          <Button
-            data-elemid="notebook"
-            variant="contained"
-            onClick={props.goToNotebook}
-            style={{ margin: 10 }}
-          >
-            Notebook
-          </Button>
-        </TooltipMsg>
-        {isGameActivity ? (
-          <Button
-            variant="contained"
-            onClick={() => props.runSimulation(0)}
-            style={{ marginTop: 10, marginBottom: 10 }}
-          >
-            Simulator
-          </Button>
-        ) : undefined}
-        <TooltipMsg elemId="submit" dialogue={props.dialogue}>
-          <Button
-            data-elemid="submit"
-            variant="contained"
-            style={{ margin: 10 }}
-            onClick={props.onSubmit}
-          >
-            Submit
-          </Button>
-        </TooltipMsg>
-      </div>
+        <BottomNavigation>
+          <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
+            <Button
+              data-elemid="notebook"
+              variant="contained"
+              onClick={props.goToNotebook}
+              style={{ margin: 10 }}
+            >
+              Notebook
+            </Button>
+          </TooltipMsg>
+          {isGameActivity ? (
+            <Button
+              variant="contained"
+              onClick={() => props.runSimulation(0)}
+              style={{ marginTop: 10, marginBottom: 10 }}
+            >
+              Simulator
+            </Button>
+          ) : undefined}
+          <TooltipMsg elemId="submit" dialogue={props.dialogue}>
+            <Button
+              data-elemid="submit"
+              variant="contained"
+              style={{ margin: 10 }}
+              onClick={props.onSubmit}
+            >
+              Submit
+            </Button>
+          </TooltipMsg>
+        </BottomNavigation>
+      </Paper>
     </div>
   );
 }
