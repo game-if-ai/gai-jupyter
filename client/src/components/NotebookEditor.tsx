@@ -82,7 +82,7 @@ export function NotebookEditor(props: {
   const cellType = cell.getMetadata("gai_cell_type") || "";
   const cellId = cell.id;
 
-  const [showOutput, setShowOutput] = useState<boolean>(false);
+  const [showOutput, setShowOutput] = useState<boolean>(cellType === "MODEL");
   const [outputElement, setOutputElement] = useState<JSX.Element>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
   const [editor, setEditor] = useState<EditorView>();
