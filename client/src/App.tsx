@@ -19,6 +19,7 @@ import { sessionStorageStore } from "./local-storage";
 import { evaluteExperiment } from "./score-evaluation";
 import { ContentsManager } from "@jupyterlab/services";
 import { getUniqueUserId } from "./utils";
+import { TEMP_NOTEBOOK_DIR } from "./local-constants";
 
 enum STEP {
   PICK_GAME,
@@ -47,18 +48,20 @@ function App(): JSX.Element {
 
     Promise.all(removeOldFiles);
 
-    cm.save(`/${uniqueId}/`, { type: "directory" }).then(() => {
-      Activities.forEach((activity) => {
-        cm.save(`/${uniqueId}/${activity.id}/`, { type: "directory" }).then(
-          () => {
+    cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, { type: "directory" }).then(
+      () => {
+        Activities.forEach((activity) => {
+          cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/`, {
+            type: "directory",
+          }).then(() => {
             cm.copy(
               `/${activity.id}/test.ipynb`,
-              `/${uniqueId}/${activity.id}/test.ipynb`
+              `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
             );
-          }
-        );
-      });
-    });
+          });
+        });
+      }
+    );
 
     return () => {
       Activities.forEach((activity) => {

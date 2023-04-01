@@ -35,7 +35,11 @@ import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
 import { useWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
 import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
-import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
+import {
+  GaiCellTypes,
+  NOTEBOOK_UID,
+  TEMP_NOTEBOOK_DIR,
+} from "../local-constants";
 import { sessionStorageGet, sessionStorageStore } from "../local-storage";
 import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
@@ -300,7 +304,7 @@ function NotebookComponent(props: {
           path={
             loadedWithExperiment && curExperiment?.notebookContent
               ? undefined
-              : `/${uniqueUserId}/${props.activity.id}/test.ipynb`
+              : `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${props.activity.id}/test.ipynb`
           }
           uid={NOTEBOOK_UID}
         />
