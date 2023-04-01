@@ -204,7 +204,7 @@ export function NotebookEditor(props: {
   }, [shortcutKeyboard.key]);
 
   useEffect(() => {
-    if (outputElement) {
+    if (outputElement && !output.length) {
       setOutputElement(undefined);
     } else if (output.length) {
       const o = output[0];
@@ -361,7 +361,6 @@ export function NotebookEditor(props: {
     </div>
   );
 }
-
 const useStyles = makeStyles(() => ({
   cellHeader: {
     display: "flex",

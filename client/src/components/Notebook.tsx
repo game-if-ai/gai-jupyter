@@ -267,19 +267,19 @@ function NotebookComponent(props: {
       <Toolbar />
       <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
-      <div className={classes.cells} ref={scrollRef}>
-        {Object.entries(cells).map((v) => (
-          <NotebookEditor
-            key={v[0]}
-            activity={activity}
-            cellState={v[1]}
-            editCode={editCode}
-            dialogue={dialogue}
-            shortcutKeyboard={shortcutKeyboard}
-            hints={hints}
-          />
-        ))}
-      </div>
+        <div className={classes.cells} ref={scrollRef}>
+          {Object.entries(cells).map((v) => (
+            <NotebookEditor
+              key={v[0]}
+              activity={activity}
+              cellState={v[1]}
+              editCode={editCode}
+              dialogue={dialogue}
+              shortcutKeyboard={shortcutKeyboard}
+              hints={hints}
+            />
+          ))}
+        </div>
       <div style={{ display: "none" }}>
         <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
@@ -294,7 +294,7 @@ function NotebookComponent(props: {
               ? undefined
               : `/${uniqueUserId}/${props.activity.id}/test.ipynb`
           }
-          uid={`${NOTEBOOK_UID}`}
+          uid={NOTEBOOK_UID}
         />
       </div>
       <ActionPopup
