@@ -43,25 +43,29 @@ function App(): JSX.Element {
     setUniqueUserId(uniqueId);
     const cm = new ContentsManager();
     const removeOldFiles = Activities.map((activity) => {
-      return cm.delete(`/${uniqueId}/${activity.id}/test.ipynb`);
+      return cm.delete(
+        `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
+      );
     });
 
     Promise.all(removeOldFiles);
 
-    cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, { type: "directory" }).then(
-      () => {
-        Activities.forEach((activity) => {
-          cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/`, {
-            type: "directory",
-          }).then(() => {
-            cm.copy(
-              `/${activity.id}/test.ipynb`,
-              `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
-            );
+    cm.save(`/${TEMP_NOTEBOOK_DIR}/`, { type: "directory" }).then(() => {
+      cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, { type: "directory" }).then(
+        () => {
+          Activities.forEach((activity) => {
+            cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/`, {
+              type: "directory",
+            }).then(() => {
+              cm.copy(
+                `/${activity.id}/test.ipynb`,
+                `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
+              );
+            });
           });
-        });
-      }
-    );
+        }
+      );
+    });
 
     return () => {
       Activities.forEach((activity) => {
