@@ -66,12 +66,6 @@ function App(): JSX.Element {
         }
       );
     });
-
-    return () => {
-      Activities.forEach((activity) => {
-        cm.delete(`/${uniqueId}/${activity.id}/test.ipynb`);
-      });
-    };
   }, []);
 
   useEffect(() => {
