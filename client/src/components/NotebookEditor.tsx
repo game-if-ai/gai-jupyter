@@ -9,7 +9,6 @@ The full terms of this copyright and license should always be found in the root 
 import React, { useEffect, useState } from "react";
 import {
   Notebook,
-  Output,
   selectNotebook,
   selectNotebookModel,
 } from "@datalayer/jupyter-react";
@@ -52,6 +51,7 @@ import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
 import { UseWithImproveCode } from "../hooks/use-with-improve-cafe-code";
 import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
+import { Output } from "./Output";
 
 interface CustomErrorMessage {
   condition: (errorOutput: IError) => boolean;
@@ -350,7 +350,7 @@ export function NotebookEditor(props: {
         </TooltipMsg>
       </div>
       <div id={`code-input-${cellId}`} />
-      <Collapse in={showOutput} timeout="auto" unmountOnExit>
+      <Collapse in={showOutput} timeout={500} unmountOnExit>
         {outputElement}
       </Collapse>
       {isDisabled ? undefined : (
