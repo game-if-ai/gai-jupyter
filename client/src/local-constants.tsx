@@ -13,3 +13,5 @@ export enum GaiCellTypes {
 }
 
 export const NOTEBOOK_UID = "123";
+
+export const UNIQUE_USER_ID_LS = "uniqueUserId";

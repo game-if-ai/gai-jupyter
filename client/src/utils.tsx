@@ -4,14 +4,15 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { INotebookState } from "@datalayer/jupyter-react";
+import { INotebookState, newUuid } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
 import { LaunchParameters } from "@xapi/cmi5";
 import { Experiment, Simulation } from "games/simulator";
-import { GaiCellTypes } from "./local-constants";
+import { GaiCellTypes, UNIQUE_USER_ID_LS } from "./local-constants";
 import { UserInputCellsCode } from "./hooks/use-with-notebook";
+import { localStorageGet, localStorageStore } from "./local-storage";
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
   return [...a.slice(0, i), item, ...a.slice(i + 1)];
@@ -178,4 +179,11 @@ export function getCmiParamsFromUri(): LaunchParameters {
     fetch: fetch,
     registration: registration,
   };
+}
+
+export function getUniqueUserId(): string {
+  const uniqueIdFromLocalStorage = localStorageGet(UNIQUE_USER_ID_LS);
+  const effectiveUniqueId = uniqueIdFromLocalStorage || newUuid();
+  localStorageStore(UNIQUE_USER_ID_LS, effectiveUniqueId);
+  return effectiveUniqueId;
 }

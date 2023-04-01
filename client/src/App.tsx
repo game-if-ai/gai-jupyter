@@ -18,7 +18,7 @@ import Summary from "./components/Summary";
 import { sessionStorageStore } from "./local-storage";
 import { evaluteExperiment } from "./score-evaluation";
 import { ContentsManager } from "@jupyterlab/services";
-import { newUuid } from "@datalayer/jupyter-react";
+import { getUniqueUserId } from "./utils";
 
 enum STEP {
   PICK_GAME,
@@ -38,9 +38,14 @@ function App(): JSX.Element {
   const [uniqueUserId, setUniqueUserId] = useState("");
 
   useEffect(() => {
-    const uniqueId = newUuid();
+    const uniqueId = getUniqueUserId();
     setUniqueUserId(uniqueId);
     const cm = new ContentsManager();
+    const removeOldFiles = Activities.map((activity) => {
+      return cm.delete(`/${uniqueId}/${activity.id}/test.ipynb`);
+    });
+
+    Promise.all(removeOldFiles);
 
     cm.save(`/${uniqueId}/`, { type: "directory" }).then(() => {
       Activities.forEach((activity) => {
