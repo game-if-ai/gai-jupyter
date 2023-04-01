@@ -37,25 +37,30 @@ function App(): JSX.Element {
   const [numRuns, setNumRuns] = useState(0);
   const [uniqueUserId, setUniqueUserId] = useState("");
 
-  useEffect(()=>{
+  useEffect(() => {
     const uniqueId = newUuid();
     setUniqueUserId(uniqueId);
-    const cm = new ContentsManager()
-    
-    cm.save(`/${uniqueId}/`, {type:"directory"}).then(()=>{
-      Activities.forEach((activity)=>{
-        cm.save(`/${uniqueId}/${activity.id}/`, {type:"directory"}).then(()=>{
-          cm.copy(`/${activity.id}/test.ipynb`, `/${uniqueId}/${activity.id}/test.ipynb`)
-        })
-      })
-    })
+    const cm = new ContentsManager();
 
-    return () =>{
-      Activities.forEach((activity)=>{
+    cm.save(`/${uniqueId}/`, { type: "directory" }).then(() => {
+      Activities.forEach((activity) => {
+        cm.save(`/${uniqueId}/${activity.id}/`, { type: "directory" }).then(
+          () => {
+            cm.copy(
+              `/${activity.id}/test.ipynb`,
+              `/${uniqueId}/${activity.id}/test.ipynb`
+            );
+          }
+        );
+      });
+    });
+
+    return () => {
+      Activities.forEach((activity) => {
         cm.delete(`/${uniqueId}/${activity.id}/test.ipynb`);
-      })
+      });
     };
-  }, [])
+  }, []);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);

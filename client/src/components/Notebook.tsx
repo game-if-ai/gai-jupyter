@@ -6,8 +6,14 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import { Kernel, Notebook, Output, selectNotebook, useJupyter } from "@datalayer/jupyter-react";
-import { KernelManager } from '@jupyterlab/services';
+import {
+  Kernel,
+  Notebook,
+  Output,
+  selectNotebook,
+  useJupyter,
+} from "@datalayer/jupyter-react";
+import { KernelManager } from "@jupyterlab/services";
 import React, { useEffect, useRef, useState } from "react";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
 import {
@@ -83,16 +89,16 @@ function NotebookComponent(props: {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
+  const kernelManager: KernelManager = useJupyter()
+    .kernelManager as KernelManager;
 
-  const kernelManager: KernelManager = useJupyter().kernelManager as KernelManager;
-
-  useEffect(()=>{
-    if(!kernelManager || kernel){
+  useEffect(() => {
+    if (!kernelManager || kernel) {
       return;
     }
     const newKernel = new Kernel({ kernelManager, kernelName: "python" });
     setKernel(newKernel);
-  }, [kernelManager])
+  }, [kernelManager]);
 
   useEffect(() => {
     if (showDescription || sawTutorial) {
@@ -220,7 +226,9 @@ function NotebookComponent(props: {
           >
             {Object.keys(cells).map((c, i) => (
               <MenuItem key={i} value={c}>
-                {capitalizeFirst(cells[c].cell.getMetadata("gai_cell_type") || "")}
+                {capitalizeFirst(
+                  cells[c].cell.getMetadata("gai_cell_type") || ""
+                )}
               </MenuItem>
             ))}
           </Select>
@@ -267,19 +275,19 @@ function NotebookComponent(props: {
       <Toolbar />
       <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
-        <div className={classes.cells} ref={scrollRef}>
-          {Object.entries(cells).map((v) => (
-            <NotebookEditor
-              key={v[0]}
-              activity={activity}
-              cellState={v[1]}
-              editCode={editCode}
-              dialogue={dialogue}
-              shortcutKeyboard={shortcutKeyboard}
-              hints={hints}
-            />
-          ))}
-        </div>
+      <div className={classes.cells} ref={scrollRef}>
+        {Object.entries(cells).map((v) => (
+          <NotebookEditor
+            key={v[0]}
+            activity={activity}
+            cellState={v[1]}
+            editCode={editCode}
+            dialogue={dialogue}
+            shortcutKeyboard={shortcutKeyboard}
+            hints={hints}
+          />
+        ))}
+      </div>
       <div style={{ display: "none" }}>
         <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook

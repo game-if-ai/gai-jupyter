@@ -51,7 +51,7 @@ function ActivityPicker(props: {
         <FormControl fullWidth>
           <InputLabel>Select Game</InputLabel>
           <Select
-            value={""}
+            value={activity?.id || ""}
             label="Select Game"
             onChange={(e) => selectGame(e.target.value)}
           >

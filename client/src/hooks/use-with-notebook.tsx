@@ -7,8 +7,13 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import { useEffect, useState } from "react";
-import { Kernel, selectNotebook, selectNotebookModel, useJupyter } from "@datalayer/jupyter-react";
-import { KernelManager } from '@jupyterlab/services';
+import {
+  Kernel,
+  selectNotebook,
+  selectNotebookModel,
+  useJupyter,
+} from "@datalayer/jupyter-react";
+import { KernelManager } from "@jupyterlab/services";
 import { INotebookModel } from "@jupyterlab/notebook";
 import { CellList } from "@jupyterlab/notebook/lib/celllist";
 import { ICellModel } from "@jupyterlab/cells";
