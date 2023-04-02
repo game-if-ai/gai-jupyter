@@ -43,7 +43,7 @@ export function useWithNotebook() {
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
-  const [outputCellOutput, setValidationCellOutput] = useState<any[][]>([]);
+  const [validationCellOutput, setValidationCellOutput] = useState<any[][]>([]);
   const [cells, setCells] = useState<CellsStates>({});
 
   const [curExperiment, setCurExperiment] = useState<INotebookContent>();
@@ -222,7 +222,7 @@ export function useWithNotebook() {
   return {
     cells,
     setupCellOutput,
-    outputCellOutput,
+    validationCellOutput,
     userInputCellsCode,
     hasError,
     isSaving,

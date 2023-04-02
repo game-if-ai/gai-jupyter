@@ -55,7 +55,7 @@ function NotebookComponent(props: {
   const {
     cells,
     setupCellOutput,
-    outputCellOutput,
+    validationCellOutput,
     userInputCellsCode,
     hasError,
     isSaving,
@@ -147,7 +147,7 @@ function NotebookComponent(props: {
   function toSimulation(): void {
     activity.simulator.simulate(
       setupCellOutput,
-      outputCellOutput,
+      validationCellOutput,
       notebook,
       activity.id
     );
@@ -158,7 +158,7 @@ function NotebookComponent(props: {
   function toSummary(): void {
     activity.simulator.simulate(
       setupCellOutput,
-      outputCellOutput,
+      validationCellOutput,
       notebook,
       activity.id
     );
@@ -240,7 +240,7 @@ function NotebookComponent(props: {
                 disabled={
                   hasError ||
                   isSaving ||
-                  !Boolean(setupCellOutput.length && outputCellOutput.length)
+                  !Boolean(setupCellOutput.length && validationCellOutput.length)
                 }
                 onClick={simulate}
               >
