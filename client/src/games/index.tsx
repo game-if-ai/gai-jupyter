@@ -22,12 +22,12 @@ export interface Activity {
   description: string;
   autocompletion?: Completion[];
   simulator: AllSimulatorTypes;
-  summaryPanel: (props: { simulation: SIMULATION_TYPES }) => JSX.Element;
 }
 
 export interface Game extends Activity {
   activityType: "GAME";
   config: Phaser.Types.Core.GameConfig;
+  summaryPanel: (props: { simulation: SIMULATION_TYPES }) => JSX.Element;
 }
 
 export function isGameActivity(object: Activity): object is Game {
