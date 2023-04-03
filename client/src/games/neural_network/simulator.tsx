@@ -39,9 +39,9 @@ export class NeuralNetworkSimulator extends Simulator<
     inputs: number[],
     outputs: NNClassifierOutput[][],
     notebook: INotebookState,
-    gameId: ActivityID
+    activityId: ActivityID
   ): NNExperiment {
-    const experiment = super.simulate(inputs, outputs, notebook, gameId);
+    const experiment = super.simulate(inputs, outputs, notebook, activityId);
     // if (experiment.simulations.length > 0) {
     this.experiments.push(experiment);
     //   }

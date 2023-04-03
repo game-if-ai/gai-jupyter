@@ -22,7 +22,7 @@ export interface Experiment<SimulationOutput, Summary> {
   simulations: SimulationOutput[];
   notebookContent: INotebookContent | undefined;
   codeInfo: UserCodeInfo;
-  gameId: ActivityID;
+  activityId: ActivityID;
   summary: Summary;
   evaluationScore: number;
 }
@@ -40,7 +40,7 @@ export abstract class Simulator<SimulationOutput, Summary> {
     inputs: number[],
     outputs: any[][],
     notebook: INotebookState | undefined,
-    gameId: ActivityID
+    activityId: ActivityID
   ): Experiment<SimulationOutput, Summary> {
     const notebookContent = notebook?.model
       ? (notebook.model.toJSON() as INotebookContent)
@@ -52,7 +52,7 @@ export abstract class Simulator<SimulationOutput, Summary> {
     const codeInfo: UserCodeInfo = getAllUserCodeInfo(allUserInputCode);
     const experiment: Experiment<SimulationOutput, Summary> = {
       id: uuid(),
-      gameId,
+      activityId,
       time: new Date(),
       notebookContent,
       trainInstances: inputs[0],

@@ -5,13 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import {
-  TableContainer,
-  Paper,
-  TableRow,
-  TableCell,
-  TableBody,
-} from "@mui/material";
+import { TableContainer, Paper, TableBody } from "@mui/material";
 import React from "react";
 import { NNSimulationOutput } from "./simulator";
 
@@ -19,11 +13,7 @@ export function Summary(props: {
   simulation: NNSimulationOutput;
 }): JSX.Element {
   const simulation = props.simulation;
-
-  function round(n: number): string {
-    return `${Math.round(n * 100 * 100) / 100}%`;
-  }
-
+  console.log(simulation);
   return (
     <TableContainer
       component={Paper}

@@ -15,13 +15,10 @@ import {
 import React from "react";
 import { FruitSimulationOutput } from "./simulator";
 import { SIMULATION_TYPES } from "../../games/activity-types";
+import { round } from "../../utils";
 
 export function Summary(props: { simulation: SIMULATION_TYPES }): JSX.Element {
   const simulation = props.simulation as FruitSimulationOutput;
-
-  function round(n: number): string {
-    return `${Math.round(n * 100 * 100) / 100}%`;
-  }
 
   return (
     <TableContainer
