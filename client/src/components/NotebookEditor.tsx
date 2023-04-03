@@ -9,7 +9,6 @@ The full terms of this copyright and license should always be found in the root 
 import React, { useEffect, useState } from "react";
 import {
   Notebook,
-  Output,
   selectNotebook,
   selectNotebookModel,
 } from "@datalayer/jupyter-react";
@@ -52,6 +51,7 @@ import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
 import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 import { UseWithImproveCode } from "../hooks/use-with-improve-code";
+import { Output } from "./Output";
 
 interface CustomErrorMessage {
   condition: (errorOutput: IError) => boolean;
@@ -82,7 +82,7 @@ export function NotebookEditor(props: {
   const cellType = cell.getMetadata("gai_cell_type") || "";
   const cellId = cell.id;
 
-  const [showOutput, setShowOutput] = useState<boolean>(false);
+  const [showOutput, setShowOutput] = useState<boolean>(cellType === "MODEL");
   const [outputElement, setOutputElement] = useState<JSX.Element>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
   const [editor, setEditor] = useState<EditorView>();
@@ -204,7 +204,7 @@ export function NotebookEditor(props: {
   }, [shortcutKeyboard.key]);
 
   useEffect(() => {
-    if (outputElement) {
+    if (outputElement && !output.length) {
       setOutputElement(undefined);
     } else if (output.length) {
       const o = output[0];
@@ -350,7 +350,7 @@ export function NotebookEditor(props: {
         </TooltipMsg>
       </div>
       <div id={`code-input-${cellId}`} />
-      <Collapse in={showOutput} timeout="auto" unmountOnExit>
+      <Collapse in={showOutput} timeout={500} unmountOnExit>
         {outputElement}
       </Collapse>
       {isDisabled ? undefined : (
@@ -361,7 +361,6 @@ export function NotebookEditor(props: {
     </div>
   );
 }
-
 const useStyles = makeStyles(() => ({
   cellHeader: {
     display: "flex",

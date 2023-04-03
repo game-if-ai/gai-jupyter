@@ -27,7 +27,7 @@ if (useLiveJupyterServer) {
 root.render(
   <Jupyter
     terminals={true}
-    startDefaultKernel={true}
+    startDefaultKernel={false}
     jupyterServerHttpUrl={
       useLiveJupyterServer
         ? process.env.REACT_APP_JUPYTER_SERVER_HTTP_URL_DEV

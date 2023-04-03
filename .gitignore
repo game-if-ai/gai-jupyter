@@ -58,3 +58,4 @@ secret.tfvars
 infrastructure/*.out
 
 **/node_modules
+**/temp_notebooks/*
