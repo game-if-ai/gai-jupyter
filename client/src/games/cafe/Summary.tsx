@@ -12,15 +12,12 @@ import {
   TableCell,
   TableBody,
 } from "@mui/material";
-import { Simulation } from "../simulator";
-import { CafeSimulation } from "./simulator";
+import { CafeSimulationOutput } from "./simulator";
+import { SIMULATION_TYPES } from "games/activity-types";
+import { round } from "../../utils";
 
-export function Summary(props: { simulation: Simulation }): JSX.Element {
-  const simulation = props.simulation as CafeSimulation;
-
-  function round(n: number): string {
-    return `${Math.round(n * 100 * 100) / 100}%`;
-  }
+export function Summary(props: { simulation: SIMULATION_TYPES }): JSX.Element {
+  const simulation = props.simulation as CafeSimulationOutput;
 
   return (
     <TableContainer

@@ -5,34 +5,29 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import {
-  ClassifierModel,
-  FeatureExtractionMethods,
-  getAllUserCodeInfo,
-} from "../examine-code-utils";
 import { useEffect, useState } from "react";
+import { getAllNNCodeInfo } from "./examine-nn-code-helpers";
 
 type LoadStatus = "LOADING" | "LOADED";
 
-export interface UserCodeInfo {
-  usingLemmatization: boolean;
+export interface NNCodeInfo {
   removesStopwords: boolean;
-  cleansContractions: boolean;
-  classifierModelUsed: ClassifierModel;
-  featureExtractionUsed: FeatureExtractionMethods;
 }
 
-export interface UserCodeInfoLoad extends UserCodeInfo {
+export interface UserCodeInfoLoad extends NNCodeInfo {
   loadStatus: LoadStatus;
 }
 
-export function useWithUserCodeExamine(userCode: Record<string, string[]>) {
-  const [userCodeInfo, setUserCodeInfo] = useState<UserCodeInfoLoad>({
-    usingLemmatization: false,
-    classifierModelUsed: "NONE",
-    featureExtractionUsed: "NONE",
+interface UseWithNNCodeExamine {
+  codeInfo: NNCodeInfo;
+  loadStatus: LoadStatus;
+}
+
+export function useWithNNCodeExamine(
+  userCode: Record<string, string[]>
+): UseWithNNCodeExamine {
+  const [nnCodeInfo, setNNCodeinfo] = useState<UserCodeInfoLoad>({
     removesStopwords: false,
-    cleansContractions: false,
     loadStatus: "LOADING",
   });
 
@@ -41,13 +36,14 @@ export function useWithUserCodeExamine(userCode: Record<string, string[]>) {
       return;
     }
     const allUserInputCode = Object.values(userCode).flat();
-    setUserCodeInfo({
-      ...getAllUserCodeInfo(allUserInputCode),
+    setNNCodeinfo({
+      ...getAllNNCodeInfo(allUserInputCode),
       loadStatus: "LOADED",
     });
   }, [userCode]);
 
   return {
-    userCodeInfo,
+    codeInfo: nnCodeInfo,
+    loadStatus: nnCodeInfo.loadStatus,
   };
 }

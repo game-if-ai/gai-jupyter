@@ -13,7 +13,7 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import { Activity, Activities, isGameActivity } from "../games";
+import { Activities, Activity, isGameActivity } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
 

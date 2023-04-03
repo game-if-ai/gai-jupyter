@@ -7,326 +7,25 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
-import {
-  BottomNavigation,
-  Button,
-  IconButton,
-  Paper,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Toolbar,
-  Typography,
-} from "@mui/material";
+import { Button } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { Launch } from "@mui/icons-material";
-import { Experiment, Simulation } from "../games/simulator";
-import { formatDateTime, sortExperimentsByF1Score } from "../utils";
-import {
-  DialogueMessage,
-  UseWithDialogue,
-  useWithDialogue,
-} from "../hooks/use-with-dialogue";
-import { TooltipMsg } from "./Dialogue";
-
-function round(n: number): string {
-  return `${Math.round(n * 100)}%`;
-}
-
-function PreviousExperimentsView(props: {
-  classes: Record<string, any>;
-  dialogue: UseWithDialogue;
-  currentExperiment: Experiment<Simulation>;
-  previousExperiments: Experiment<Simulation>[];
-  setExperiment: (e: Experiment<Simulation>) => void;
-}) {
-  const { classes, previousExperiments, setExperiment, currentExperiment } =
-    props;
-  const experimentsSortedByF1score =
-    sortExperimentsByF1Score(previousExperiments);
-  const moreThanOnePreviousExperiment = experimentsSortedByF1score.length > 1;
-  const bestRunId = moreThanOnePreviousExperiment
-    ? experimentsSortedByF1score[experimentsSortedByF1score.length - 1].id
-    : "";
-  const worstRunId = moreThanOnePreviousExperiment
-    ? experimentsSortedByF1score[0].id
-    : "";
-  return (
-    <div>
-      <Typography variant="h3">Previous Experiments</Typography>
-      <TableContainer
-        component={Paper}
-        style={{
-          width: "fit-content",
-          maxWidth: "100%",
-          marginLeft: "auto",
-          marginRight: "auto",
-          outline: "black solid 1px",
-          marginTop: 20,
-        }}
-      >
-        <TableHead>
-          <TableRow>
-            <TableCell align="right">Date/Time</TableCell>
-            <TableCell align="right">Train</TableCell>
-            <TableCell align="right">Test</TableCell>
-            <TableCell align="right">Accuracy</TableCell>
-            <TableCell align="right">Precision</TableCell>
-            <TableCell align="right">Recall</TableCell>
-            <TableCell align="right">F1 Score</TableCell>
-            <TableCell align="right" className={classes.sticky}>
-              View
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {previousExperiments
-            .slice()
-            .reverse()
-            .map((previousExperiment, i) => {
-              const experimentSelected =
-                previousExperiment.id === currentExperiment.id;
-              const isBestExperiment = bestRunId === previousExperiment.id;
-              const isWorstExperiment = worstRunId === previousExperiment.id;
-              const { summary, time: dateOfExperiment } = previousExperiment;
-              return (
-                <TableRow
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  style={{
-                    backgroundColor: experimentSelected ? "#D3D3D3" : "white",
-                  }}
-                >
-                  <TableCell align="center">
-                    {isBestExperiment || isWorstExperiment ? (
-                      <span
-                        style={{
-                          color: isBestExperiment ? "green" : "red",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {isBestExperiment
-                          ? "Best Experiment"
-                          : "Worst Experiment"}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                    <br />
-                    {formatDateTime(dateOfExperiment)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {previousExperiment.trainInstances}
-                  </TableCell>
-                  <TableCell align="center">
-                    {previousExperiment.testInstances}
-                  </TableCell>
-                  <TableCell align="center">
-                    {round(summary.averageAccuracy)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {round(summary.averagePrecision)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {round(summary.averageRecall)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {round(summary.averageF1Score)}
-                  </TableCell>
-                  {}
-                  <TableCell align="center" className={classes.sticky}>
-                    {!experimentSelected ? (
-                      <IconButton
-                        size="small"
-                        onClick={() => setExperiment(previousExperiment)}
-                      >
-                        <Launch />
-                      </IconButton>
-                    ) : undefined}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-        </TableBody>
-      </TableContainer>
-    </div>
-  );
-}
-
-function CurrentExperimentView(props: {
-  classes: Record<string, any>;
-  currentExperiment: Experiment<Simulation>;
-  dialogue: UseWithDialogue;
-  isGameActivity: boolean;
-  runSimulation: (i: number) => void;
-  goToNotebook: () => void;
-  onSubmit: () => void;
-}) {
-  const { isGameActivity } = props;
-  const classes = props.classes;
-  const {
-    summary,
-    simulations,
-    time: dateOfExperiment,
-    trainInstances,
-    testInstances,
-  } = props.currentExperiment;
-
-  return (
-    <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-    >
-      <Typography variant="h3">Experiment</Typography>
-      <Typography>
-        Date of experiment: {formatDateTime(dateOfExperiment)}
-      </Typography>
-      <TableContainer
-        component={Paper}
-        style={{
-          width: "fit-content",
-          outline: "black solid 1px",
-          padding: 20,
-          marginTop: 20,
-          marginBottom: 20,
-        }}
-      >
-        <Typography variant="h5">Experiment Averages</Typography>
-        <TableBody>
-          <TableRow>
-            <TableCell align="center">Train Instances</TableCell>
-            <TableCell align="center">{trainInstances}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell align="center">Test Instances</TableCell>
-            <TableCell align="center">{testInstances}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell align="center">Accuracy</TableCell>
-            <TableCell align="center">
-              {round(summary.averageAccuracy)}
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell align="center">Precision</TableCell>
-            <TableCell align="center">
-              {round(summary.averagePrecision)}
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell align="center">Recall</TableCell>
-            <TableCell align="center">{round(summary.averageRecall)}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell align="center">F1 Score</TableCell>
-            <TableCell align="center">
-              {round(summary.averageF1Score)}
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </TableContainer>
-      <Typography variant="h5">Individual Runs</Typography>
-      <TableContainer
-        component={Paper}
-        style={{
-          width: "fit-content",
-          maxWidth: "100%",
-          marginLeft: "auto",
-          marginRight: "auto",
-          outline: "black solid 1px",
-          marginTop: 20,
-        }}
-      >
-        <TableHead>
-          <TableRow>
-            <TableCell>Run #</TableCell>
-            <TableCell align="right">Accuracy</TableCell>
-            <TableCell align="right">Precision</TableCell>
-            <TableCell align="right">Recall</TableCell>
-            <TableCell align="right">F1 Score</TableCell>
-            {isGameActivity ? (
-              <TableCell align="right" className={classes.sticky}>
-                View
-              </TableCell>
-            ) : undefined}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {simulations.map((s, i) => (
-            <TableRow
-              key={i}
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-            >
-              <TableCell align="center" component="th" scope="row">
-                {i + 1}
-              </TableCell>
-              <TableCell align="center">{round(s.accuracy)}</TableCell>
-              <TableCell align="center">{round(s.precision)}</TableCell>
-              <TableCell align="center">{round(s.recall)}</TableCell>
-              <TableCell align="center">{round(s.f1Score)}</TableCell>
-              {isGameActivity ? (
-                <TableCell align="center" className={classes.sticky}>
-                  <IconButton
-                    size="small"
-                    onClick={() => props.runSimulation(i)}
-                  >
-                    <Launch />
-                  </IconButton>
-                </TableCell>
-              ) : undefined}
-            </TableRow>
-          ))}
-        </TableBody>
-      </TableContainer>
-      <Toolbar />
-      <Paper
-        sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }}
-        elevation={3}
-      >
-        <BottomNavigation>
-          <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
-            <Button
-              data-elemid="notebook"
-              variant="contained"
-              onClick={props.goToNotebook}
-              style={{ margin: 10 }}
-            >
-              Notebook
-            </Button>
-          </TooltipMsg>
-          {isGameActivity ? (
-            <Button
-              variant="contained"
-              onClick={() => props.runSimulation(0)}
-              style={{ marginTop: 10, marginBottom: 10 }}
-            >
-              Simulator
-            </Button>
-          ) : undefined}
-          <TooltipMsg elemId="submit" dialogue={props.dialogue}>
-            <Button
-              data-elemid="submit"
-              variant="contained"
-              style={{ margin: 10 }}
-              onClick={props.onSubmit}
-            >
-              Submit
-            </Button>
-          </TooltipMsg>
-        </BottomNavigation>
-      </Paper>
-    </div>
-  );
-}
+import { DialogueMessage, useWithDialogue } from "../hooks/use-with-dialogue";
+import { AllExperimentTypes } from "../games/activity-types";
+import { CafeCurrentExperimentView } from "../games/cafe/components/current-experiment-view";
+import { CafeExperiment } from "../games/cafe/simulator";
+import { CafePreviousExperimentsView } from "../games/cafe/components/previous-experiment-view";
+import { FruitPickerCurrentExperimentView } from "../games/fruit-picker/components/current-experiment-view";
+import { FruitPickerExperiment } from "../games/fruit-picker/simulator";
+import { FruitPickerPreviousExperimentsView } from "../games/fruit-picker/components/previous-experiment-view";
 
 function Summary(props: {
-  experiment: Experiment<Simulation>;
+  experiment: AllExperimentTypes;
   isGameActivity: boolean;
-  previousExperiments: Experiment<Simulation>[];
+  previousExperiments: AllExperimentTypes[];
   runSimulation: (i: number) => void;
   goToNotebook: () => void;
   setExperiment: React.Dispatch<
-    React.SetStateAction<Experiment<Simulation> | undefined>
+    React.SetStateAction<AllExperimentTypes | undefined>
   >;
   onSubmit: () => void;
 }): JSX.Element {
@@ -344,21 +43,21 @@ function Summary(props: {
   const classes = useStyles();
   const dialogue = useWithDialogue();
 
-  function _setExperiment(experiment: Experiment<Simulation>) {
+  function _setExperiment(experiment: AllExperimentTypes) {
     setExperiment(experiment);
     setViewPreviousExperiments(false);
   }
 
   useEffect(() => {
     const msgs: DialogueMessage[] = [];
-    if (summary.averageAccuracy <= 0.6) {
+    if (experiment.evaluationScore <= 0.6) {
       msgs.push({
         id: "notebook",
         title: "Results Very Bad",
         text: "Something seems wrong, barely better than random. Maybe check the model training.",
         noSave: true,
       });
-    } else if (summary.averageAccuracy <= 0.8) {
+    } else if (experiment.evaluationScore <= 0.8) {
       msgs.push({
         id: "notebook",
         title: "Results Okay",
@@ -376,6 +75,68 @@ function Summary(props: {
     dialogue.addMessages(msgs);
   }, [summary]);
 
+  function curExperimentView() {
+    switch (experiment.activityId) {
+      case "cafe":
+        return (
+          <CafeCurrentExperimentView
+            classes={classes}
+            currentExperiment={experiment as CafeExperiment}
+            dialogue={dialogue}
+            isGameActivity={isGameActivity}
+            runSimulation={runSimulation}
+            goToNotebook={goToNotebook}
+            onSubmit={onSubmit}
+          />
+        );
+      case "fruitpicker":
+        return (
+          <FruitPickerCurrentExperimentView
+            classes={classes}
+            currentExperiment={experiment as FruitPickerExperiment}
+            dialogue={dialogue}
+            isGameActivity={isGameActivity}
+            runSimulation={runSimulation}
+            goToNotebook={goToNotebook}
+            onSubmit={onSubmit}
+          />
+        );
+      case "neural_network":
+        return <div></div>;
+      default:
+        return <div />;
+    }
+  }
+
+  function previousExperimentView() {
+    switch (experiment.activityId) {
+      case "cafe":
+        return (
+          <CafePreviousExperimentsView
+            classes={classes}
+            previousExperiments={previousExperiments as CafeExperiment[]}
+            dialogue={dialogue}
+            setExperiment={_setExperiment}
+            currentExperiment={experiment as CafeExperiment}
+          />
+        );
+      case "fruitpicker":
+        return (
+          <FruitPickerPreviousExperimentsView
+            classes={classes}
+            previousExperiments={previousExperiments as FruitPickerExperiment[]}
+            dialogue={dialogue}
+            setExperiment={_setExperiment}
+            currentExperiment={experiment as FruitPickerExperiment}
+          />
+        );
+      case "neural_network":
+        return <div></div>;
+      default:
+        return <div />;
+    }
+  }
+
   return (
     <div>
       {previousExperiments.length > 0 ? (
@@ -387,23 +148,7 @@ function Summary(props: {
             : "view Previous Experiments"}
         </Button>
       ) : undefined}
-      {viewPreviousExperiment
-        ? PreviousExperimentsView({
-            classes,
-            previousExperiments,
-            dialogue,
-            setExperiment: _setExperiment,
-            currentExperiment: experiment,
-          })
-        : CurrentExperimentView({
-            classes,
-            currentExperiment: experiment,
-            dialogue,
-            isGameActivity,
-            runSimulation,
-            goToNotebook,
-            onSubmit,
-          })}
+      {viewPreviousExperiment ? previousExperimentView() : curExperimentView()}
     </div>
   );
 }

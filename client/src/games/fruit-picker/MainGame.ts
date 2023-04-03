@@ -8,9 +8,10 @@ The full terms of this copyright and license should always be found in the root 
 import Phaser from "phaser";
 import {
   CLASSIFIER_DELAY,
-  FruitSimulation,
   GAME_TIME,
   SPAWN_TIME,
+  FruitSimulationOutput,
+  FruitSimulationsSummary,
 } from "./simulator";
 import { Fruits } from "./types";
 import { GameParams } from "..";
@@ -20,13 +21,20 @@ import {
   scaleImage,
   scaleText,
 } from "../phaser-helpers";
+import { FruitPickerCodeInfo } from "./hooks/use-with-fruit-picker-code-examine";
+
+export type FruitGameParams = GameParams<
+  FruitSimulationOutput,
+  FruitSimulationsSummary,
+  FruitPickerCodeInfo
+>;
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
   numCorrect: number;
-  config?: GameParams<FruitSimulation>;
+  config?: FruitGameParams;
   eventSystem?: Phaser.Events.EventEmitter;
 
   fruit: Phaser.GameObjects.Sprite[];
@@ -66,7 +74,7 @@ export default class MainGame extends Phaser.Scene {
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: GameParams<FruitSimulation>) {
+  create(data: FruitGameParams) {
     window.addEventListener("resize", () => {
       this.resize();
     });

@@ -6,32 +6,52 @@ The full terms of this copyright and license should always be found in the root 
 */
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
-import { Experiment, Simulation, Simulator } from "../simulator";
+import { Experiment, Simulator } from "../simulator";
+import { NNCodeInfo } from "./hooks/use-with-nn-code-examine";
 
-export interface NeuralNetworkSimulation extends Simulation {}
+export interface NNSimulationOutput {}
 
-export interface NeuralNetworkClassifierOutput {}
+export interface NNClassifierOutput {}
 
-export class NeuralNetworkSimulator extends Simulator<NeuralNetworkSimulation> {
-  play() {
-    return {
-      accuracy: 0,
-      precision: 0,
-      recall: 0,
-      f1Score: 0,
-    };
+export interface NNSimulationsSummary {}
+
+export type NNExperiment = Experiment<
+  NNSimulationOutput,
+  NNSimulationsSummary,
+  NNCodeInfo
+>;
+
+export class NeuralNetworkSimulator extends Simulator<
+  NNSimulationOutput,
+  NNSimulationsSummary,
+  NNCodeInfo
+> {
+  scoreExperiment(experiment: NNExperiment): number {
+    throw new Error("Method not implemented.");
+  }
+
+  updateSummary(
+    simulations: NNSimulationOutput[],
+    summary: NNSimulationsSummary
+  ): NNSimulationsSummary {
+    throw new Error("Method not implemented.");
+  }
+
+  play(): NNSimulationOutput {
+    return {};
   }
 
   simulate(
     inputs: number[],
-    outputs: NeuralNetworkClassifierOutput[][],
+    outputs: NNClassifierOutput[][],
     notebook: INotebookState,
-    gameId: ActivityID
-  ): Experiment<NeuralNetworkSimulation> {
-    const experiment = super.simulate(inputs, outputs, notebook, gameId);
+    activityId: ActivityID
+  ): NNExperiment {
+    const experiment = super.simulate(inputs, outputs, notebook, activityId);
     // if (experiment.simulations.length > 0) {
     this.experiments.push(experiment);
     //   }
+    experiment.evaluationScore = this.scoreExperiment(experiment);
     return experiment;
   }
 }

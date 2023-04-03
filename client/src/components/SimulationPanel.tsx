@@ -25,19 +25,19 @@ import {
 } from "@mui/icons-material";
 import makeStyles from "@mui/styles/makeStyles";
 
-import { Game } from "../games";
-import { Experiment, Simulation } from "../games/simulator";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
 import { sessionStorageGet, sessionStorageStore } from "../local-storage";
 import { TooltipMsg } from "./Dialogue";
+import { GameExperimentTypes } from "../games/activity-types";
+import { Game } from "../games";
 
 const SPEEDS = [1, 2, 4, 10];
 
 function GamePlayer(props: {
   game: Game;
-  experiment: Experiment<Simulation>;
+  experiment: GameExperimentTypes;
   simulation: number;
   toNotebook: () => void;
   toSummary: () => void;

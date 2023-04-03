@@ -10,16 +10,18 @@ import makeStyles from "@mui/styles/makeStyles";
 import Cmi5 from "@xapi/cmi5";
 
 import { Activities, Activity, isGameActivity } from "./games";
-import { Experiment, Simulation } from "./games/simulator";
 import ActivityPicker from "./components/ActivityPicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
 import { sessionStorageStore } from "./local-storage";
-import { evaluteExperiment } from "./score-evaluation";
 import { ContentsManager } from "@jupyterlab/services";
 import { getUniqueUserId } from "./utils";
 import { TEMP_NOTEBOOK_DIR } from "./local-constants";
+import {
+  AllExperimentTypes,
+  GameExperimentTypes,
+} from "./games/activity-types";
 
 enum STEP {
   PICK_GAME,
@@ -33,7 +35,7 @@ function App(): JSX.Element {
   const classes = useStyles();
   const [step, setStep] = useState<STEP>(STEP.PICK_GAME);
   const [activity, setActivity] = useState<Activity>();
-  const [experiment, setExperiment] = useState<Experiment<Simulation>>();
+  const [experiment, setExperiment] = useState<AllExperimentTypes>();
   const [simulation, setSimulation] = useState<number>(0);
   const [numRuns, setNumRuns] = useState(0);
   const [uniqueUserId, setUniqueUserId] = useState("");
@@ -100,7 +102,7 @@ function App(): JSX.Element {
       console.log("no experiment to evaluate");
       return;
     }
-    const experimentScore = evaluteExperiment(experiment);
+    const experimentScore = experiment.evaluationScore;
     if (!Cmi5.isCmiAvailable) {
       console.log("cmi5 not available to send results");
       return;
@@ -192,12 +194,13 @@ function App(): JSX.Element {
     } else if (
       step === STEP.SIMULATION &&
       activity &&
+      experiment &&
       isGameActivity(activity)
     ) {
       return (
         <SimulationPanel
           game={activity}
-          experiment={experiment!}
+          experiment={experiment as GameExperimentTypes}
           simulation={simulation}
           toNotebook={viewNotebook}
           toSummary={viewSummary}

@@ -13,15 +13,12 @@ import {
   TableBody,
 } from "@mui/material";
 import React from "react";
-import { Simulation } from "../simulator";
-import { FruitSimulation } from "./simulator";
+import { FruitSimulationOutput } from "./simulator";
+import { SIMULATION_TYPES } from "../../games/activity-types";
+import { round } from "../../utils";
 
-export function Summary(props: { simulation: Simulation }): JSX.Element {
-  const simulation = props.simulation as FruitSimulation;
-
-  function round(n: number): string {
-    return `${Math.round(n * 100 * 100) / 100}%`;
-  }
+export function Summary(props: { simulation: SIMULATION_TYPES }): JSX.Element {
+  const simulation = props.simulation as FruitSimulationOutput;
 
   return (
     <TableContainer

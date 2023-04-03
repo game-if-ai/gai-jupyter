@@ -25,7 +25,6 @@ import {
   IError,
 } from "@jupyterlab/nbformat";
 
-import { Experiment, Simulation } from "../games/simulator";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { useInterval } from "./use-interval";
 import {
@@ -33,6 +32,7 @@ import {
   extractValidationCellOutput,
   extractCellCode,
 } from "../utils";
+import { AllExperimentTypes } from "games/activity-types";
 
 export interface CellState {
   cell: ICellModel;
@@ -49,7 +49,7 @@ export function useWithNotebook() {
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
-  const [outputCellOutput, setValidationCellOutput] = useState<any[][]>([]);
+  const [validationCellOutput, setValidationCellOutput] = useState<any[]>([]);
   const [cells, setCells] = useState<CellsStates>({});
 
   const [curExperiment, setCurExperiment] = useState<INotebookContent>();
@@ -203,7 +203,7 @@ export function useWithNotebook() {
     }
   }
 
-  function resetCode(experiment?: Experiment<Simulation>): void {
+  function resetCode(experiment?: AllExperimentTypes): void {
     if (!notebook?.adapter) {
       return;
     }
@@ -241,7 +241,7 @@ export function useWithNotebook() {
   return {
     cells,
     setupCellOutput,
-    outputCellOutput,
+    validationCellOutput,
     userInputCellsCode,
     hasError,
     isSaving,

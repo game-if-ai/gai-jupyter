@@ -6,13 +6,25 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { Completion } from "@codemirror/autocomplete";
-import { Simulator, Simulation } from "./simulator";
+import { Simulator } from "./simulator";
 import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
 import NeuralNetwork from "./neural_network";
+import {
+  AllSimulatorTypes,
+  CodeInfoTypes,
+  SIMULATION_TYPES,
+} from "./activity-types";
+import { ImproveCodeHint } from "./cafe/hooks/use-with-improve-cafe-code";
 
 export type ActivityID = "fruitpicker" | "cafe" | "neural_network";
 export type ActivityType = "GAME" | "NOTEBOOK_ONLY";
+type LoadStatus = "LOADING" | "LOADED";
+
+interface LoadedCodeInfo {
+  codeInfo: CodeInfoTypes;
+  loadStatus: LoadStatus;
+}
 
 export interface Activity {
   id: ActivityID;
@@ -20,26 +32,28 @@ export interface Activity {
   activityType: ActivityType;
   description: string;
   autocompletion?: Completion[];
-  simulator: Simulator<Simulation>;
-  summaryPanel: (props: { simulation: Simulation }) => JSX.Element;
+  simulator: AllSimulatorTypes;
+  codeExamine: (userCode: Record<string, string[]>) => LoadedCodeInfo;
+  improveCodeHints: ImproveCodeHint[];
 }
 
 export interface Game extends Activity {
   activityType: "GAME";
   config: Phaser.Types.Core.GameConfig;
+  summaryPanel: (props: { simulation: SIMULATION_TYPES }) => JSX.Element;
 }
 
 export function isGameActivity(object: Activity): object is Game {
   return object.activityType === "GAME";
 }
 
-export interface GameParams<S extends Simulation> {
+export interface GameParams<Simulation, SimulationsSummary, CodeInfo> {
   playManually: boolean;
   isMuted: boolean;
   speed: number;
   eventSystem: Phaser.Events.EventEmitter;
-  simulator: Simulator<S>;
-  simulation?: S;
+  simulator: Simulator<Simulation, SimulationsSummary, CodeInfo>;
+  simulation?: Simulation;
 }
 
 export const Activities: Activity[] = [NeuralNetwork, FruitPicker, Cafe];

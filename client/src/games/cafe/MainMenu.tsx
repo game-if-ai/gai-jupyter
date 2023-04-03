@@ -6,9 +6,8 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { CafeSimulation } from "./simulator";
-import { GameParams } from "..";
 import { addImage, addSprite, addText, scaleImage } from "../phaser-helpers";
+import { CafeGameParams } from "./MainGame";
 
 export default class MainMenu extends Phaser.Scene {
   text?: Phaser.GameObjects.Text;
@@ -31,7 +30,7 @@ export default class MainMenu extends Phaser.Scene {
     this.load.atlas("food", "food.png", "food.json");
   }
 
-  create(data: GameParams<CafeSimulation>) {
+  create(data: CafeGameParams) {
     this.cameras.main.setBackgroundColor("#4f4135");
     const bgTop = addImage(this, "background", undefined, { widthScale: 1 });
     this.images.push(bgTop);
