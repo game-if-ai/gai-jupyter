@@ -15,7 +15,7 @@ import {
   CodeInfoTypes,
   SIMULATION_TYPES,
 } from "./activity-types";
-import { ImproveCodeHint } from "./cafe/hooks/use-with-improve-cafe-code";
+import { ImproveCodeHint } from "../hooks/use-with-improve-code";
 
 export type ActivityID = "fruitpicker" | "cafe" | "neural_network";
 export type ActivityType = "GAME" | "NOTEBOOK_ONLY";

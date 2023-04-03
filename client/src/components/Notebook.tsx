@@ -26,10 +26,8 @@ import { Activity, isGameActivity } from "../games";
 import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
 import { useWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
-import { useWithImproveCode } from "../games/cafe/hooks/use-with-improve-cafe-code";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { sessionStorageGet, sessionStorageStore } from "../local-storage";
-import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
@@ -37,6 +35,7 @@ import { ShortcutKeyboard } from "./ShortcutKeyboard";
 
 import "react-toastify/dist/ReactToastify.css";
 import { AllExperimentTypes } from "../games/activity-types";
+import { useWithImproveCode } from "../hooks/use-with-improve-code";
 
 function NotebookComponent(props: {
   activity: Activity;
@@ -213,9 +212,7 @@ function NotebookComponent(props: {
           >
             {Object.keys(cells).map((c, i) => (
               <MenuItem key={i} value={c}>
-                {capitalizeFirst(
-                  cells[c].cell.getMetadata("gai_cell_type") || ""
-                )}
+                {cells[c].cell.getMetadata("gai_title")}
               </MenuItem>
             ))}
           </Select>

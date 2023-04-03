@@ -7,7 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Activity } from "../..";
+import { Activity } from "../games";
 import { CodeInfoTypes } from "games/activity-types";
 
 type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
@@ -42,6 +42,7 @@ export function useWithImproveCode(props: {
     if (activeHintIndex === -1) {
       return;
     }
+
     while (activeHintIndexCopy >= 0) {
       const hintToShow = improveCodeHints[activeHintIndexCopy];
       const hintAlreadyShowing = Boolean(

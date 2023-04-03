@@ -49,9 +49,9 @@ import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
 import { UseWithDialogue } from "../hooks/use-with-dialogue";
 import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
-import { UseWithImproveCode } from "../games/cafe/hooks/use-with-improve-cafe-code";
 import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
+import { UseWithImproveCode } from "../hooks/use-with-improve-code";
 
 interface CustomErrorMessage {
   condition: (errorOutput: IError) => boolean;
