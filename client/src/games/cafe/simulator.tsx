@@ -22,7 +22,8 @@ export const ITEMS = ["egg", "dumpling", "riceball", "sushi", "flan"];
 export const CUSTOMERS = ["brown", "panda", "polar", "redpanda", "pink"];
 export type CafeExperiment = Experiment<
   CafeSimulationOutput,
-  CafeSimulationsSummary
+  CafeSimulationsSummary,
+  CafeCodeInfo
 >;
 
 export interface CafeSimulationOutput {
@@ -60,7 +61,8 @@ export interface ItemSpawn {
 
 export class CafeSimulator extends Simulator<
   CafeSimulationOutput,
-  CafeSimulationsSummary
+  CafeSimulationsSummary,
+  CafeCodeInfo
 > {
   scoreExperiment(experiment: CafeExperiment): number {
     return evaluateCafeExperiment(experiment);
@@ -109,7 +111,7 @@ export class CafeSimulator extends Simulator<
     outputs: ClassifierOutput[][],
     notebook: INotebookState,
     activityId: ActivityID
-  ): Experiment<CafeSimulationOutput, CafeSimulationsSummary> {
+  ): CafeExperiment {
     const experiment = super.simulate(inputs, outputs, notebook, activityId);
 
     if (experiment.notebookContent) {

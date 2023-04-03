@@ -26,7 +26,7 @@ import { Activity, isGameActivity } from "../games";
 import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
 import { useWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
-import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
+import { useWithImproveCode } from "../games/cafe/hooks/use-with-improve-cafe-code";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { sessionStorageGet, sessionStorageStore } from "../local-storage";
 import { capitalizeFirst } from "../utils";
@@ -62,10 +62,11 @@ function NotebookComponent(props: {
     editCode,
     resetCode,
   } = useWithNotebook();
-  const hints = useWithImproveCafeCode({
+
+  const hints = useWithImproveCode({
     userCode: userInputCellsCode,
     numCodeRuns: numRuns,
-    activeGame: activity,
+    activeActivity: activity,
   });
 
   const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
@@ -94,7 +95,7 @@ function NotebookComponent(props: {
           messages.push({ id: `cell-${c.cell.id}`, title, text });
         }
       }
-      if (hints.hintsAvailable && activity.id === "cafe") {
+      if (hints.hintsAvailable) {
         messages.push({
           id: "hint",
           title: "Hints",

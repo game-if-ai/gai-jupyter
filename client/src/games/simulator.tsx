@@ -9,23 +9,22 @@ import { v4 as uuid } from "uuid";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { INotebookContent } from "@jupyterlab/nbformat";
 import { ActivityID } from "games";
-import { CodeInfoTypes } from "./activity-types";
 
-export interface Experiment<SimulationOutput, Summary> {
+export interface Experiment<SimulationOutput, Summary, CodeInfo> {
   id: string;
   time: Date;
   trainInstances: number;
   testInstances: number;
   simulations: SimulationOutput[];
   notebookContent: INotebookContent | undefined;
-  codeInfo: CodeInfoTypes;
+  codeInfo: CodeInfo;
   activityId: ActivityID;
   summary: Summary;
   evaluationScore: number;
 }
 
-export abstract class Simulator<SimulationOutput, Summary> {
-  experiments: Experiment<SimulationOutput, Summary>[];
+export abstract class Simulator<SimulationOutput, Summary, CodeInfo> {
+  experiments: Experiment<SimulationOutput, Summary, CodeInfo>[];
 
   constructor() {
     this.experiments = [];
@@ -38,11 +37,11 @@ export abstract class Simulator<SimulationOutput, Summary> {
     outputs: any[][],
     notebook: INotebookState | undefined,
     activityId: ActivityID
-  ): Experiment<SimulationOutput, Summary> {
+  ): Experiment<SimulationOutput, Summary, CodeInfo> {
     const notebookContent = notebook?.model
       ? (notebook.model.toJSON() as INotebookContent)
       : undefined;
-    const experiment: Experiment<SimulationOutput, Summary> = {
+    const experiment: Experiment<SimulationOutput, Summary, CodeInfo> = {
       id: uuid(),
       activityId,
       time: new Date(),
@@ -63,6 +62,6 @@ export abstract class Simulator<SimulationOutput, Summary> {
   ): Summary;
 
   abstract scoreExperiment(
-    experiment: Experiment<SimulationOutput, Summary>
+    experiment: Experiment<SimulationOutput, Summary, CodeInfo>
   ): number;
 }

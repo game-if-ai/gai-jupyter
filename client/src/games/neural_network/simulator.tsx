@@ -7,6 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
 import { Experiment, Simulator } from "../simulator";
+import { NNCodeInfo } from "./hooks/use-with-nn-code-examine";
 
 export interface NNSimulationOutput {}
 
@@ -14,11 +15,16 @@ export interface NNClassifierOutput {}
 
 export interface NNSimulationsSummary {}
 
-export type NNExperiment = Experiment<NNSimulationOutput, NNSimulationsSummary>;
+export type NNExperiment = Experiment<
+  NNSimulationOutput,
+  NNSimulationsSummary,
+  NNCodeInfo
+>;
 
 export class NeuralNetworkSimulator extends Simulator<
   NNSimulationOutput,
-  NNSimulationsSummary
+  NNSimulationsSummary,
+  NNCodeInfo
 > {
   scoreExperiment(experiment: NNExperiment): number {
     throw new Error("Method not implemented.");

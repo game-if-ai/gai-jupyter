@@ -5,87 +5,37 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import { useEffect, useState } from "react";
-import {
-  CafeCodeInfo,
-  useWithCafeCodeExamine,
-} from "../games/cafe/hooks/use-with-cafe-code-examine";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Activity } from "../games";
+import { Activity } from "../..";
+import { CodeInfoTypes } from "games/activity-types";
 
 type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
 
 export interface ImproveCodeHint {
   message: string;
-  active: (userCodeInfo: CafeCodeInfo, numRuns: number) => boolean;
+  active: (codeInfo: CodeInfoTypes, numRuns: number) => boolean;
   visibility: HintVisibilityType;
 }
-
-const improveCodeHints: ImproveCodeHint[] = [
-  {
-    message:
-      "You are currently using a dummy classifier model, try a real one! (Naive Bayes, Logistic Regression, etc.)",
-    visibility: "TRIGGERED_OR_HINT_BUTTON",
-    active: (userCodeInfo) => {
-      return userCodeInfo.classifierModelUsed === "DUMMY";
-    },
-  },
-  {
-    message:
-      "You are currently using a Hashing Vectorizer to extract your datas features, maybe try out some other methods. (TF-IDF, Vector Count, etc.)",
-    visibility: "TRIGGERED_OR_HINT_BUTTON",
-    active: (userCodeInfo) => {
-      return userCodeInfo.featureExtractionUsed === "HASHING";
-    },
-  },
-  {
-    message:
-      "Your data is currently polluted with stopwords, it may be benifical to remove these from your dataset.",
-    visibility: "TRIGGERED_OR_HINT_BUTTON",
-    active: (userCodeInfo) => {
-      return !userCodeInfo.removesStopwords;
-    },
-  },
-  {
-    message: "Consider using TF-IDF as your feature extractor.",
-    visibility: "TRIGGERED_OR_HINT_BUTTON",
-    active: (userCodeInfo) => {
-      return userCodeInfo.featureExtractionUsed === "COUNT_VECTORIZER";
-    },
-  },
-  {
-    message: "Consider giving the Logistical Regression model a try!",
-    visibility: "TRIGGERED_OR_HINT_BUTTON",
-    active: (userCodeInfo) => {
-      return userCodeInfo.classifierModelUsed === "NAIVE_BAYES";
-    },
-  },
-  {
-    message:
-      "Your classifier is working very well! Do you want to submit this or keep playing with it?",
-    visibility: "TRIGGERED_OR_HINT_BUTTON",
-    active: () => {
-      return true;
-    },
-  },
-];
 
 export interface UseWithImproveCode {
   toastHint: () => void;
   hintsAvailable: boolean;
 }
 
-export function useWithImproveCafeCode(props: {
+export function useWithImproveCode(props: {
   userCode: Record<string, string[]>;
   numCodeRuns: number;
-  activeGame: Activity;
+  activeActivity: Activity;
 }): UseWithImproveCode {
-  const { numCodeRuns, activeGame } = props;
+  const { numCodeRuns, activeActivity } = props;
   const [hintDisplayed, setHintDisplayed] = useState(false);
   const [activeHintIndex, setActiveHintIndex] = useState(-1);
   const [returningToNotebook] = useState(numCodeRuns > 0); // only evaluates on initial load
   const [activeToasts, setActiveToasts] = useState<ImproveCodeHint[]>([]);
-  const { userCodeInfo } = useWithCafeCodeExamine(props.userCode);
+  const { codeInfo, loadStatus: codeInfoLoadStatus } =
+    activeActivity.codeExamine(props.userCode);
+  const { improveCodeHints } = activeActivity;
 
   function toastHint() {
     let activeHintIndexCopy = activeHintIndex;
@@ -120,11 +70,11 @@ export function useWithImproveCafeCode(props: {
   }
 
   useEffect(() => {
-    if (userCodeInfo.loadStatus === "LOADING") {
+    if (codeInfoLoadStatus === "LOADING") {
       return;
     }
     const firstActiveHintIndex = improveCodeHints.findIndex((hint) =>
-      hint.active(userCodeInfo, numCodeRuns)
+      hint.active(codeInfo, numCodeRuns)
     );
     setActiveHintIndex(firstActiveHintIndex);
     if (hintDisplayed) {
@@ -147,11 +97,13 @@ export function useWithImproveCafeCode(props: {
       },
     });
   }, [
-    userCodeInfo, //most important
+    codeInfo, //most important
+    codeInfoLoadStatus,
     hintDisplayed,
     numCodeRuns,
     returningToNotebook,
-    activeGame.id,
+    activeActivity.id,
+    improveCodeHints,
   ]);
 
   return {

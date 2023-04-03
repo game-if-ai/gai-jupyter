@@ -5,58 +5,45 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import {
-  ClassifierModel,
-  FeatureExtractionMethods,
-  getAllFruitPickerCodeInfo,
-} from "./examine-fruit-picker-code-helpers";
 import { useEffect, useState } from "react";
+import { getAllNNCodeInfo } from "./examine-nn-code-helpers";
 
 type LoadStatus = "LOADING" | "LOADED";
 
-export interface FruitPickerCodeInfo {
-  usingLemmatization: boolean;
+export interface NNCodeInfo {
   removesStopwords: boolean;
-  cleansContractions: boolean;
-  classifierModelUsed: ClassifierModel;
-  featureExtractionUsed: FeatureExtractionMethods;
 }
 
-export interface UserCodeInfoLoad extends FruitPickerCodeInfo {
+export interface UserCodeInfoLoad extends NNCodeInfo {
   loadStatus: LoadStatus;
 }
 
-interface UseWithFruitPickerCodeExamine {
-  codeInfo: FruitPickerCodeInfo;
+interface UseWithNNCodeExamine {
+  codeInfo: NNCodeInfo;
   loadStatus: LoadStatus;
 }
 
-export function useWithFruitPickerCodeExamine(
+export function useWithNNCodeExamine(
   userCode: Record<string, string[]>
-): UseWithFruitPickerCodeExamine {
-  const [fruitPickerCodeInfo, setFruitPickerCodeinfo] =
-    useState<UserCodeInfoLoad>({
-      usingLemmatization: false,
-      classifierModelUsed: "NONE",
-      featureExtractionUsed: "NONE",
-      removesStopwords: false,
-      cleansContractions: false,
-      loadStatus: "LOADING",
-    });
+): UseWithNNCodeExamine {
+  const [nnCodeInfo, setNNCodeinfo] = useState<UserCodeInfoLoad>({
+    removesStopwords: false,
+    loadStatus: "LOADING",
+  });
 
   useEffect(() => {
     if (Object.keys(userCode).length === 0) {
       return;
     }
     const allUserInputCode = Object.values(userCode).flat();
-    setFruitPickerCodeinfo({
-      ...getAllFruitPickerCodeInfo(allUserInputCode),
+    setNNCodeinfo({
+      ...getAllNNCodeInfo(allUserInputCode),
       loadStatus: "LOADED",
     });
   }, [userCode]);
 
   return {
-    codeInfo: fruitPickerCodeInfo,
-    loadStatus: fruitPickerCodeInfo.loadStatus,
+    codeInfo: nnCodeInfo,
+    loadStatus: nnCodeInfo.loadStatus,
   };
 }

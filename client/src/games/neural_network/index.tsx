@@ -6,6 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { Activity } from "..";
+import { useWithNNCodeExamine } from "./hooks/use-with-nn-code-examine";
 import { NeuralNetworkSimulator } from "./simulator";
 
 export const NeuralNetwork: Activity = {
@@ -15,6 +16,8 @@ export const NeuralNetwork: Activity = {
   description:
     "You are trying to build a classifier to select fruit based on their physical traits.",
   simulator: new NeuralNetworkSimulator(),
+  improveCodeHints: [],
+  codeExamine: useWithNNCodeExamine,
 };
 
 export default NeuralNetwork;

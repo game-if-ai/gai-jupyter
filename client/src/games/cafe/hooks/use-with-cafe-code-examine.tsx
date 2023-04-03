@@ -22,12 +22,19 @@ export interface CafeCodeInfo {
   featureExtractionUsed: FeatureExtractionMethods;
 }
 
-export interface UserCodeInfoLoad extends CafeCodeInfo {
+export interface CafeCodeInfoLoad extends CafeCodeInfo {
   loadStatus: LoadStatus;
 }
 
-export function useWithCafeCodeExamine(userCode: Record<string, string[]>) {
-  const [userCodeInfo, setUserCodeInfo] = useState<UserCodeInfoLoad>({
+interface UseWithCafeCodeExamine {
+  codeInfo: CafeCodeInfo;
+  loadStatus: LoadStatus;
+}
+
+export function useWithCafeCodeExamine(
+  userCode: Record<string, string[]>
+): UseWithCafeCodeExamine {
+  const [cafeCodeInfo, setCafeCodeInfo] = useState<CafeCodeInfoLoad>({
     usingLemmatization: false,
     classifierModelUsed: "NONE",
     featureExtractionUsed: "NONE",
@@ -41,13 +48,14 @@ export function useWithCafeCodeExamine(userCode: Record<string, string[]>) {
       return;
     }
     const allUserInputCode = Object.values(userCode).flat();
-    setUserCodeInfo({
+    setCafeCodeInfo({
       ...getAllCafeCodeInfo(allUserInputCode),
       loadStatus: "LOADED",
     });
   }, [userCode]);
 
   return {
-    userCodeInfo,
+    codeInfo: cafeCodeInfo,
+    loadStatus: cafeCodeInfo.loadStatus,
   };
 }

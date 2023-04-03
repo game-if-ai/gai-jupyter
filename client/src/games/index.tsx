@@ -11,13 +11,20 @@ import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
 import NeuralNetwork from "./neural_network";
 import {
-  AllExperimentTypes,
   AllSimulatorTypes,
+  CodeInfoTypes,
   SIMULATION_TYPES,
 } from "./activity-types";
+import { ImproveCodeHint } from "./cafe/hooks/use-with-improve-cafe-code";
 
 export type ActivityID = "fruitpicker" | "cafe" | "neural_network";
 export type ActivityType = "GAME" | "NOTEBOOK_ONLY";
+type LoadStatus = "LOADING" | "LOADED";
+
+interface LoadedCodeInfo {
+  codeInfo: CodeInfoTypes;
+  loadStatus: LoadStatus;
+}
 
 export interface Activity {
   id: ActivityID;
@@ -26,6 +33,8 @@ export interface Activity {
   description: string;
   autocompletion?: Completion[];
   simulator: AllSimulatorTypes;
+  codeExamine: (userCode: Record<string, string[]>) => LoadedCodeInfo;
+  improveCodeHints: ImproveCodeHint[];
 }
 
 export interface Game extends Activity {
@@ -38,12 +47,12 @@ export function isGameActivity(object: Activity): object is Game {
   return object.activityType === "GAME";
 }
 
-export interface GameParams<Simulation, SimulationsSummary> {
+export interface GameParams<Simulation, SimulationsSummary, CodeInfo> {
   playManually: boolean;
   isMuted: boolean;
   speed: number;
   eventSystem: Phaser.Events.EventEmitter;
-  simulator: Simulator<Simulation, SimulationsSummary>;
+  simulator: Simulator<Simulation, SimulationsSummary, CodeInfo>;
   simulation?: Simulation;
 }
 

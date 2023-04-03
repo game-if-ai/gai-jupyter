@@ -11,6 +11,10 @@ import MainMenu from "./MainMenu";
 import MainGame from "./MainGame";
 import { Summary } from "./Summary";
 import { Game } from "..";
+import {
+  CafeCodeInfo,
+  useWithCafeCodeExamine,
+} from "./hooks/use-with-cafe-code-examine";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -59,8 +63,64 @@ export const Cafe: Game = {
       detail: "evaluate Naive Bayes model",
     },
   ],
+  improveCodeHints: [
+    {
+      message:
+        "You are currently using a dummy classifier model, try a real one! (Naive Bayes, Logistic Regression, etc.)",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (cafeCodeInfo) => {
+        return (cafeCodeInfo as CafeCodeInfo).classifierModelUsed === "DUMMY";
+      },
+    },
+    {
+      message:
+        "You are currently using a Hashing Vectorizer to extract your datas features, maybe try out some other methods. (TF-IDF, Vector Count, etc.)",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (cafeCodeInfo) => {
+        return (
+          (cafeCodeInfo as CafeCodeInfo).featureExtractionUsed === "HASHING"
+        );
+      },
+    },
+    {
+      message:
+        "Your data is currently polluted with stopwords, it may be benifical to remove these from your dataset.",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (cafeCodeInfo) => {
+        return !(cafeCodeInfo as CafeCodeInfo).removesStopwords;
+      },
+    },
+    {
+      message: "Consider using TF-IDF as your feature extractor.",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (cafeCodeInfo) => {
+        return (
+          (cafeCodeInfo as CafeCodeInfo).featureExtractionUsed ===
+          "COUNT_VECTORIZER"
+        );
+      },
+    },
+    {
+      message: "Consider giving the Logistical Regression model a try!",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (cafeCodeInfo) => {
+        return (
+          (cafeCodeInfo as CafeCodeInfo).classifierModelUsed === "NAIVE_BAYES"
+        );
+      },
+    },
+    {
+      message:
+        "Your classifier is working very well! Do you want to submit this or keep playing with it?",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: () => {
+        return true;
+      },
+    },
+  ],
   simulator: new CafeSimulator(),
   summaryPanel: Summary,
+  codeExamine: useWithCafeCodeExamine,
 };
 
 export default Cafe;

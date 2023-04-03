@@ -21,10 +21,12 @@ import {
   scaleImage,
   scaleText,
 } from "../phaser-helpers";
+import { FruitPickerCodeInfo } from "./hooks/use-with-fruit-picker-code-examine";
 
 export type FruitGameParams = GameParams<
   FruitSimulationOutput,
-  FruitSimulationsSummary
+  FruitSimulationsSummary,
+  FruitPickerCodeInfo
 >;
 
 export default class MainGame extends Phaser.Scene {

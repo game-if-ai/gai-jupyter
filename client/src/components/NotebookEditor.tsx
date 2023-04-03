@@ -49,7 +49,7 @@ import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
 import { UseWithDialogue } from "../hooks/use-with-dialogue";
 import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
-import { UseWithImproveCode } from "../hooks/use-with-improve-cafe-code";
+import { UseWithImproveCode } from "../games/cafe/hooks/use-with-improve-cafe-code";
 import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 
@@ -328,10 +328,10 @@ export function NotebookEditor(props: {
             {capitalizeFirst(cellType)}
           </Typography>
         </TooltipMsg>
-        {isDisabled || props.activity.id !== "cafe" ? undefined : (
+        {isDisabled ? undefined : (
           <TooltipMsg elemId="hint" dialogue={dialogue}>
             <IconButton
-              disabled={!hints.hintsAvailable || props.activity.id !== "cafe"}
+              disabled={!hints.hintsAvailable}
               onClick={hints.toastHint}
             >
               <HelpOutlineOutlined />

@@ -11,6 +11,7 @@ import { average, random, randomInt } from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
 import { evaluateFruitPickerExperiment } from "./hooks/fruit-picker-score-evaluation";
+import { FruitPickerCodeInfo } from "./hooks/use-with-fruit-picker-code-examine";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
@@ -18,7 +19,8 @@ export const CLASSIFIER_DELAY = 2000; // delay in ms for classifier catch speed 
 
 export type FruitPickerExperiment = Experiment<
   FruitSimulationOutput,
-  FruitSimulationsSummary
+  FruitSimulationsSummary,
+  FruitPickerCodeInfo
 >;
 
 export interface FruitClassifierInput {
@@ -64,7 +66,8 @@ export interface FruitSpawn {
 
 export class FruitSimulator extends Simulator<
   FruitSimulationOutput,
-  FruitSimulationsSummary
+  FruitSimulationsSummary,
+  FruitPickerCodeInfo
 > {
   scoreExperiment(experiment: FruitPickerExperiment): number {
     return evaluateFruitPickerExperiment(experiment);

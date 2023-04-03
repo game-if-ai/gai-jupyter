@@ -10,6 +10,7 @@ import MainMenu from "./MainMenu";
 import MainGame from "./MainGame";
 import { Summary } from "./Summary";
 import { Game } from "..";
+import { useWithFruitPickerCodeExamine } from "./hooks/use-with-fruit-picker-code-examine";
 
 // export type FruitPickerGameType = Game<FruitSimulationOutput, FruitSimulationsSummary>;
 
@@ -36,6 +37,8 @@ export const FruitPicker: Game = {
   config: GameConfig,
   simulator: new FruitSimulator(),
   summaryPanel: Summary,
+  improveCodeHints: [],
+  codeExamine: useWithFruitPickerCodeExamine,
 };
 
 export default FruitPicker;

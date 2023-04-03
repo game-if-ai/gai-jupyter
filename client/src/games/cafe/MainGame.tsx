@@ -16,10 +16,12 @@ import {
 } from "./simulator";
 import { GameParams } from "..";
 import { addImage, addSprite, addText, scaleText } from "../phaser-helpers";
+import { CafeCodeInfo } from "./hooks/use-with-cafe-code-examine";
 
 export type CafeGameParams = GameParams<
   CafeSimulationOutput,
-  CafeSimulationsSummary
+  CafeSimulationsSummary,
+  CafeCodeInfo
 >;
 
 export default class MainGame extends Phaser.Scene {
