@@ -6,8 +6,6 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { GameParams } from "..";
-import { FruitSimulation } from "./simulator";
 import {
   addBackgroundImage,
   addImage,
@@ -15,6 +13,7 @@ import {
   scaleImage,
   scaleText,
 } from "../phaser-helpers";
+import { FruitGameParams } from "./MainGame";
 
 export default class MainMenu extends Phaser.Scene {
   images: Phaser.GameObjects.Image[];
@@ -35,7 +34,7 @@ export default class MainMenu extends Phaser.Scene {
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: GameParams<FruitSimulation>) {
+  create(data: FruitGameParams) {
     window.addEventListener("resize", () => {
       this.resize();
     });

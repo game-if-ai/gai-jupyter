@@ -9,9 +9,9 @@ import { ICellModel } from "@jupyterlab/cells";
 import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
 import { LaunchParameters } from "@xapi/cmi5";
-import { Experiment, Simulation } from "games/simulator";
 import { GaiCellTypes } from "./local-constants";
 import { UserInputCellsCode } from "./hooks/use-with-notebook";
+import { GameExperimentTypes } from "games/activity-types";
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
   return [...a.slice(0, i), item, ...a.slice(i + 1)];
@@ -145,10 +145,7 @@ export function extractValidationCellOutput<T>(cell: ICellModel): T[][] {
   return data;
 }
 
-function f1ScoreComparison(
-  a: Experiment<Simulation>,
-  b: Experiment<Simulation>
-) {
+function f1ScoreComparison(a: GameExperimentTypes, b: GameExperimentTypes) {
   if (a.summary.averageF1Score < b.summary.averageF1Score) {
     return -1;
   }
@@ -158,9 +155,7 @@ function f1ScoreComparison(
   return 0;
 }
 
-export function sortExperimentsByF1Score(
-  experiments: Experiment<Simulation>[]
-) {
+export function sortExperimentsByF1Score(experiments: GameExperimentTypes[]) {
   return experiments.slice().sort(f1ScoreComparison);
 }
 
@@ -178,4 +173,15 @@ export function getCmiParamsFromUri(): LaunchParameters {
     fetch: fetch,
     registration: registration,
   };
+}
+
+export function round(n: number): string {
+  return `${Math.round(n * 100)}%`;
+}
+
+export function extractAllUserInputCode(notebookContent: INotebookContent) {
+  const notebookEditableCode: UserInputCellsCode = notebookContent
+    ? extractAllNotebookEditableCode(notebookContent)
+    : {};
+  return Object.values(notebookEditableCode).flat();
 }

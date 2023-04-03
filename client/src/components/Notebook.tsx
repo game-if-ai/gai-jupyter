@@ -23,11 +23,10 @@ import { makeStyles } from "@mui/styles";
 import { PlayArrow, Info, Restore, ErrorOutline } from "@mui/icons-material";
 
 import { Activity, isGameActivity } from "../games";
-import { Experiment, Simulation } from "../games/simulator";
 import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
 import { useWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
-import { useWithImproveCafeCode } from "../hooks/use-with-improve-cafe-code";
+import { useWithImproveCode } from "../games/cafe/hooks/use-with-improve-cafe-code";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { sessionStorageGet, sessionStorageStore } from "../local-storage";
 import { capitalizeFirst } from "../utils";
@@ -37,10 +36,11 @@ import { ActionPopup } from "./Popup";
 import { ShortcutKeyboard } from "./ShortcutKeyboard";
 
 import "react-toastify/dist/ReactToastify.css";
+import { AllExperimentTypes } from "../games/activity-types";
 
 function NotebookComponent(props: {
   activity: Activity;
-  curExperiment: Experiment<Simulation> | undefined;
+  curExperiment: AllExperimentTypes | undefined;
   numRuns: number;
   setExperiment: (e: number) => void;
   viewSummary: () => void;
@@ -55,17 +55,18 @@ function NotebookComponent(props: {
   const {
     cells,
     setupCellOutput,
-    outputCellOutput,
+    validationCellOutput,
     userInputCellsCode,
     hasError,
     isSaving,
     editCode,
     resetCode,
   } = useWithNotebook();
-  const hints = useWithImproveCafeCode({
+
+  const hints = useWithImproveCode({
     userCode: userInputCellsCode,
     numCodeRuns: numRuns,
-    activeGame: activity,
+    activeActivity: activity,
   });
 
   const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
@@ -94,7 +95,7 @@ function NotebookComponent(props: {
           messages.push({ id: `cell-${c.cell.id}`, title, text });
         }
       }
-      if (hints.hintsAvailable && activity.id === "cafe") {
+      if (hints.hintsAvailable) {
         messages.push({
           id: "hint",
           title: "Hints",
@@ -145,9 +146,12 @@ function NotebookComponent(props: {
   ]);
 
   function toSimulation(): void {
+    if (!notebook) {
+      return;
+    }
     activity.simulator.simulate(
       setupCellOutput,
-      outputCellOutput,
+      validationCellOutput,
       notebook,
       activity.id
     );
@@ -156,9 +160,12 @@ function NotebookComponent(props: {
   }
 
   function toSummary(): void {
+    if (!notebook) {
+      return;
+    }
     activity.simulator.simulate(
       setupCellOutput,
-      outputCellOutput,
+      validationCellOutput,
       notebook,
       activity.id
     );
@@ -242,7 +249,9 @@ function NotebookComponent(props: {
                 disabled={
                   hasError ||
                   isSaving ||
-                  !Boolean(setupCellOutput.length && outputCellOutput.length)
+                  !Boolean(
+                    setupCellOutput.length && validationCellOutput.length
+                  )
                 }
                 onClick={simulate}
               >
