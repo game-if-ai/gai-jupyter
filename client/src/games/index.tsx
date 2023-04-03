@@ -10,7 +10,11 @@ import { Simulator } from "./simulator";
 import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
 import NeuralNetwork from "./neural_network";
-import { AllSimulatorTypes, SIMULATION_TYPES } from "./activity-types";
+import {
+  AllExperimentTypes,
+  AllSimulatorTypes,
+  SIMULATION_TYPES,
+} from "./activity-types";
 
 export type ActivityID = "fruitpicker" | "cafe" | "neural_network";
 export type ActivityType = "GAME" | "NOTEBOOK_ONLY";

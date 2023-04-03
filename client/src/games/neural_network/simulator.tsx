@@ -45,6 +45,7 @@ export class NeuralNetworkSimulator extends Simulator<
     // if (experiment.simulations.length > 0) {
     this.experiments.push(experiment);
     //   }
+    experiment.evaluationScore = this.scoreExperiment(experiment);
     return experiment;
   }
 }

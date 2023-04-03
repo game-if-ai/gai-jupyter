@@ -19,6 +19,8 @@ import {
   NeuralNetworkSimulator,
 } from "./neural_network/simulator";
 import { FruitSimulator } from "./fruit-picker/simulator";
+import { CafeCodeInfo } from "./cafe/hooks/use-with-cafe-code-examine";
+import { FruitPickerCodeInfo } from "./fruit-picker/hooks/use-with-fruit-picker-code-examine";
 
 export type SIMULATION_TYPES =
   | CafeSimulationOutput
@@ -35,3 +37,5 @@ export type AllSimulatorTypes =
   | NeuralNetworkSimulator
   | FruitSimulator
   | CafeSimulator;
+
+export type CodeInfoTypes = CafeCodeInfo | FruitPickerCodeInfo;

@@ -8,13 +8,13 @@ The full terms of this copyright and license should always be found in the root 
 import {
   ClassifierModel,
   FeatureExtractionMethods,
-  getAllUserCodeInfo,
-} from "../examine-code-utils";
+  getAllFruitPickerCodeInfo,
+} from "./examine-fruit-picker-helpers";
 import { useEffect, useState } from "react";
 
 type LoadStatus = "LOADING" | "LOADED";
 
-export interface UserCodeInfo {
+export interface FruitPickerCodeInfo {
   usingLemmatization: boolean;
   removesStopwords: boolean;
   cleansContractions: boolean;
@@ -22,11 +22,13 @@ export interface UserCodeInfo {
   featureExtractionUsed: FeatureExtractionMethods;
 }
 
-export interface UserCodeInfoLoad extends UserCodeInfo {
+export interface UserCodeInfoLoad extends FruitPickerCodeInfo {
   loadStatus: LoadStatus;
 }
 
-export function useWithUserCodeExamine(userCode: Record<string, string[]>) {
+export function useWithFruitPickerCodeExamine(
+  userCode: Record<string, string[]>
+) {
   const [userCodeInfo, setUserCodeInfo] = useState<UserCodeInfoLoad>({
     usingLemmatization: false,
     classifierModelUsed: "NONE",
@@ -42,7 +44,7 @@ export function useWithUserCodeExamine(userCode: Record<string, string[]>) {
     }
     const allUserInputCode = Object.values(userCode).flat();
     setUserCodeInfo({
-      ...getAllUserCodeInfo(allUserInputCode),
+      ...getAllFruitPickerCodeInfo(allUserInputCode),
       loadStatus: "LOADED",
     });
   }, [userCode]);

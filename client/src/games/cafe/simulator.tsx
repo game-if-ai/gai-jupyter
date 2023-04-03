@@ -7,9 +7,12 @@ The full terms of this copyright and license should always be found in the root 
 
 import { Experiment, Simulator } from "../simulator";
 import { Review, Reviews } from "./types";
-import { average, randomInt } from "../../utils";
+import { average, extractAllUserInputCode, randomInt } from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
+import { getAllCafeCodeInfo } from "./hooks/examine-cafe-code-helpers";
+import { CafeCodeInfo } from "./hooks/use-with-cafe-code-examine";
+import { evaluateCafeExperiment } from "./hooks/cafe-score-evaluation";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
@@ -60,7 +63,7 @@ export class CafeSimulator extends Simulator<
   CafeSimulationsSummary
 > {
   scoreExperiment(experiment: CafeExperiment): number {
-    throw new Error("Method not implemented.");
+    return evaluateCafeExperiment(experiment);
   }
 
   play(): CafeSimulationOutput {
@@ -108,6 +111,13 @@ export class CafeSimulator extends Simulator<
     activityId: ActivityID
   ): Experiment<CafeSimulationOutput, CafeSimulationsSummary> {
     const experiment = super.simulate(inputs, outputs, notebook, activityId);
+
+    if (experiment.notebookContent) {
+      const codeInfo: CafeCodeInfo = getAllCafeCodeInfo(
+        extractAllUserInputCode(experiment.notebookContent)
+      );
+      experiment.codeInfo = codeInfo;
+    }
     for (let run = 0; run < outputs.length; run++) {
       const sim = this.play();
       const simClassifierOutput = outputs[run];
@@ -142,6 +152,8 @@ export class CafeSimulator extends Simulator<
       experiment.simulations,
       experiment.summary
     );
+    experiment.evaluationScore = this.scoreExperiment(experiment);
+
     if (experiment.simulations.length > 0) {
       this.experiments.push(experiment);
     }

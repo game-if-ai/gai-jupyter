@@ -4,7 +4,8 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { CafeExperiment } from "./simulator";
+
+import { CafeExperiment } from "../simulator";
 
 type Metric = "F1SCORE" | "ACCURACY" | "PRECISION" | "RECALL";
 
@@ -144,7 +145,7 @@ function getMetricCutoffScore(metric: Metric, metricValue: number): number {
   return score;
 }
 
-function evaluateCafeExperiment(curExperiment: CafeExperiment) {
+export function evaluateCafeExperiment(curExperiment: CafeExperiment) {
   let finalScore = 0;
 
   const evaluationMetricWeights: MetricWeights = {
@@ -168,7 +169,6 @@ function evaluateCafeExperiment(curExperiment: CafeExperiment) {
   }
 
   // Score +0-0.35 for % of key elements in code that are contained (patterns of importance: should all be contained hints)
-  // TODO: User gets x amount of points for each optimal use
   const { codeInfo } = curExperiment;
   const pointsPerKeyElement = 0.07; // 0.07 * 5 = .35
   codeInfo.classifierModelUsed === "NAIVE_BAYES" &&

@@ -10,6 +10,7 @@ import { Experiment, Simulator } from "../simulator";
 import { average, random, randomInt } from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
+import { evaluateFruitPickerExperiment } from "./hooks/fruit-picker-score-evaluation";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
@@ -66,7 +67,7 @@ export class FruitSimulator extends Simulator<
   FruitSimulationsSummary
 > {
   scoreExperiment(experiment: FruitPickerExperiment): number {
-    throw new Error("Method not implemented.");
+    return evaluateFruitPickerExperiment(experiment);
   }
 
   play(): FruitSimulationOutput {
@@ -199,6 +200,7 @@ export class FruitSimulator extends Simulator<
       experiment.simulations,
       experiment.summary
     );
+    experiment.evaluationScore = this.scoreExperiment(experiment);
     if (experiment.simulations.length > 0) {
       this.experiments.push(experiment);
     }

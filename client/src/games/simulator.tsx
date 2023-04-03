@@ -5,14 +5,11 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { extractAllNotebookEditableCode } from "../utils";
 import { v4 as uuid } from "uuid";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { INotebookContent } from "@jupyterlab/nbformat";
-import { UserInputCellsCode } from "hooks/use-with-notebook";
-import { UserCodeInfo } from "hooks/use-with-user-code-examination";
-import { getAllUserCodeInfo } from "../examine-code-utils";
 import { ActivityID } from "games";
+import { CodeInfoTypes } from "./activity-types";
 
 export interface Experiment<SimulationOutput, Summary> {
   id: string;
@@ -21,7 +18,7 @@ export interface Experiment<SimulationOutput, Summary> {
   testInstances: number;
   simulations: SimulationOutput[];
   notebookContent: INotebookContent | undefined;
-  codeInfo: UserCodeInfo;
+  codeInfo: CodeInfoTypes;
   activityId: ActivityID;
   summary: Summary;
   evaluationScore: number;
@@ -45,11 +42,6 @@ export abstract class Simulator<SimulationOutput, Summary> {
     const notebookContent = notebook?.model
       ? (notebook.model.toJSON() as INotebookContent)
       : undefined;
-    const notebookEditableCode: UserInputCellsCode = notebookContent
-      ? extractAllNotebookEditableCode(notebookContent)
-      : {};
-    const allUserInputCode = Object.values(notebookEditableCode).flat();
-    const codeInfo: UserCodeInfo = getAllUserCodeInfo(allUserInputCode);
     const experiment: Experiment<SimulationOutput, Summary> = {
       id: uuid(),
       activityId,
@@ -58,7 +50,7 @@ export abstract class Simulator<SimulationOutput, Summary> {
       trainInstances: inputs[0],
       testInstances: inputs[1],
       simulations: [],
-      codeInfo,
+      codeInfo: {} as any,
       summary: {} as any,
       evaluationScore: 0,
     };

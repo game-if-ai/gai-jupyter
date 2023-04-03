@@ -6,9 +6,9 @@ The full terms of this copyright and license should always be found in the root 
 */
 import { useEffect, useState } from "react";
 import {
-  UserCodeInfo,
-  useWithUserCodeExamine,
-} from "./use-with-user-code-examination";
+  CafeCodeInfo,
+  useWithCafeCodeExamine,
+} from "../games/cafe/hooks/use-with-cafe-code-examine";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Activity } from "../games";
@@ -17,7 +17,7 @@ type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
 
 export interface ImproveCodeHint {
   message: string;
-  active: (userCodeInfo: UserCodeInfo, numRuns: number) => boolean;
+  active: (userCodeInfo: CafeCodeInfo, numRuns: number) => boolean;
   visibility: HintVisibilityType;
 }
 
@@ -85,11 +85,11 @@ export function useWithImproveCafeCode(props: {
   const [activeHintIndex, setActiveHintIndex] = useState(-1);
   const [returningToNotebook] = useState(numCodeRuns > 0); // only evaluates on initial load
   const [activeToasts, setActiveToasts] = useState<ImproveCodeHint[]>([]);
-  const { userCodeInfo } = useWithUserCodeExamine(props.userCode);
+  const { userCodeInfo } = useWithCafeCodeExamine(props.userCode);
 
   function toastHint() {
     let activeHintIndexCopy = activeHintIndex;
-    if (activeHintIndex === -1 || activeGame.id !== "cafe") {
+    if (activeHintIndex === -1) {
       return;
     }
     while (activeHintIndexCopy >= 0) {
@@ -120,7 +120,7 @@ export function useWithImproveCafeCode(props: {
   }
 
   useEffect(() => {
-    if (userCodeInfo.loadStatus === "LOADING" || activeGame.id !== "cafe") {
+    if (userCodeInfo.loadStatus === "LOADING") {
       return;
     }
     const firstActiveHintIndex = improveCodeHints.findIndex((hint) =>

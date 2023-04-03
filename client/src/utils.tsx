@@ -178,3 +178,10 @@ export function getCmiParamsFromUri(): LaunchParameters {
 export function round(n: number): string {
   return `${Math.round(n * 100)}%`;
 }
+
+export function extractAllUserInputCode(notebookContent: INotebookContent) {
+  const notebookEditableCode: UserInputCellsCode = notebookContent
+    ? extractAllNotebookEditableCode(notebookContent)
+    : {};
+  return Object.values(notebookEditableCode).flat();
+}
