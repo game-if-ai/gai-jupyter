@@ -5,7 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { average, extractAllNotebookEditableCode } from "../utils";
+import { extractAllNotebookEditableCode } from "../utils";
 import { v4 as uuid } from "uuid";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { INotebookContent } from "@jupyterlab/nbformat";
@@ -14,55 +14,34 @@ import { UserCodeInfo } from "hooks/use-with-user-code-examination";
 import { getAllUserCodeInfo } from "../examine-code-utils";
 import { ActivityID } from "games";
 
-export interface Experiment<S extends Simulation> {
+export interface Experiment<SimulationOutput, Summary> {
   id: string;
   time: Date;
   trainInstances: number;
   testInstances: number;
-  simulations: S[];
-  summary: SimulationSummary;
+  simulations: SimulationOutput[];
   notebookContent: INotebookContent | undefined;
   codeInfo: UserCodeInfo;
   gameId: ActivityID;
+  summary: Summary;
+  evaluationScore: number;
 }
 
-export interface Simulation {
-  accuracy: number;
-  precision: number;
-  recall: number;
-  f1Score: number;
-}
-
-export interface SimulationSummary {
-  lowAccuracy: number;
-  highAccuracy: number;
-  averageAccuracy: number;
-  averagePrecision: number;
-  averageRecall: number;
-  averageF1Score: number;
-  lowF1Score: number;
-  highF1Score: number;
-}
-
-export class Simulator<S extends Simulation> {
-  experiments: Experiment<S>[];
+export abstract class Simulator<SimulationOutput, Summary> {
+  experiments: Experiment<SimulationOutput, Summary>[];
 
   constructor() {
     this.experiments = [];
   }
 
-  play(): S {
-    const o: any = {};
-    o.accuracy = 0;
-    return o;
-  }
+  abstract play(): SimulationOutput;
 
   simulate(
     inputs: number[],
     outputs: any[][],
     notebook: INotebookState | undefined,
     gameId: ActivityID
-  ): Experiment<S> {
+  ): Experiment<SimulationOutput, Summary> {
     const notebookContent = notebook?.model
       ? (notebook.model.toJSON() as INotebookContent)
       : undefined;
@@ -71,7 +50,7 @@ export class Simulator<S extends Simulation> {
       : {};
     const allUserInputCode = Object.values(notebookEditableCode).flat();
     const codeInfo: UserCodeInfo = getAllUserCodeInfo(allUserInputCode);
-    const experiment: Experiment<S> = {
+    const experiment: Experiment<SimulationOutput, Summary> = {
       id: uuid(),
       gameId,
       time: new Date(),
@@ -80,36 +59,18 @@ export class Simulator<S extends Simulation> {
       testInstances: inputs[1],
       simulations: [],
       codeInfo,
-      summary: {
-        lowAccuracy: 0,
-        highAccuracy: 0,
-        averageAccuracy: 0,
-        averagePrecision: 0,
-        averageRecall: 0,
-        averageF1Score: 0,
-        lowF1Score: 0,
-        highF1Score: 0,
-      },
+      summary: {} as any,
+      evaluationScore: 0,
     };
     return experiment;
   }
 
-  protected updateSummary(
-    simulations: S[],
-    summary: SimulationSummary
-  ): SimulationSummary {
-    const accuracies = simulations.map((s) => s.accuracy);
-    const precisions = simulations.map((s) => s.precision);
-    const recalls = simulations.map((s) => s.recall);
-    const f1Scores = simulations.map((s) => s.f1Score);
-    summary.lowAccuracy = Math.min(...accuracies);
-    summary.highAccuracy = Math.max(...accuracies);
-    summary.averageAccuracy = average(accuracies);
-    summary.averagePrecision = average(precisions);
-    summary.averageRecall = average(recalls);
-    summary.averageF1Score = average(f1Scores);
-    summary.lowF1Score = Math.min(...f1Scores);
-    summary.highF1Score = Math.max(...f1Scores);
-    return summary;
-  }
+  abstract updateSummary(
+    simulations: SimulationOutput[],
+    summary: Summary
+  ): Summary;
+
+  abstract scoreExperiment(
+    experiment: Experiment<SimulationOutput, Summary>
+  ): number;
 }

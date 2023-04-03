@@ -11,10 +11,16 @@ import {
   GAME_TIME,
   SPAWN_TIME,
   CLASSIFIER_DELAY,
-  CafeSimulation,
+  CafeSimulationOutput,
+  CafeSimulationsSummary,
 } from "./simulator";
 import { GameParams } from "..";
 import { addImage, addSprite, addText, scaleText } from "../phaser-helpers";
+
+export type CafeGameParams = GameParams<
+  CafeSimulationOutput,
+  CafeSimulationsSummary
+>;
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
@@ -33,7 +39,7 @@ export default class MainGame extends Phaser.Scene {
   accuracyText?: Phaser.GameObjects.Text;
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
-  config?: GameParams<CafeSimulation>;
+  config?: CafeGameParams;
   eventSystem?: Phaser.Events.EventEmitter;
 
   constructor() {
@@ -59,7 +65,7 @@ export default class MainGame extends Phaser.Scene {
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: GameParams<CafeSimulation>) {
+  create(data: CafeGameParams) {
     this.config = data;
     this.eventSystem = data.eventSystem;
     this.mute(data.isMuted);

@@ -9,7 +9,6 @@ import { ICellModel } from "@jupyterlab/cells";
 import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
 import { LaunchParameters } from "@xapi/cmi5";
-import { Experiment, Simulation } from "games/simulator";
 import { GaiCellTypes } from "./local-constants";
 import { UserInputCellsCode } from "./hooks/use-with-notebook";
 
@@ -145,24 +144,24 @@ export function extractValidationCellOutput<T>(cell: ICellModel): T[][] {
   return data;
 }
 
-function f1ScoreComparison(
-  a: Experiment<Simulation>,
-  b: Experiment<Simulation>
-) {
-  if (a.summary.averageF1Score < b.summary.averageF1Score) {
-    return -1;
-  }
-  if (a.summary.averageF1Score > b.summary.averageF1Score) {
-    return 1;
-  }
-  return 0;
-}
+// function f1ScoreComparison(
+//   a: Experiment<SIMULATION_TYPES, SUMMARY_TYPES>,
+//   b: Experiment<SIMULATION_TYPES, SUMMARY_TYPES>
+// ) {
+//   if (a.summary.averageF1Score < b.summary.averageF1Score) {
+//     return -1;
+//   }
+//   if (a.summary.averageF1Score > b.summary.averageF1Score) {
+//     return 1;
+//   }
+//   return 0;
+// }
 
-export function sortExperimentsByF1Score(
-  experiments: Experiment<Simulation>[]
-) {
-  return experiments.slice().sort(f1ScoreComparison);
-}
+// export function sortExperimentsByF1Score(
+//   experiments: Experiment<SIMULATION_TYPES, SUMMARY_TYPES>[]
+// ) {
+//   return experiments.slice().sort(f1ScoreComparison);
+// }
 
 export function getCmiParamsFromUri(): LaunchParameters {
   const searchParams = new URL(window.location.href).searchParams;

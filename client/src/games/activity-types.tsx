@@ -4,38 +4,34 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import Phaser from "phaser";
-import { FruitSimulator } from "./simulator";
-import MainMenu from "./MainMenu";
-import MainGame from "./MainGame";
-import { Summary } from "./Summary";
-import { Game } from "..";
+import {
+  CafeExperiment,
+  CafeSimulationOutput,
+  CafeSimulator,
+} from "./cafe/simulator";
+import {
+  FruitPickerExperiment,
+  FruitSimulationOutput,
+} from "./fruit-picker/simulator";
+import {
+  NNExperiment,
+  NNSimulationOutput,
+  NeuralNetworkSimulator,
+} from "./neural_network/simulator";
+import { FruitSimulator } from "./fruit-picker/simulator";
 
-// export type FruitPickerGameType = Game<FruitSimulationOutput, FruitSimulationsSummary>;
+export type SIMULATION_TYPES =
+  | CafeSimulationOutput
+  | FruitSimulationOutput
+  | NNSimulationOutput;
 
-const GameConfig: Phaser.Types.Core.GameConfig = {
-  type: Phaser.CANVAS,
-  title: "Fruit Picker",
-  parent: "phaser-container",
-  backgroundColor: "#282c34",
-  physics: {
-    default: "arcade",
-    arcade: {
-      gravity: { y: 150 },
-    },
-  },
-  scene: [MainMenu, MainGame],
-};
+export type AllExperimentTypes =
+  | CafeExperiment
+  | FruitPickerExperiment
+  | NNExperiment;
+export type GameExperimentTypes = CafeExperiment | FruitPickerExperiment;
 
-export const FruitPicker: Game = {
-  id: "fruitpicker",
-  title: "Fruit Picker",
-  activityType: "GAME",
-  description:
-    "You are trying to build a classifier to select fruit based on their physical traits.",
-  config: GameConfig,
-  simulator: new FruitSimulator(),
-  summaryPanel: Summary,
-};
-
-export default FruitPicker;
+export type AllSimulatorTypes =
+  | NeuralNetworkSimulator
+  | FruitSimulator
+  | CafeSimulator;

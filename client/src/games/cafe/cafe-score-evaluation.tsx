@@ -4,7 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { Experiment, Simulation } from "games/simulator";
+import { CafeExperiment } from "./simulator";
 
 type Metric = "F1SCORE" | "ACCURACY" | "PRECISION" | "RECALL";
 
@@ -106,7 +106,7 @@ function getHighestWeightedMetric(metricWeights: MetricWeights): Metric {
 }
 
 function getHighestWeightedMetricAndValue(
-  curExperiment: Experiment<Simulation>,
+  curExperiment: CafeExperiment,
   metricWeights: MetricWeights
 ): [Metric, number] {
   const highestWeightedMetric: Metric = getHighestWeightedMetric(metricWeights);
@@ -144,7 +144,7 @@ function getMetricCutoffScore(metric: Metric, metricValue: number): number {
   return score;
 }
 
-function evaluateCafeExperiment(curExperiment: Experiment<Simulation>) {
+function evaluateCafeExperiment(curExperiment: CafeExperiment) {
   let finalScore = 0;
 
   const evaluationMetricWeights: MetricWeights = {
@@ -186,12 +186,4 @@ function evaluateCafeExperiment(curExperiment: Experiment<Simulation>) {
   codeInfo.cleansContractions && (finalScore += pointsPerKeyElement);
 
   return finalScore;
-}
-
-export function evaluteExperiment(experiment: Experiment<Simulation>) {
-  if (experiment.gameId === "cafe") {
-    return evaluateCafeExperiment(experiment);
-  } else {
-    return 1;
-  }
 }

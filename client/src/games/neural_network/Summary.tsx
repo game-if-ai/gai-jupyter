@@ -13,11 +13,12 @@ import {
   TableBody,
 } from "@mui/material";
 import React from "react";
-import { Simulation } from "../simulator";
-import { NeuralNetworkSimulation } from "./simulator";
+import { NNSimulationOutput } from "./simulator";
 
-export function Summary(props: { simulation: Simulation }): JSX.Element {
-  const simulation = props.simulation as NeuralNetworkSimulation;
+export function Summary(props: {
+  simulation: NNSimulationOutput;
+}): JSX.Element {
+  const simulation = props.simulation;
 
   function round(n: number): string {
     return `${Math.round(n * 100 * 100) / 100}%`;
@@ -32,7 +33,7 @@ export function Summary(props: { simulation: Simulation }): JSX.Element {
       }}
     >
       <TableBody>
-        <TableRow>
+        {/* <TableRow>
           <TableCell align="center">Accuracy</TableCell>
           <TableCell align="center">{round(simulation.accuracy)}</TableCell>
         </TableRow>
@@ -47,7 +48,7 @@ export function Summary(props: { simulation: Simulation }): JSX.Element {
         <TableRow>
           <TableCell align="center">F1 Score</TableCell>
           <TableCell align="center">{round(simulation.f1Score)}</TableCell>
-        </TableRow>
+        </TableRow> */}
       </TableBody>
     </TableContainer>
   );

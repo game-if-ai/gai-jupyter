@@ -7,14 +7,14 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
+import { SIMULATION_TYPES } from "games/activity-types";
 import { Game } from "../games";
-import { Simulation } from "../games/simulator";
 
 export function useWithPhaserGame(
   gameContainerRef: React.MutableRefObject<HTMLDivElement | null>
 ) {
   const [game, setGame] = useState<Game>();
-  const [simulation, setSimulation] = useState<Simulation>();
+  const [simulation, setSimulation] = useState<SIMULATION_TYPES>();
   const [phaserGame, setPhaserGame] = useState<Phaser.Game>();
   const [eventSystem] = useState<Phaser.Events.EventEmitter>(
     new Phaser.Events.EventEmitter()
@@ -51,7 +51,7 @@ export function useWithPhaserGame(
     setPhaserGame(pg);
   }, [phaserGame, game, hasGame]);
 
-  function loadPhaserGame(game: Game, simulation?: Simulation): void {
+  function loadPhaserGame(game: Game, simulation?: SIMULATION_TYPES): void {
     if (phaserGame) {
       destroyPhaserGame();
     }

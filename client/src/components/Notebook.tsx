@@ -23,7 +23,6 @@ import { makeStyles } from "@mui/styles";
 import { PlayArrow, Info, Restore, ErrorOutline } from "@mui/icons-material";
 
 import { Activity, isGameActivity } from "../games";
-import { Experiment, Simulation } from "../games/simulator";
 import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
 import { useWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
@@ -37,10 +36,11 @@ import { ActionPopup } from "./Popup";
 import { ShortcutKeyboard } from "./ShortcutKeyboard";
 
 import "react-toastify/dist/ReactToastify.css";
+import { AllExperimentTypes } from "../games/activity-types";
 
 function NotebookComponent(props: {
   activity: Activity;
-  curExperiment: Experiment<Simulation> | undefined;
+  curExperiment: AllExperimentTypes | undefined;
   numRuns: number;
   setExperiment: (e: number) => void;
   viewSummary: () => void;
@@ -145,6 +145,9 @@ function NotebookComponent(props: {
   ]);
 
   function toSimulation(): void {
+    if (!notebook) {
+      return;
+    }
     activity.simulator.simulate(
       setupCellOutput,
       validationCellOutput,
@@ -156,6 +159,9 @@ function NotebookComponent(props: {
   }
 
   function toSummary(): void {
+    if (!notebook) {
+      return;
+    }
     activity.simulator.simulate(
       setupCellOutput,
       validationCellOutput,
@@ -240,7 +246,9 @@ function NotebookComponent(props: {
                 disabled={
                   hasError ||
                   isSaving ||
-                  !Boolean(setupCellOutput.length && validationCellOutput.length)
+                  !Boolean(
+                    setupCellOutput.length && validationCellOutput.length
+                  )
                 }
                 onClick={simulate}
               >

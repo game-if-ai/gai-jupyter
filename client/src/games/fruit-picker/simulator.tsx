@@ -6,8 +6,8 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { Fruit, Fruits, FruitTrait } from "./types";
-import { Experiment, Simulation, Simulator } from "../simulator";
-import { random, randomInt } from "../../utils";
+import { Experiment, Simulator } from "../simulator";
+import { average, random, randomInt } from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
 
@@ -15,9 +15,35 @@ export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
 export const CLASSIFIER_DELAY = 2000; // delay in ms for classifier catch speed at 0 confidence
 
+export type FruitPickerExperiment = Experiment<
+  FruitSimulationOutput,
+  FruitSimulationsSummary
+>;
+
 export interface FruitClassifierInput {
   fruit: Fruit;
   label: FruitTrait;
+}
+
+export interface FruitSimulationOutput {
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1Score: number;
+  label: FruitTrait;
+  matchLabel: string;
+  spawns: FruitSpawn[];
+}
+
+export interface FruitSimulationsSummary {
+  lowAccuracy: number;
+  highAccuracy: number;
+  averageAccuracy: number;
+  averagePrecision: number;
+  averageRecall: number;
+  averageF1Score: number;
+  lowF1Score: number;
+  highF1Score: number;
 }
 
 export interface FruitClassifierOutput {
@@ -29,21 +55,21 @@ export interface FruitClassifierOutput {
   confidence: number; // how confident the classifier was (0 to 1)
 }
 
-export interface FruitSimulation extends Simulation {
-  // accuracy: number;
-  label: FruitTrait;
-  matchLabel: string;
-  spawns: FruitSpawn[];
-}
-
 export interface FruitSpawn {
   fruit: Fruit;
   xPos: number;
   classifierOutput?: FruitClassifierOutput;
 }
 
-export class FruitSimulator extends Simulator<FruitSimulation> {
-  play() {
+export class FruitSimulator extends Simulator<
+  FruitSimulationOutput,
+  FruitSimulationsSummary
+> {
+  scoreExperiment(experiment: FruitPickerExperiment): number {
+    throw new Error("Method not implemented.");
+  }
+
+  play(): FruitSimulationOutput {
     const traits = Object.values(FruitTrait);
     const numFruitSpawned = Math.floor((GAME_TIME * 1000) / SPAWN_TIME);
     const label = traits[randomInt(traits.length)];
@@ -65,12 +91,31 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
     };
   }
 
+  updateSummary(
+    simulations: FruitSimulationOutput[],
+    summary: FruitSimulationsSummary
+  ): FruitSimulationsSummary {
+    const accuracies = simulations.map((s) => s.accuracy);
+    const precisions = simulations.map((s) => s.precision);
+    const recalls = simulations.map((s) => s.recall);
+    const f1Scores = simulations.map((s) => s.f1Score);
+    summary.lowAccuracy = Math.min(...accuracies);
+    summary.highAccuracy = Math.max(...accuracies);
+    summary.averageAccuracy = average(accuracies);
+    summary.averagePrecision = average(precisions);
+    summary.averageRecall = average(recalls);
+    summary.averageF1Score = average(f1Scores);
+    summary.lowF1Score = Math.min(...f1Scores);
+    summary.highF1Score = Math.max(...f1Scores);
+    return summary;
+  }
+
   simulate(
     inputs: number[],
     outputs: FruitClassifierOutput[][],
     notebook: INotebookState,
     gameId: ActivityID
-  ): Experiment<FruitSimulation> {
+  ): FruitPickerExperiment {
     const experiment = super.simulate(inputs, outputs, notebook, gameId);
     for (let run = 0; run < outputs.length; run++) {
       const sim = this.play();
@@ -149,6 +194,7 @@ export class FruitSimulator extends Simulator<FruitSimulation> {
       // sim.accuracy = (sumTruePositives + sumTrueNegatives) / (sumTruePositives + sumTrueNegatives + sumFalseNegatives + sumFalsePositives)
       experiment.simulations.push(sim);
     }
+
     experiment.summary = this.updateSummary(
       experiment.simulations,
       experiment.summary

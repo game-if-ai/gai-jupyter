@@ -30,6 +30,7 @@ import {
   useWithDialogue,
 } from "../hooks/use-with-dialogue";
 import { TooltipMsg } from "./Dialogue";
+import { AllExperimentTypes } from "games/activity-types";
 
 function round(n: number): string {
   return `${Math.round(n * 100)}%`;
@@ -320,13 +321,13 @@ function CurrentExperimentView(props: {
 }
 
 function Summary(props: {
-  experiment: Experiment<Simulation>;
+  experiment: AllExperimentTypes;
   isGameActivity: boolean;
-  previousExperiments: Experiment<Simulation>[];
+  previousExperiments: AllExperimentTypes[];
   runSimulation: (i: number) => void;
   goToNotebook: () => void;
   setExperiment: React.Dispatch<
-    React.SetStateAction<Experiment<Simulation> | undefined>
+    React.SetStateAction<AllExperimentTypes | undefined>
   >;
   onSubmit: () => void;
 }): JSX.Element {
@@ -344,7 +345,7 @@ function Summary(props: {
   const classes = useStyles();
   const dialogue = useWithDialogue();
 
-  function _setExperiment(experiment: Experiment<Simulation>) {
+  function _setExperiment(experiment: AllExperimentTypes) {
     setExperiment(experiment);
     setViewPreviousExperiments(false);
   }
