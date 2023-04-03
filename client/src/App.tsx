@@ -15,6 +15,9 @@ import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
 import { sessionStorageStore } from "./local-storage";
+import { ContentsManager } from "@jupyterlab/services";
+import { getUniqueUserId } from "./utils";
+import { TEMP_NOTEBOOK_DIR } from "./local-constants";
 import {
   AllExperimentTypes,
   GameExperimentTypes,
@@ -35,6 +38,37 @@ function App(): JSX.Element {
   const [experiment, setExperiment] = useState<AllExperimentTypes>();
   const [simulation, setSimulation] = useState<number>(0);
   const [numRuns, setNumRuns] = useState(0);
+  const [uniqueUserId, setUniqueUserId] = useState("");
+
+  useEffect(() => {
+    const uniqueId = getUniqueUserId();
+    setUniqueUserId(uniqueId);
+    const cm = new ContentsManager();
+    const removeOldFiles = Activities.map((activity) => {
+      return cm.delete(
+        `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
+      );
+    });
+
+    Promise.all(removeOldFiles);
+
+    cm.save(`/${TEMP_NOTEBOOK_DIR}/`, { type: "directory" }).then(() => {
+      cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, { type: "directory" }).then(
+        () => {
+          Activities.forEach((activity) => {
+            cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/`, {
+              type: "directory",
+            }).then(() => {
+              cm.copy(
+                `/${activity.id}/test.ipynb`,
+                `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
+              );
+            });
+          });
+        }
+      );
+    });
+  }, []);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -58,7 +92,7 @@ function App(): JSX.Element {
       try {
         Cmi5.instance.getLaunchParameters();
       } catch (err) {
-        console.error("cmi5 not available", err);
+        console.log("cmi5 not available");
       }
     }
   }, [activity]);
@@ -129,6 +163,7 @@ function App(): JSX.Element {
     } else if (step === STEP.NOTEBOOK) {
       return (
         <Notebook
+          uniqueUserId={uniqueUserId}
           activity={activity!}
           curExperiment={experiment}
           setExperiment={viewExperiment}

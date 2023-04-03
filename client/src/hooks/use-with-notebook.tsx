@@ -7,10 +7,16 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import { useEffect, useState } from "react";
-import { selectNotebook, selectNotebookModel } from "@datalayer/jupyter-react";
+import {
+  Kernel,
+  selectNotebook,
+  selectNotebookModel,
+  useJupyter,
+} from "@datalayer/jupyter-react";
+import { KernelManager } from "@jupyterlab/services";
+import { INotebookModel } from "@jupyterlab/notebook";
 import { CellList } from "@jupyterlab/notebook/lib/celllist";
 import { ICellModel } from "@jupyterlab/cells";
-import { INotebookModel } from "@jupyterlab/notebook";
 import {
   INotebookContent,
   IOutput,
@@ -171,6 +177,19 @@ export function useWithNotebook() {
       }
     }
   }
+
+  // async function run(kernelManager: KernelManager): Promise<void>{
+  //   if (!notebook || !notebook.model || !notebook.adapter) {
+  //     return;
+  //   }
+  //   const kernel: Kernel = new Kernel({
+  //     kernelManager: kernelManager,
+  //     kernelName: "python3"
+  //   });
+  //   notebook.adapter.changeKernel(kernel)
+  //   await notebook.adapter.commands.execute("notebook:run-all");
+  //   //kernel.shutdown();
+  // }
 
   function editCode(cell: string, code: string): void {
     cells[cell].code = code;

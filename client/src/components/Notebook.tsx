@@ -6,9 +6,16 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
+import {
+  Kernel,
+  Notebook,
+  Output,
+  selectNotebook,
+  useJupyter,
+} from "@datalayer/jupyter-react";
+import { KernelManager } from "@jupyterlab/services";
 import React, { useEffect, useRef, useState } from "react";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
-import { Notebook, Output, selectNotebook } from "@datalayer/jupyter-react";
 import {
   AppBar,
   Button,
@@ -26,8 +33,12 @@ import { Activity, isGameActivity } from "../games";
 import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../hooks/use-with-dialogue";
 import { useWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
+import {
+  GaiCellTypes,
+  NOTEBOOK_UID,
+  TEMP_NOTEBOOK_DIR,
+} from "../local-constants";
 import { useWithImproveCode } from "../games/cafe/hooks/use-with-improve-cafe-code";
-import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { sessionStorageGet, sessionStorageStore } from "../local-storage";
 import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
@@ -39,6 +50,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { AllExperimentTypes } from "../games/activity-types";
 
 function NotebookComponent(props: {
+  uniqueUserId: string;
   activity: Activity;
   curExperiment: AllExperimentTypes | undefined;
   numRuns: number;
@@ -47,11 +59,11 @@ function NotebookComponent(props: {
   runSimulation: (i: number) => void;
   notebookRan: () => void;
 }): JSX.Element {
-  const { activity, curExperiment, numRuns, notebookRan } = props;
   const classes = useStyles();
   const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const shortcutKeyboard = useWithShortcutKeys();
+  const { activity, curExperiment, notebookRan, numRuns, uniqueUserId } = props;
   const {
     cells,
     setupCellOutput,
@@ -75,10 +87,23 @@ function NotebookComponent(props: {
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [showResults, setShowResults] = useState<boolean>(false);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
+  const [kernel, setKernel] = useState<Kernel>();
+  const [didScroll, setDidScroll] = useState<boolean>(false);
 
   const [pastExperiments] = useState(props.activity.simulator.experiments);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const kernelManager: KernelManager = useJupyter()
+    .kernelManager as KernelManager;
+
+  useEffect(() => {
+    if (!kernelManager || kernel) {
+      return;
+    }
+    const newKernel = new Kernel({ kernelManager, kernelName: "python" });
+    setKernel(newKernel);
+  }, [kernelManager]);
 
   useEffect(() => {
     if (showDescription || sawTutorial) {
@@ -118,7 +143,6 @@ function NotebookComponent(props: {
     }
   }, [showDescription, showTutorial, sawTutorial]);
 
-  const [didScroll, setDidScroll] = useState<boolean>(false);
   useEffect(() => {
     if (
       !didScroll &&
@@ -280,6 +304,7 @@ function NotebookComponent(props: {
       <div style={{ display: "none" }}>
         <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
+          kernel={kernel}
           model={
             loadedWithExperiment && curExperiment?.notebookContent
               ? curExperiment.notebookContent
@@ -288,7 +313,7 @@ function NotebookComponent(props: {
           path={
             loadedWithExperiment && curExperiment?.notebookContent
               ? undefined
-              : `${props.activity.id}/test.ipynb`
+              : `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${props.activity.id}/test.ipynb`
           }
           uid={NOTEBOOK_UID}
         />
