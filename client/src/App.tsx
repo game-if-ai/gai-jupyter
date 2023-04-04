@@ -22,6 +22,7 @@ import {
   AllExperimentTypes,
   GameExperimentTypes,
 } from "./games/activity-types";
+import { CircularProgress } from "@mui/material";
 
 enum STEP {
   PICK_GAME,
@@ -39,6 +40,7 @@ function App(): JSX.Element {
   const [simulation, setSimulation] = useState<number>(0);
   const [numRuns, setNumRuns] = useState(0);
   const [uniqueUserId, setUniqueUserId] = useState("");
+  const [notebooksCreated, setNotebooksCreated] = useState(false);
 
   useEffect(() => {
     const uniqueId = getUniqueUserId();
@@ -55,15 +57,25 @@ function App(): JSX.Element {
     cm.save(`/${TEMP_NOTEBOOK_DIR}/`, { type: "directory" }).then(() => {
       cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, { type: "directory" }).then(
         () => {
-          Activities.forEach((activity) => {
-            cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/`, {
-              type: "directory",
-            }).then(() => {
-              cm.copy(
+          const notebookCreationPromises = [
+            ...Activities.map(async (activity) => {
+              return await cm.save(
+                `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/`,
+                {
+                  type: "directory",
+                }
+              );
+            }),
+            ...Activities.map(async (activity) => {
+              return await cm.copy(
                 `/${activity.id}/test.ipynb`,
                 `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
               );
-            });
+            }),
+          ];
+
+          Promise.all(notebookCreationPromises).then(() => {
+            setNotebooksCreated(true);
           });
         }
       );
@@ -161,6 +173,9 @@ function App(): JSX.Element {
     if (step === STEP.PICK_GAME) {
       return <ActivityPicker loadActivity={loadActivity} />;
     } else if (step === STEP.NOTEBOOK) {
+      if (!notebooksCreated) {
+        return <CircularProgress />;
+      }
       return (
         <Notebook
           uniqueUserId={uniqueUserId}
