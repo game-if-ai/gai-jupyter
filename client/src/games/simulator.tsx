@@ -34,7 +34,7 @@ export abstract class Simulator<SimulationOutput, Summary, CodeInfo> {
 
   simulate(
     inputs: number[],
-    outputs: any[][],
+    outputs: any,
     notebook: INotebookState | undefined,
     activityId: ActivityID
   ): Experiment<SimulationOutput, Summary, CodeInfo> {

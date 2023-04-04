@@ -37,7 +37,6 @@ export function useWithImproveCode(props: {
   const { codeInfo, loadStatus: codeInfoLoadStatus } =
     activeActivity.codeExamine(props.userCode, props.validationCellOutput);
   const { improveCodeHints } = activeActivity;
-  console.log(codeInfo);
   function toastHint() {
     let activeHintIndexCopy = activeHintIndex;
     if (activeHintIndex === -1) {

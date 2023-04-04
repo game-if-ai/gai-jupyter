@@ -58,6 +58,7 @@ function App(): JSX.Element {
       cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, { type: "directory" }).then(
         () => {
           const notebookCreationPromises = [
+            // Create directories
             ...Activities.map(async (activity) => {
               return await cm.save(
                 `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/`,
@@ -66,6 +67,7 @@ function App(): JSX.Element {
                 }
               );
             }),
+            // Copy files into directories
             ...Activities.map(async (activity) => {
               return await cm.copy(
                 `/${activity.id}/test.ipynb`,

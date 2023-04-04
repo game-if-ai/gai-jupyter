@@ -8,10 +8,12 @@ import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
 import { Experiment, Simulator } from "../simulator";
 import { NMTCodeInfo } from "./hooks/use-with-nn-code-examine";
+import { getAllNMTCodeInfo } from "./hooks/examine-nn-code-helpers";
+import { extractAllUserInputCode } from "../../utils";
 
 export interface NMTSimulationOutput {}
 
-export interface NMTClassifierOutput {}
+export type NMTClassifierOutput = string[];
 
 export interface NMTSimulationsSummary {}
 
@@ -43,14 +45,20 @@ export class NMTSimulator extends Simulator<
 
   simulate(
     inputs: number[],
-    outputs: NMTClassifierOutput[][],
+    outputs: NMTClassifierOutput,
     notebook: INotebookState,
     activityId: ActivityID
   ): NMTExperiment {
     const experiment = super.simulate(inputs, outputs, notebook, activityId);
-    // if (experiment.simulations.length > 0) {
+    if (experiment.notebookContent) {
+      experiment.codeInfo = getAllNMTCodeInfo(
+        extractAllUserInputCode(experiment.notebookContent),
+        outputs
+      );
+    }
+    experiment.evaluationScore = this.scoreExperiment(experiment);
     this.experiments.push(experiment);
-    //   }
+
     experiment.evaluationScore = this.scoreExperiment(experiment);
     return experiment;
   }

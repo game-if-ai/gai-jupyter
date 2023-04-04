@@ -17,6 +17,8 @@ import { CafePreviousExperimentsView } from "../games/cafe/components/previous-e
 import { FruitPickerCurrentExperimentView } from "../games/fruit-picker/components/current-experiment-view";
 import { FruitPickerExperiment } from "../games/fruit-picker/simulator";
 import { FruitPickerPreviousExperimentsView } from "../games/fruit-picker/components/previous-experiment-view";
+import { NMTCurrentExperimentView } from "../games/neural_machine_translation/components/current-experiment-view";
+import { NMTExperiment } from "../games/neural_machine_translation/simulator";
 
 function Summary(props: {
   experiment: AllExperimentTypes;
@@ -102,13 +104,22 @@ function Summary(props: {
           />
         );
       case "neural_machine_translation":
-        return <div></div>;
+        return (
+          <NMTCurrentExperimentView
+            classes={classes}
+            currentExperiment={experiment as NMTExperiment}
+            dialogue={dialogue}
+            runSimulation={runSimulation}
+            goToNotebook={goToNotebook}
+            onSubmit={onSubmit}
+          />
+        );
       default:
         return <div />;
     }
   }
 
-  function previousExperimentView() {
+  function previousExperimentView(): JSX.Element | undefined {
     switch (experiment.activityId) {
       case "cafe":
         return (
@@ -131,15 +142,15 @@ function Summary(props: {
           />
         );
       case "neural_machine_translation":
-        return <div></div>;
+        return undefined;
       default:
-        return <div />;
+        return undefined;
     }
   }
 
   return (
     <div>
-      {previousExperiments.length > 0 ? (
+      {previousExperiments.length > 0 && Boolean(previousExperimentView()) ? (
         <Button
           onClick={() => setViewPreviousExperiments((prevValue) => !prevValue)}
         >

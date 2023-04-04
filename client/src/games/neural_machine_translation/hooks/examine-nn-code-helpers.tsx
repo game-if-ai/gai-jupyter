@@ -34,7 +34,6 @@ function outputCorrectlyFormatted(validationCellOutput: string[]): boolean {
 function preprocessedDataCorrectDimensions(
   validationCellOutput: string[]
 ): boolean {
-  console.log(validationCellOutput);
   return (
     Boolean(
       validationCellOutput.find((outputLine) =>
@@ -50,7 +49,6 @@ function preprocessedDataCorrectDimensions(
 }
 
 function dataIsNumpyArray(validationCellOutput: string[]): boolean {
-  console.log(validationCellOutput);
   return (
     Boolean(
       validationCellOutput.find((outputLine) =>
@@ -107,7 +105,6 @@ export function isRemovingStopwords(userCode: string[]): boolean {
 export function extractNMTCellOutput(cell: ICellModel): string[] {
   const cellData = cell.toJSON();
   const cellOutputs = cellData.outputs as IOutput[];
-  console.log(cellOutputs);
   return cellOutputs.reduce((acc: string[], curOutput) => {
     if (isError(curOutput)) {
       return [...acc, curOutput.ename, curOutput.evalue];
@@ -120,7 +117,6 @@ export function extractNMTCellOutput(cell: ICellModel): string[] {
         ? [...acc, ...splitListOfStringsBy(textOutput, "\n")]
         : [...acc, ...textOutput.split("\n")];
     } else {
-      console.log("unknown data");
       try {
         const outputData =
           (curOutput.data &&
