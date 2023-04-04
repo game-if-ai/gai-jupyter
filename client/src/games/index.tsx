@@ -9,6 +9,8 @@ import { Completion } from "@codemirror/autocomplete";
 import { Simulator } from "./simulator";
 import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
+import { ICellModel } from "@jupyterlab/cells";
+
 import NeuralMachineTranslation from "./neural_machine_translation";
 import {
   AllSimulatorTypes,
@@ -33,8 +35,12 @@ export interface Activity {
   description: string;
   autocompletion?: Completion[];
   simulator: AllSimulatorTypes;
-  codeExamine: (userCode: Record<string, string[]>) => LoadedCodeInfo;
+  codeExamine: (
+    userCode: Record<string, string[]>,
+    validationCellOutput: any
+  ) => LoadedCodeInfo;
   improveCodeHints: ImproveCodeHint[];
+  extractValidationCellOutput?: (cell: ICellModel) => any;
 }
 
 export interface Game extends Activity {

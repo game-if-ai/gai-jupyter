@@ -5,9 +5,9 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import { IOutput, isError, isStream } from "@jupyterlab/nbformat";
-
 import { JsonView, defaultStyles } from "react-json-view-lite";
 import "react-json-view-lite/dist/index.css";
+import { splitListOfStringsBy } from "../utils";
 
 export function Output(props: { outputs: IOutput[] }): JSX.Element {
   const { outputs } = props;
@@ -16,16 +16,24 @@ export function Output(props: { outputs: IOutput[] }): JSX.Element {
     <div>
       {outputs.map((output, i) => {
         if (!output) {
-          return <></>;
+          return <div key={i}></div>;
+        }
+        if (
+          isStream(output) &&
+          output.text.includes("you can ignore this message")
+        ) {
+          // TODO: This is a hack to ignore messages from tensorflow that we don't need to see, need to turn off messages some other way
+          return <div key={i}></div>;
         }
         if (isStream(output)) {
           const data = Array.isArray(output.text) ? output.text : [output.text];
+          const effectiveData = splitListOfStringsBy(data, "\n");
           return (
             <div
               key={i}
               style={{ height: "fit-content", backgroundColor: "lightyellow" }}
             >
-              {data.map((line) => {
+              {effectiveData.map((line) => {
                 return <div>{line}</div>;
               })}
             </div>

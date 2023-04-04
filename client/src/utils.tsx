@@ -146,6 +146,12 @@ export function extractValidationCellOutput<T>(cell: ICellModel): T[][] {
   return data;
 }
 
+export function splitListOfStringsBy(strings: string[], delimiter: string) {
+  return strings.reduce((acc: string[], curString) => {
+    return [...acc, ...curString.split(delimiter)];
+  }, []);
+}
+
 function f1ScoreComparison(a: GameExperimentTypes, b: GameExperimentTypes) {
   if (a.summary.averageF1Score < b.summary.averageF1Score) {
     return -1;

@@ -11,7 +11,16 @@ import { getAllNMTCodeInfo } from "./examine-nn-code-helpers";
 type LoadStatus = "LOADING" | "LOADED";
 
 export interface NMTCodeInfo {
-  removesStopwords: boolean;
+  // Before run
+  preprocessWithTokenizer: boolean;
+  padsData: boolean;
+  reshapesData: boolean;
+  utilizesTokenizerWordIndex: boolean;
+  utilizesArgmax: boolean;
+  // Post run
+  dataIsNumpyArray: boolean;
+  preprocessedDataCorrectDimensions: boolean;
+  outputCorrectlyFormatted: boolean;
 }
 
 export interface UserCodeInfoLoad extends NMTCodeInfo {
@@ -24,10 +33,19 @@ interface UseWithNNCodeExamine {
 }
 
 export function useWithNMTCodeExamine(
-  userCode: Record<string, string[]>
+  userCode: Record<string, string[]>,
+  validationCellOutput: any[]
 ): UseWithNNCodeExamine {
   const [nnCodeInfo, setNNCodeinfo] = useState<UserCodeInfoLoad>({
-    removesStopwords: false,
+    preprocessWithTokenizer: false,
+    padsData: false,
+    reshapesData: false,
+    utilizesTokenizerWordIndex: false,
+    utilizesArgmax: false,
+    // Post run
+    dataIsNumpyArray: false,
+    preprocessedDataCorrectDimensions: false,
+    outputCorrectlyFormatted: false,
     loadStatus: "LOADING",
   });
 
@@ -37,10 +55,10 @@ export function useWithNMTCodeExamine(
     }
     const allUserInputCode = Object.values(userCode).flat();
     setNNCodeinfo({
-      ...getAllNMTCodeInfo(allUserInputCode),
+      ...getAllNMTCodeInfo(allUserInputCode, validationCellOutput as string[]),
       loadStatus: "LOADED",
     });
-  }, [userCode]);
+  }, [userCode, validationCellOutput]);
 
   return {
     codeInfo: nnCodeInfo,
