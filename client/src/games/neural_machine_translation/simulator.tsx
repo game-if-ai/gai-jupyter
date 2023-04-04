@@ -7,46 +7,46 @@ The full terms of this copyright and license should always be found in the root 
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
 import { Experiment, Simulator } from "../simulator";
-import { NNCodeInfo } from "./hooks/use-with-nn-code-examine";
+import { NMTCodeInfo } from "./hooks/use-with-nn-code-examine";
 
-export interface NNSimulationOutput {}
+export interface NMTSimulationOutput {}
 
-export interface NNClassifierOutput {}
+export interface NMTClassifierOutput {}
 
-export interface NNSimulationsSummary {}
+export interface NMTSimulationsSummary {}
 
-export type NNExperiment = Experiment<
-  NNSimulationOutput,
-  NNSimulationsSummary,
-  NNCodeInfo
+export type NMTExperiment = Experiment<
+  NMTSimulationOutput,
+  NMTSimulationsSummary,
+  NMTCodeInfo
 >;
 
-export class NeuralNetworkSimulator extends Simulator<
-  NNSimulationOutput,
-  NNSimulationsSummary,
-  NNCodeInfo
+export class NMTSimulator extends Simulator<
+  NMTSimulationOutput,
+  NMTSimulationsSummary,
+  NMTCodeInfo
 > {
-  scoreExperiment(experiment: NNExperiment): number {
+  scoreExperiment(experiment: NMTExperiment): number {
     throw new Error("Method not implemented.");
   }
 
   updateSummary(
-    simulations: NNSimulationOutput[],
-    summary: NNSimulationsSummary
-  ): NNSimulationsSummary {
+    simulations: NMTSimulationOutput[],
+    summary: NMTSimulationsSummary
+  ): NMTSimulationsSummary {
     throw new Error("Method not implemented.");
   }
 
-  play(): NNSimulationOutput {
+  play(): NMTSimulationOutput {
     return {};
   }
 
   simulate(
     inputs: number[],
-    outputs: NNClassifierOutput[][],
+    outputs: NMTClassifierOutput[][],
     notebook: INotebookState,
     activityId: ActivityID
-  ): NNExperiment {
+  ): NMTExperiment {
     const experiment = super.simulate(inputs, outputs, notebook, activityId);
     // if (experiment.simulations.length > 0) {
     this.experiments.push(experiment);

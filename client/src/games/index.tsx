@@ -9,7 +9,7 @@ import { Completion } from "@codemirror/autocomplete";
 import { Simulator } from "./simulator";
 import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
-import NeuralNetwork from "./neural_network";
+import NeuralMachineTranslation from "./neural_machine_translation";
 import {
   AllSimulatorTypes,
   CodeInfoTypes,
@@ -17,7 +17,7 @@ import {
 } from "./activity-types";
 import { ImproveCodeHint } from "../hooks/use-with-improve-code";
 
-export type ActivityID = "fruitpicker" | "cafe" | "neural_network";
+export type ActivityID = "fruitpicker" | "cafe" | "neural_machine_translation";
 export type ActivityType = "GAME" | "NOTEBOOK_ONLY";
 type LoadStatus = "LOADING" | "LOADED";
 
@@ -56,4 +56,8 @@ export interface GameParams<Simulation, SimulationsSummary, CodeInfo> {
   simulation?: Simulation;
 }
 
-export const Activities: Activity[] = [NeuralNetwork, FruitPicker, Cafe];
+export const Activities: Activity[] = [
+  NeuralMachineTranslation,
+  FruitPicker,
+  Cafe,
+];

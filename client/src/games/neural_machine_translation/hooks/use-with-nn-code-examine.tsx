@@ -6,24 +6,24 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { useEffect, useState } from "react";
-import { getAllNNCodeInfo } from "./examine-nn-code-helpers";
+import { getAllNMTCodeInfo } from "./examine-nn-code-helpers";
 
 type LoadStatus = "LOADING" | "LOADED";
 
-export interface NNCodeInfo {
+export interface NMTCodeInfo {
   removesStopwords: boolean;
 }
 
-export interface UserCodeInfoLoad extends NNCodeInfo {
+export interface UserCodeInfoLoad extends NMTCodeInfo {
   loadStatus: LoadStatus;
 }
 
 interface UseWithNNCodeExamine {
-  codeInfo: NNCodeInfo;
+  codeInfo: NMTCodeInfo;
   loadStatus: LoadStatus;
 }
 
-export function useWithNNCodeExamine(
+export function useWithNMTCodeExamine(
   userCode: Record<string, string[]>
 ): UseWithNNCodeExamine {
   const [nnCodeInfo, setNNCodeinfo] = useState<UserCodeInfoLoad>({
@@ -37,7 +37,7 @@ export function useWithNNCodeExamine(
     }
     const allUserInputCode = Object.values(userCode).flat();
     setNNCodeinfo({
-      ...getAllNNCodeInfo(allUserInputCode),
+      ...getAllNMTCodeInfo(allUserInputCode),
       loadStatus: "LOADED",
     });
   }, [userCode]);

@@ -6,18 +6,18 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { Activity } from "..";
-import { useWithNNCodeExamine } from "./hooks/use-with-nn-code-examine";
-import { NeuralNetworkSimulator } from "./simulator";
+import { useWithNMTCodeExamine } from "./hooks/use-with-nn-code-examine";
+import { NMTSimulator } from "./simulator";
 
-export const NeuralNetwork: Activity = {
-  id: "neural_network",
-  title: "Neural Network",
+export const NeuralMachineTranslation: Activity = {
+  id: "neural_machine_translation",
+  title: "Neural Machine Translation",
   activityType: "NOTEBOOK_ONLY",
   description:
-    "You are trying to build a classifier to select fruit based on their physical traits.",
-  simulator: new NeuralNetworkSimulator(),
+    "You are both trying to preprocess data to be input into a neural network as well as postprocess the data output from the neural network.",
+  simulator: new NMTSimulator(),
   improveCodeHints: [],
-  codeExamine: useWithNNCodeExamine,
+  codeExamine: useWithNMTCodeExamine,
 };
 
-export default NeuralNetwork;
+export default NeuralMachineTranslation;

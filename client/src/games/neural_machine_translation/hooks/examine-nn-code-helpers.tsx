@@ -1,6 +1,6 @@
-import { NNCodeInfo } from "./use-with-nn-code-examine";
+import { NMTCodeInfo } from "./use-with-nn-code-examine";
 
-export function getAllNNCodeInfo(userCode: string[]): NNCodeInfo {
+export function getAllNMTCodeInfo(userCode: string[]): NMTCodeInfo {
   return {
     removesStopwords: isRemovingStopwords(userCode),
   };

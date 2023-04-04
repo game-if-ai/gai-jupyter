@@ -101,7 +101,7 @@ function Summary(props: {
             onSubmit={onSubmit}
           />
         );
-      case "neural_network":
+      case "neural_machine_translation":
         return <div></div>;
       default:
         return <div />;
@@ -130,7 +130,7 @@ function Summary(props: {
             currentExperiment={experiment as FruitPickerExperiment}
           />
         );
-      case "neural_network":
+      case "neural_machine_translation":
         return <div></div>;
       default:
         return <div />;

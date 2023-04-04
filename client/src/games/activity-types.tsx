@@ -14,29 +14,26 @@ import {
   FruitSimulationOutput,
 } from "./fruit-picker/simulator";
 import {
-  NNExperiment,
-  NNSimulationOutput,
-  NeuralNetworkSimulator,
-} from "./neural_network/simulator";
+  NMTExperiment,
+  NMTSimulationOutput,
+  NMTSimulator,
+} from "./neural_machine_translation/simulator";
 import { FruitSimulator } from "./fruit-picker/simulator";
 import { CafeCodeInfo } from "./cafe/hooks/use-with-cafe-code-examine";
 import { FruitPickerCodeInfo } from "./fruit-picker/hooks/use-with-fruit-picker-code-examine";
-import { NNCodeInfo } from "./neural_network/hooks/use-with-nn-code-examine";
+import { NMTCodeInfo } from "./neural_machine_translation/hooks/use-with-nn-code-examine";
 
 export type SIMULATION_TYPES =
   | CafeSimulationOutput
   | FruitSimulationOutput
-  | NNSimulationOutput;
+  | NMTSimulationOutput;
 
 export type AllExperimentTypes =
   | CafeExperiment
   | FruitPickerExperiment
-  | NNExperiment;
+  | NMTExperiment;
 export type GameExperimentTypes = CafeExperiment | FruitPickerExperiment;
 
-export type AllSimulatorTypes =
-  | NeuralNetworkSimulator
-  | FruitSimulator
-  | CafeSimulator;
+export type AllSimulatorTypes = NMTSimulator | FruitSimulator | CafeSimulator;
 
-export type CodeInfoTypes = CafeCodeInfo | FruitPickerCodeInfo | NNCodeInfo;
+export type CodeInfoTypes = CafeCodeInfo | FruitPickerCodeInfo | NMTCodeInfo;
