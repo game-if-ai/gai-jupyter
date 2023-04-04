@@ -27,14 +27,14 @@ export class NMTSimulator extends Simulator<
   NMTCodeInfo
 > {
   scoreExperiment(experiment: NMTExperiment): number {
-    throw new Error("Method not implemented.");
+    return experiment.codeInfo.outputCorrectlyFormatted ? 1 : 0;
   }
 
   updateSummary(
     simulations: NMTSimulationOutput[],
     summary: NMTSimulationsSummary
   ): NMTSimulationsSummary {
-    throw new Error("Method not implemented.");
+    return {};
   }
 
   play(): NMTSimulationOutput {

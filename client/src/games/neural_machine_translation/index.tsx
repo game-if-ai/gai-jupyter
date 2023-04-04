@@ -6,6 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { Activity } from "..";
+import { extractNMTCellOutput } from "./hooks/examine-nn-code-helpers";
 import { useWithNMTCodeExamine } from "./hooks/use-with-nn-code-examine";
 import { NMTSimulator } from "./simulator";
 
@@ -18,6 +19,7 @@ export const NeuralMachineTranslation: Activity = {
   simulator: new NMTSimulator(),
   improveCodeHints: [],
   codeExamine: useWithNMTCodeExamine,
+  extractValidationCellOutput: extractNMTCellOutput,
 };
 
 export default NeuralMachineTranslation;

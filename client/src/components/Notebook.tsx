@@ -72,10 +72,11 @@ function NotebookComponent(props: {
     isSaving,
     editCode,
     resetCode,
-  } = useWithNotebook();
+  } = useWithNotebook({ curActivity: activity });
 
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
+    validationCellOutput: validationCellOutput,
     numCodeRuns: numRuns,
     activeActivity: activity,
   });

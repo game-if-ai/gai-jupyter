@@ -33,6 +33,7 @@ import {
   extractCellCode,
 } from "../utils";
 import { AllExperimentTypes } from "games/activity-types";
+import { Activity } from "../games";
 
 export interface CellState {
   cell: ICellModel;
@@ -45,7 +46,8 @@ export type CellsStates = Record<string, CellState>;
 
 export type UserInputCellsCode = Record<string, string[]>;
 
-export function useWithNotebook() {
+export function useWithNotebook(props: { curActivity: Activity }) {
+  const { curActivity } = props;
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
@@ -132,7 +134,11 @@ export function useWithNotebook() {
           setSetupCellOutput(extractSetupCellOutput(changedCell));
         }
         if (cellType === GaiCellTypes.VALIDATION) {
-          setValidationCellOutput(extractValidationCellOutput(changedCell));
+          setValidationCellOutput(
+            curActivity.extractValidationCellOutput
+              ? curActivity.extractValidationCellOutput(changedCell)
+              : extractValidationCellOutput(changedCell)
+          );
         }
         setCells((prevValue) => {
           return {

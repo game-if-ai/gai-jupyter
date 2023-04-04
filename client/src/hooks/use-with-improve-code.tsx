@@ -25,6 +25,7 @@ export interface UseWithImproveCode {
 
 export function useWithImproveCode(props: {
   userCode: Record<string, string[]>;
+  validationCellOutput: any[];
   numCodeRuns: number;
   activeActivity: Activity;
 }): UseWithImproveCode {
@@ -34,9 +35,9 @@ export function useWithImproveCode(props: {
   const [returningToNotebook] = useState(numCodeRuns > 0); // only evaluates on initial load
   const [activeToasts, setActiveToasts] = useState<ImproveCodeHint[]>([]);
   const { codeInfo, loadStatus: codeInfoLoadStatus } =
-    activeActivity.codeExamine(props.userCode);
+    activeActivity.codeExamine(props.userCode, props.validationCellOutput);
   const { improveCodeHints } = activeActivity;
-
+  console.log(codeInfo);
   function toastHint() {
     let activeHintIndexCopy = activeHintIndex;
     if (activeHintIndex === -1) {
