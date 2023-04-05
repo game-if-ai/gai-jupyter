@@ -5,6 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
+import { apply } from "../../utils";
 import { Activity } from "..";
 import { extractNMTCellOutput } from "./hooks/examine-nn-code-helpers";
 import {
@@ -26,7 +27,7 @@ export const NeuralMachineTranslation: Activity = {
         "When using word data with a neural network, it is crucial to first tokenize it. (Consider using the tokenizers fit_to_texts and texts_to_sequences functions)",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
-        return !(nmtCodeInfo as NMTCodeInfo).utilizesTokenizerWordIndex;
+        return !(nmtCodeInfo as NMTCodeInfo).preprocessWithTokenizer;
       },
     },
     {
@@ -83,6 +84,38 @@ export const NeuralMachineTranslation: Activity = {
       active: () => {
         return true;
       },
+    },
+  ],
+  autocompletion: [
+    {
+      label: "tokenizer.fit_on_texts(x)",
+      type: "text",
+      apply,
+      detail: "",
+    },
+    {
+      label: "tokenizer.texts_to_sequences(x)",
+      type: "text",
+      apply,
+      detail: "",
+    },
+    {
+      label: 'tokenizer.pad_sequences(x, padding="post")',
+      type: "text",
+      apply,
+      detail: "",
+    },
+    {
+      label: "tokenizer.word_index",
+      type: "text",
+      apply,
+      detail: "",
+    },
+    {
+      label: "np.argmax(logits, 1)",
+      type: "text",
+      apply,
+      detail: "",
     },
   ],
   codeExamine: useWithNMTCodeExamine,

@@ -15,6 +15,7 @@ import {
   CafeCodeInfo,
   useWithCafeCodeExamine,
 } from "./hooks/use-with-cafe-code-examine";
+import { apply } from "../../utils";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -38,29 +39,96 @@ export const Cafe: Game = {
     "You are trying to build a classifier to recommend products based on their reviews.",
   config: GameConfig,
   autocompletion: [
+    // NAIVE BAYES
     {
-      label: "sklearn.naive_bayes",
+      label: "from sklearn.naive_bayes import MultinomialNB",
       type: "text",
-      apply: "sklearn.naive_bayes import MultinomialNB",
+      apply,
       detail: "import Naive Bayes",
     },
     {
-      label: "sklearn.naive_bayes",
+      label: "classifier = MultinomialNB()",
       type: "text",
-      apply: "naive_bayes = MultinomialNB()",
+      apply,
       detail: "create Naive Bayes model",
     },
+    // LOGISTIC REGRESSION
     {
-      label: "sklearn.naive_bayes",
+      label: "from sklearn.linear_model import LogisticRegression",
       type: "text",
-      apply: "naive_bayes.fit()",
-      detail: "train Naive Bayes model",
+      apply,
+      detail: "import Logistic Regression",
     },
     {
-      label: "sklearn.naive_bayes",
+      label: "classifier = LogisticRegression()",
       type: "text",
-      apply: "naive_bayes.predict()",
-      detail: "evaluate Naive Bayes model",
+      apply,
+      detail: "create Logistic Regression model",
+    },
+    //  HASHING
+    {
+      label: "from sklearn.feature_extraction.text import HashingVectorizer",
+      type: "text",
+      apply,
+      detail: "import HashingVectorizer feature extractor",
+    },
+    {
+      label: "vectorizer = HashingVectorizer()",
+      type: "text",
+      apply,
+      detail: "create Hashing Vectorizer object",
+    },
+    //  TFIDF
+    {
+      label: "from sklearn.feature_extraction.text import TfidfVectorizer",
+      type: "text",
+      apply,
+      detail: "import TFIDF feature extractor",
+    },
+    {
+      label: "vectorizer = TfidfVectorizer()",
+      type: "text",
+      apply,
+      detail: "create TFIDF vectorizer object",
+    },
+    //  COUNT
+    {
+      label: "from sklearn.feature_extraction.text import CountVectorizer",
+      type: "text",
+      apply,
+      detail: "import CountVectorizer feature extractor",
+    },
+    {
+      label: "vectorizer = CountVectorizer()",
+      type: "text",
+      apply,
+      detail: "create CountVectorizer object",
+    },
+    //  general vectorizer function calls
+    {
+      label: "vectorizer.fit_transform()",
+      type: "property",
+      apply,
+      detail: "",
+    },
+    {
+      label: "vectorizer.transform()",
+      type: "property",
+      apply,
+      detail: "",
+    },
+    // general classifier functions
+    {
+      label: "classifier.fit()",
+      type: "property",
+      apply,
+      detail: "train Logistic Regression model",
+    },
+    {
+      label: "classifier.predict()",
+      type: "property",
+      apply,
+      detail: "evaluate Logistic Regression model",
     },
   ],
   improveCodeHints: [

@@ -76,7 +76,7 @@ function App(): JSX.Element {
             }),
           ];
 
-          Promise.all(notebookCreationPromises).then(() => {
+          Promise.all(notebookCreationPromises).finally(() => {
             setNotebooksCreated(true);
           });
         }

@@ -4,6 +4,8 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+import { Completion } from "@codemirror/autocomplete";
+
 import { INotebookState, newUuid } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
@@ -13,6 +15,7 @@ import { GaiCellTypes, UNIQUE_USER_ID_LS } from "./local-constants";
 import { UserInputCellsCode } from "./hooks/use-with-notebook";
 import { localStorageGet, localStorageStore } from "./local-storage";
 import { GameExperimentTypes } from "games/activity-types";
+import { EditorView } from "codemirror";
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
   return [...a.slice(0, i), item, ...a.slice(i + 1)];
@@ -199,3 +202,48 @@ export function extractAllUserInputCode(notebookContent: INotebookContent) {
     : {};
   return Object.values(notebookEditableCode).flat();
 }
+
+/**
+ * Replaces the entire label with the text of the label
+ */
+export const apply = (view: EditorView, completion: Completion) => {
+  var cursorPos = view.state.selection.main.head;
+  var line = view.state.doc.lineAt(cursorPos);
+  var cursorStartingPosition = cursorPos;
+  var wordStart = cursorPos;
+  const lineTextUpToCursor = view.state.doc
+    .slice(line.from, cursorStartingPosition)
+    .toJSON()
+    .toString();
+  // Move word start down by 1 until string is not longer a substring of the label
+  while (
+    wordStart > 0 &&
+    completion.label
+      .toLowerCase()
+      .includes(
+        lineTextUpToCursor
+          .slice(wordStart - 1, cursorStartingPosition)
+          .toLowerCase()
+      )
+  ) {
+    wordStart--;
+  }
+  var labelStart = line.from + wordStart;
+  var labelEnd = cursorPos;
+
+  // Ensure there is a space between the autocomplete and the preceding word
+  var docContent = view.state.sliceDoc(0);
+  if (labelStart !== line.from && docContent.charAt(labelStart - 1) !== " ") {
+    labelStart++;
+  }
+
+  var replaceText = completion.label;
+  view.dispatch({
+    changes: {
+      from: labelStart,
+      to: labelEnd,
+      insert: replaceText,
+    },
+  });
+  return true;
+};
