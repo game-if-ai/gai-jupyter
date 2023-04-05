@@ -13,6 +13,7 @@ import {
   selectNotebook,
   useJupyter,
 } from "@datalayer/jupyter-react";
+
 import { KernelManager } from "@jupyterlab/services";
 import React, { useEffect, useRef, useState } from "react";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
@@ -48,6 +49,12 @@ import "react-toastify/dist/ReactToastify.css";
 import { AllExperimentTypes } from "../games/activity-types";
 import { useWithImproveCode } from "../hooks/use-with-improve-code";
 
+export enum KernelConnectionStatus {
+  CONNECTING = "CONNECTING",
+  UNKNOWN = "UNKOWN",
+  FINE = "FINE",
+}
+
 function NotebookComponent(props: {
   uniqueUserId: string;
   activity: Activity;
@@ -73,7 +80,6 @@ function NotebookComponent(props: {
     editCode,
     resetCode,
   } = useWithNotebook({ curActivity: activity });
-
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
     validationCellOutput: validationCellOutput,
@@ -92,6 +98,9 @@ function NotebookComponent(props: {
 
   const [pastExperiments] = useState(props.activity.simulator.experiments);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [kernelStatus, setKernelStatus] = useState(
+    KernelConnectionStatus.CONNECTING
+  );
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const kernelManager: KernelManager = useJupyter()
@@ -106,12 +115,46 @@ function NotebookComponent(props: {
     };
   }, [kernel]);
 
-  useEffect(() => {
-    if (!kernelManager || kernel) {
+  function connectToNewKernel() {
+    if (!kernelManager) {
       return;
     }
+    setKernelStatus(KernelConnectionStatus.CONNECTING);
     const newKernel = new Kernel({ kernelManager, kernelName: "python" });
+    newKernel
+      .getJupyterKernel()
+      .then((kernelConnection) => {
+        kernelConnection.statusChanged.connect((statusChange) => {
+          switch (statusChange.status) {
+            case "starting":
+            case "restarting":
+            case "autorestarting":
+              setKernelStatus(KernelConnectionStatus.CONNECTING);
+              break;
+            case "idle":
+            case "busy":
+              setKernelStatus(KernelConnectionStatus.FINE);
+              break;
+            // case "terminating":
+            // case "dead":
+            // case "unknown":
+            default:
+              setKernelStatus(KernelConnectionStatus.UNKNOWN);
+              break;
+          }
+        });
+      })
+      .catch(() => {
+        setKernelStatus(KernelConnectionStatus.UNKNOWN);
+      });
     setKernel(newKernel);
+  }
+
+  useEffect(() => {
+    if (kernel) {
+      return;
+    }
+    connectToNewKernel();
   }, [kernelManager]);
 
   useEffect(() => {
@@ -232,6 +275,49 @@ function NotebookComponent(props: {
     });
   }
 
+  function kernelStatusDisplay(): JSX.Element {
+    switch (kernelStatus) {
+      case KernelConnectionStatus.CONNECTING:
+        return (
+          <div style={{ color: "white", fontWeight: "bold" }}>
+            Kernel Connecting...
+          </div>
+        );
+      case KernelConnectionStatus.UNKNOWN:
+        return (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignContent: "center",
+            }}
+          >
+            <div style={{ color: "red", fontWeight: "bold" }}>
+              Kernel Connection Failure
+            </div>
+            <Button
+              onClick={connectToNewKernel}
+              style={{
+                color: "black",
+                padding: 0,
+                margin: 0,
+                border: "solid black 1px",
+                backgroundColor: "lightgrey",
+              }}
+            >
+              Reconnect
+            </Button>
+          </div>
+        );
+      case KernelConnectionStatus.FINE:
+        return (
+          <div style={{ color: "#90EE90", fontWeight: "bold" }}>
+            Kernel Connected
+          </div>
+        );
+    }
+  }
+
   return (
     <div className={classes.root}>
       <AppBar position="fixed">
@@ -251,6 +337,7 @@ function NotebookComponent(props: {
             ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
+          {kernelStatusDisplay()}
           <IconButton onClick={() => setShowDescription(true)}>
             <Info />
           </IconButton>
