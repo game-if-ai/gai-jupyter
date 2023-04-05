@@ -98,6 +98,15 @@ function NotebookComponent(props: {
     .kernelManager as KernelManager;
 
   useEffect(() => {
+    return () => {
+      if (kernel) {
+        console.log("shutting down kernel");
+        kernel.shutdown();
+      }
+    };
+  }, [kernel]);
+
+  useEffect(() => {
     if (!kernelManager || kernel) {
       return;
     }
