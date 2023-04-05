@@ -78,7 +78,7 @@ export function NotebookEditor(props: {
 }): JSX.Element {
   const classes = useStyles();
   const { cellState, dialogue, shortcutKeyboard, hints } = props;
-  const { cell, output, errorOutput } = cellState;
+  const { cell, output, errorOutput, lintOutput } = cellState;
   const cellType = cell.getMetadata("gai_cell_type") || "";
   const cellId = cell.id;
 
@@ -87,11 +87,6 @@ export function NotebookEditor(props: {
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
   const [editor, setEditor] = useState<EditorView>();
   const [lintCompartment] = useState(new Compartment());
-
-  const notebook = selectNotebook(cellId);
-  const activeNotebookModel = selectNotebookModel(cellId);
-  const [model, setModel] = useState<INotebookContent>();
-  const [lintOutput, setLintOutput] = useState<string>("");
 
   function autocomplete(context: CompletionContext) {
     const word = context.matchBefore(/\w*/);
@@ -156,20 +151,6 @@ export function NotebookEditor(props: {
     if (isDisabled) {
       return;
     }
-    setModel({
-      cells: [
-        {
-          source: `%%pycodestyle\n${cellState.code}`,
-          cell_type: "code",
-          metadata: { trusted: true, editable: false, deletable: false },
-          outputs: [],
-          execution_count: 0,
-        },
-      ],
-      metadata: {},
-      nbformat_minor: 1,
-      nbformat: 1,
-    });
     if (cellState.code !== editor?.state.doc.toJSON().join("\n")) {
       editor?.dispatch(
         editor.state.update({
@@ -230,20 +211,6 @@ export function NotebookEditor(props: {
       setOutputElement(<Output outputs={output} />);
     }
   }, [outputElement]);
-
-  useEffect(() => {
-    if (isDisabled || !activeNotebookModel?.model?.cells) {
-      return;
-    }
-    const notebookCells = activeNotebookModel.model.cells;
-    notebookCells.get(0).stateChanged.connect((changedCell) => {
-      const o = changedCell.toJSON().outputs as IOutput[];
-      if (o.length > 0) {
-        setLintOutput(o[0].text as string);
-      }
-    });
-    notebook?.adapter?.commands.execute("notebook:run-all");
-  }, [model]);
 
   useEffect(() => {
     if (isDisabled) return;
@@ -353,11 +320,6 @@ export function NotebookEditor(props: {
       <Collapse in={showOutput} timeout={500} unmountOnExit>
         {outputElement}
       </Collapse>
-      {isDisabled ? undefined : (
-        <div style={{ display: "none" }}>
-          <Notebook uid={cellId} model={model} />
-        </div>
-      )}
     </div>
   );
 }

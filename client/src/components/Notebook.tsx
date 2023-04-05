@@ -9,7 +9,6 @@ The full terms of this copyright and license should always be found in the root 
 import {
   Kernel,
   Notebook,
-  Output,
   selectNotebook,
   useJupyter,
 } from "@datalayer/jupyter-react";
@@ -383,20 +382,21 @@ function NotebookComponent(props: {
       <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
       <div className={classes.cells} ref={scrollRef}>
-        {Object.entries(cells).map((v) => (
-          <NotebookEditor
-            key={v[0]}
-            activity={activity}
-            cellState={v[1]}
-            editCode={editCode}
-            dialogue={dialogue}
-            shortcutKeyboard={shortcutKeyboard}
-            hints={hints}
-          />
-        ))}
+        {Object.entries(cells)
+          .filter((v) => !v[1].cell.getMetadata("hidden"))
+          .map((v) => (
+            <NotebookEditor
+              key={v[0]}
+              activity={activity}
+              cellState={v[1]}
+              editCode={editCode}
+              dialogue={dialogue}
+              shortcutKeyboard={shortcutKeyboard}
+              hints={hints}
+            />
+          ))}
       </div>
       <div style={{ display: "none" }}>
-        <Output autoRun={true} code={`%load_ext pycodestyle_magic`} />
         <Notebook
           kernel={kernel}
           model={

@@ -9,6 +9,7 @@ The full terms of this copyright and license should always be found in the root 
 export enum GaiCellTypes {
   SETUP = "SETUP",
   MODEL = "MODEL",
+  LINT = "LINT",
   VALIDATION = "VALIDATION",
 }
 

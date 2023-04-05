@@ -7,13 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import { useEffect, useState } from "react";
-import {
-  Kernel,
-  selectNotebook,
-  selectNotebookModel,
-  useJupyter,
-} from "@datalayer/jupyter-react";
-import { KernelManager } from "@jupyterlab/services";
+import { selectNotebook, selectNotebookModel } from "@datalayer/jupyter-react";
 import { INotebookModel } from "@jupyterlab/notebook";
 import { CellList } from "@jupyterlab/notebook/lib/celllist";
 import { ICellModel } from "@jupyterlab/cells";
@@ -40,6 +34,7 @@ export interface CellState {
   code: MultilineString;
   output: IOutput[];
   errorOutput?: IError;
+  lintOutput?: string;
 }
 
 export type CellsStates = Record<string, CellState>;
@@ -123,13 +118,20 @@ export function useWithNotebook(props: { curActivity: Activity }) {
       cellData.stateChanged.connect((changedCell) => {
         const cellType = changedCell.getMetadata("gai_cell_type") as string;
         const outputs = changedCell.toJSON().outputs as IOutput[];
-        cells[cellId] = {
-          cell: changedCell,
-          code: changedCell.toJSON().source,
-          output: outputs,
-          errorOutput:
-            outputs[0] && isError(outputs[0]) ? outputs[0] : undefined,
-        };
+        if (cellType === GaiCellTypes.LINT) {
+          if (outputs.length > 0) {
+            const codeCellId = notebookCells.get(i - 1).id;
+            setCells((prevValue) => {
+              return {
+                ...prevValue,
+                [codeCellId]: {
+                  ...prevValue[codeCellId],
+                  lintOutput: outputs[0].text as string,
+                },
+              };
+            });
+          }
+        }
         if (cellType === GaiCellTypes.SETUP) {
           setSetupCellOutput(extractSetupCellOutput(changedCell));
         }
@@ -184,21 +186,12 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     }
   }
 
-  // async function run(kernelManager: KernelManager): Promise<void>{
-  //   if (!notebook || !notebook.model || !notebook.adapter) {
-  //     return;
-  //   }
-  //   const kernel: Kernel = new Kernel({
-  //     kernelManager: kernelManager,
-  //     kernelName: "python3"
-  //   });
-  //   notebook.adapter.changeKernel(kernel)
-  //   await notebook.adapter.commands.execute("notebook:run-all");
-  //   //kernel.shutdown();
-  // }
-
   function editCode(cell: string, code: string): void {
     cells[cell].code = code;
+    if (cells[cell].cell.getMetadata("check_lint") === true) {
+      const key = Object.keys(cells).findIndex((c) => c === cell);
+      cells[Object.keys(cells)[key + 1]].code = `%%pycodestyle\n${code}`;
+    }
     setCells({ ...cells });
     for (const c of Object.values(cells)) {
       if (c.cell.toJSON().source !== c.code) {
