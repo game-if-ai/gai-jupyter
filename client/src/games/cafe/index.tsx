@@ -141,40 +141,31 @@ export const Cafe: Game = {
       },
     },
     {
-      message:
-        "You are currently using a Hashing Vectorizer to extract your datas features, maybe try out some other methods. (TF-IDF, Vector Count, etc.)",
+      message: "Consider giving a Logistical Regression model a try!",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (cafeCodeInfo) => {
         return (
-          (cafeCodeInfo as CafeCodeInfo).featureExtractionUsed === "HASHING"
+          (cafeCodeInfo as CafeCodeInfo).classifierModelUsed !==
+          "LOGISTIC_REGRESSION"
         );
       },
     },
     {
-      message:
-        "Your data is currently polluted with stopwords, it may be benifical to remove these from your dataset.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
-      active: (cafeCodeInfo) => {
-        return !(cafeCodeInfo as CafeCodeInfo).removesStopwords;
-      },
-    },
-    {
-      message: "Consider using TF-IDF as your feature extractor.",
+      message: "Consider giving a Naive Bayes model a try!",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (cafeCodeInfo) => {
         return (
-          (cafeCodeInfo as CafeCodeInfo).featureExtractionUsed ===
-          "COUNT_VECTORIZER"
+          (cafeCodeInfo as CafeCodeInfo).classifierModelUsed !== "NAIVE_BAYES"
         );
       },
     },
     {
-      message: "Consider giving the Logistical Regression model a try!",
+      message: "Consider lemmatizing the reviews!",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
-      active: (cafeCodeInfo) => {
-        return (
-          (cafeCodeInfo as CafeCodeInfo).classifierModelUsed === "NAIVE_BAYES"
-        );
+      active(cafeCodeInfo) {
+        const { classifierModelUsed, usingLemmatization } =
+          cafeCodeInfo as CafeCodeInfo;
+        return classifierModelUsed === "NAIVE_BAYES" && !usingLemmatization;
       },
     },
     {

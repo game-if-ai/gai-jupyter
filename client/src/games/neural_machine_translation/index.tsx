@@ -24,7 +24,7 @@ export const NeuralMachineTranslation: Activity = {
   improveCodeHints: [
     {
       message:
-        "When using word data with a neural network, it is crucial to first tokenize it. (Consider using the tokenizers fit_to_texts and texts_to_sequences functions)",
+        "When using text data with a neural network, it is crucial to first tokenize it. (Consider using the following tokenizer methods: fit_on_texts and texts_to_sequences functions",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
         return !(nmtCodeInfo as NMTCodeInfo).preprocessWithTokenizer;
@@ -48,7 +48,7 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       message:
-        "Be sure to utilize the tokenizers word_index to convert the predictions arbitrary id's to human readable words.",
+        "Be sure to utilize the tokenizer's word_index to convert the prediction's arbitrary id's to human readable words.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
         return !(nmtCodeInfo as NMTCodeInfo).utilizesTokenizerWordIndex;
@@ -56,7 +56,7 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       message:
-        "Numpys argmax function can be very useful in finding the highest weighted indices of the logits.",
+        "NumPy’s argmax function can be very useful in finding the highest weighted indices of the logits.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
         return !(nmtCodeInfo as NMTCodeInfo).utilizesArgmax;
