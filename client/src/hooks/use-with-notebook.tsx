@@ -57,6 +57,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
   const [notebookIsRunning, setNotebookIsRunning] = useState(false);
+  const [notebookRunCount, setNotebookRuns] = useState(0);
 
   useEffect(() => {
     if (
@@ -169,6 +170,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     setNotebookIsRunning(true);
     notebook?.adapter?.commands.execute("notebook:run-all").finally(() => {
       setNotebookIsRunning(false);
+      setNotebookRuns((prevValue) => prevValue + 1);
     });
   }
 
@@ -251,5 +253,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     editCode,
     resetCode,
     notebookIsRunning,
+    notebookRunCount,
+    notebookInitialRunComplete: notebookRunCount > 0,
   };
 }

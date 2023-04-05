@@ -28,8 +28,9 @@ export function useWithImproveCode(props: {
   validationCellOutput: any[];
   numCodeRuns: number;
   activeActivity: Activity;
+  notebookIsRunning: boolean;
 }): UseWithImproveCode {
-  const { numCodeRuns, activeActivity } = props;
+  const { numCodeRuns, activeActivity, notebookIsRunning } = props;
   const [hintDisplayed, setHintDisplayed] = useState(false);
   const [activeHintIndex, setActiveHintIndex] = useState(-1);
   const [returningToNotebook] = useState(numCodeRuns > 0); // only evaluates on initial load
@@ -71,7 +72,7 @@ export function useWithImproveCode(props: {
   }
 
   useEffect(() => {
-    if (codeInfoLoadStatus === "LOADING") {
+    if (codeInfoLoadStatus === "LOADING" || notebookIsRunning) {
       return;
     }
     const firstActiveHintIndex = improveCodeHints.findIndex((hint) =>
@@ -105,6 +106,7 @@ export function useWithImproveCode(props: {
     returningToNotebook,
     activeActivity.id,
     improveCodeHints,
+    notebookIsRunning,
   ]);
 
   return {

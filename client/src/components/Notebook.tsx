@@ -85,8 +85,8 @@ function NotebookComponent(props: {
     validationCellOutput: validationCellOutput,
     numCodeRuns: numRuns,
     activeActivity: activity,
+    notebookIsRunning: notebookIsRunning,
   });
-
   const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
   const sawTutorial = Boolean(sessionStorageGet("saw_notebook_walkthrough"));
   const [curCell, setCurCell] = useState<string>("");
@@ -95,7 +95,6 @@ function NotebookComponent(props: {
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
   const [kernel, setKernel] = useState<Kernel>();
   const [didScroll, setDidScroll] = useState<boolean>(false);
-
   const [pastExperiments] = useState(props.activity.simulator.experiments);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [kernelStatus, setKernelStatus] = useState(

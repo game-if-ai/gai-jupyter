@@ -7,17 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
-import {
-  Notebook,
-  selectNotebook,
-  selectNotebookModel,
-} from "@datalayer/jupyter-react";
-import {
-  IOutput,
-  INotebookContent,
-  isError,
-  IError,
-} from "@jupyterlab/nbformat";
+import { isError, IError } from "@jupyterlab/nbformat";
 
 import { Button, Collapse, IconButton, Typography } from "@mui/material";
 import {

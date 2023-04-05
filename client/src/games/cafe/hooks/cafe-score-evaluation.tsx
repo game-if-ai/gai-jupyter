@@ -170,20 +170,14 @@ export function evaluateCafeExperiment(curExperiment: CafeExperiment) {
 
   // Score +0-0.35 for % of key elements in code that are contained (patterns of importance: should all be contained hints)
   const { codeInfo } = curExperiment;
-  const pointsPerKeyElement = 0.07; // 0.07 * 5 = .35
-  codeInfo.classifierModelUsed === "NAIVE_BAYES" &&
-    (finalScore += pointsPerKeyElement / 2); //less points for naives bay, not best classifier
+
   codeInfo.classifierModelUsed === "LOGISTIC_REGRESSION" &&
-    (finalScore += pointsPerKeyElement);
+    (finalScore += 0.35);
 
-  codeInfo.featureExtractionUsed === "COUNT_VECTORIZER" &&
-    (finalScore += pointsPerKeyElement / 2); //less points for count vectorizor, not best feature extractor
-  codeInfo.featureExtractionUsed === "TFIDF" &&
-    (finalScore += pointsPerKeyElement);
-
-  codeInfo.cleansContractions && (finalScore += pointsPerKeyElement);
-  codeInfo.removesStopwords && (finalScore += pointsPerKeyElement);
-  codeInfo.cleansContractions && (finalScore += pointsPerKeyElement);
+  codeInfo.classifierModelUsed === "NAIVE_BAYES" && (finalScore += 0.35 / 2); //half points if they use naives bay without lemmatization
+  codeInfo.classifierModelUsed === "NAIVE_BAYES" &&
+    codeInfo.usingLemmatization &&
+    (finalScore += 0.35 / 2);
 
   return finalScore;
 }
