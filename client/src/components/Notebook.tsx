@@ -78,6 +78,7 @@ function NotebookComponent(props: {
     isSaving,
     editCode,
     resetCode,
+    notebookIsRunning,
   } = useWithNotebook({ curActivity: activity });
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
@@ -275,6 +276,20 @@ function NotebookComponent(props: {
   }
 
   function kernelStatusDisplay(): JSX.Element {
+    if (isSaving) {
+      return (
+        <div style={{ color: "#9h0EE90", fontWeight: "bold" }}>
+          Kernel Saving Code...
+        </div>
+      );
+    }
+    if (notebookIsRunning) {
+      return (
+        <div style={{ color: "#90EE90", fontWeight: "bold" }}>
+          Kernel Executing Code...
+        </div>
+      );
+    }
     switch (kernelStatus) {
       case KernelConnectionStatus.CONNECTING:
         return (
@@ -311,7 +326,7 @@ function NotebookComponent(props: {
       case KernelConnectionStatus.FINE:
         return (
           <div style={{ color: "#90EE90", fontWeight: "bold" }}>
-            Kernel Connected
+            Kernel Idle
           </div>
         );
     }
@@ -353,7 +368,7 @@ function NotebookComponent(props: {
                 justifyContent: "center",
               }}
             >
-              {isSaving ? (
+              {isSaving || notebookIsRunning ? (
                 <CircularProgress
                   style={{ color: "white", position: "absolute" }}
                   size={28}

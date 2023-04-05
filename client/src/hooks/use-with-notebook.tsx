@@ -56,6 +56,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
   const [saveTimeout, setSaveTimeout] = useState<number>(0);
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
+  const [notebookIsRunning, setNotebookIsRunning] = useState(false);
 
   useEffect(() => {
     if (
@@ -165,7 +166,10 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     if (!curExperiment) {
       setCurExperiment(notebook?.model?.toJSON() as INotebookContent);
     }
-    notebook?.adapter?.commands.execute("notebook:run-all");
+    setNotebookIsRunning(true);
+    notebook?.adapter?.commands.execute("notebook:run-all").finally(() => {
+      setNotebookIsRunning(false);
+    });
   }
 
   function extractAndSetModelCellCode(notebookCells: CellList) {
@@ -246,5 +250,6 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     isSaving,
     editCode,
     resetCode,
+    notebookIsRunning,
   };
 }
