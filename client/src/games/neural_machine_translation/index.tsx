@@ -19,7 +19,7 @@ export const NeuralMachineTranslation: Activity = {
   title: "Neural Machine Translation",
   activityType: "NOTEBOOK_ONLY",
   description:
-    "You are both trying to preprocess data to be input into a neural network as well as postprocess the data output from the neural network.",
+    "Please finish this notebook to complete the English to French translator. You will receive hints as you go.",
   simulator: new NMTSimulator(),
   improveCodeHints: [
     {

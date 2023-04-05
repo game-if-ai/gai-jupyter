@@ -36,7 +36,7 @@ export const Cafe: Game = {
   title: "Bought or Not!",
   activityType: "GAME",
   description:
-    "You are trying to build a classifier to recommend products based on their reviews.",
+    "Please complete this notebook to build a sentiment classifier. You will receive hints on how to improve its performance as you go.",
   config: GameConfig,
   autocompletion: [
     // NAIVE BAYES

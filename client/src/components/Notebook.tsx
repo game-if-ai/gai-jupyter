@@ -106,6 +106,15 @@ function NotebookComponent(props: {
     .kernelManager as KernelManager;
 
   useEffect(() => {
+    if (kernel) {
+      window.onbeforeunload = () => {
+        if (kernel) {
+          console.log("shutting down kernel");
+          kernel.shutdown();
+        }
+      };
+    }
+
     return () => {
       if (kernel) {
         console.log("shutting down kernel");
@@ -449,7 +458,7 @@ function NotebookComponent(props: {
         open={showDescription}
         onClose={() => setShowDescription(false)}
         title={activity.title}
-        text="Please complete this notebook to build a sentiment classifier. You will receive hints on how to improve its performance as you go."
+        text={activity.description}
       >
         <Button onClick={() => setShowDescription(false)}>Okay</Button>
       </ActionPopup>
