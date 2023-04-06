@@ -26,14 +26,13 @@ export interface UseWithImproveCode {
 export function useWithImproveCode(props: {
   userCode: Record<string, string[]>;
   validationCellOutput: any[];
-  numCodeRuns: number;
+  timesNotebookVisited: number;
   activeActivity: Activity;
   notebookIsRunning: boolean;
 }): UseWithImproveCode {
-  const { numCodeRuns, activeActivity, notebookIsRunning } = props;
+  const { timesNotebookVisited, activeActivity, notebookIsRunning } = props;
   const [hintDisplayed, setHintDisplayed] = useState(false);
   const [activeHintIndex, setActiveHintIndex] = useState(-1);
-  const [returningToNotebook] = useState(numCodeRuns > 0); // only evaluates on initial load
   const [activeToasts, setActiveToasts] = useState<ImproveCodeHint[]>([]);
   const { codeInfo, loadStatus: codeInfoLoadStatus } =
     activeActivity.codeExamine(props.userCode, props.validationCellOutput);
@@ -76,14 +75,14 @@ export function useWithImproveCode(props: {
       return;
     }
     const firstActiveHintIndex = improveCodeHints.findIndex((hint) =>
-      hint.active(codeInfo, numCodeRuns)
+      hint.active(codeInfo, 0)
     );
     setActiveHintIndex(firstActiveHintIndex);
     if (hintDisplayed) {
       return;
     }
     setHintDisplayed(true);
-    if (!returningToNotebook) {
+    if (!(timesNotebookVisited > 1)) {
       return;
     }
     const hintToShow = improveCodeHints[firstActiveHintIndex];
@@ -102,8 +101,7 @@ export function useWithImproveCode(props: {
     codeInfo, //most important
     codeInfoLoadStatus,
     hintDisplayed,
-    numCodeRuns,
-    returningToNotebook,
+    timesNotebookVisited,
     activeActivity.id,
     improveCodeHints,
     notebookIsRunning,

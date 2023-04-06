@@ -85,12 +85,6 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     setHasError(false);
   }, [cells]);
 
-  useEffect(() => {
-    if (isSaving && setupCellOutput.length > 0) {
-      setIsSaving(false);
-    }
-  }, [setupCellOutput]);
-
   useInterval(
     (isCancelled) => {
       if (isCancelled()) {
@@ -164,14 +158,20 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     });
     setCells(cs);
     setNotebookConnected(true);
+    setIsSaving(false);
     if (!curExperiment) {
       setCurExperiment(notebook?.model?.toJSON() as INotebookContent);
     }
+  }
+
+  async function runNotebook() {
     setNotebookIsRunning(true);
-    notebook?.adapter?.commands.execute("notebook:run-all").finally(() => {
-      setNotebookIsRunning(false);
-      setNotebookRuns((prevValue) => prevValue + 1);
-    });
+    await notebook?.adapter?.commands
+      .execute("notebook:run-all")
+      .finally(() => {
+        setNotebookIsRunning(false);
+        setNotebookRuns((prevValue) => prevValue + 1);
+      });
   }
 
   function extractAndSetModelCellCode(notebookCells: CellList) {
@@ -201,7 +201,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     setCells({ ...cells });
     for (const c of Object.values(cells)) {
       if (c.cell.toJSON().source !== c.code) {
-        setSaveTimeout(5000); // save if code is edited
+        setSaveTimeout(2000); // save if code is edited
         setIsSaving(true);
         return;
       }
@@ -255,5 +255,6 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     notebookIsRunning,
     notebookRunCount,
     notebookInitialRunComplete: notebookRunCount > 0,
+    runNotebook,
   };
 }

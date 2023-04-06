@@ -38,9 +38,15 @@ function App(): JSX.Element {
   const [activity, setActivity] = useState<Activity>();
   const [experiment, setExperiment] = useState<AllExperimentTypes>();
   const [simulation, setSimulation] = useState<number>(0);
-  const [numRuns, setNumRuns] = useState(0);
+  const [timesNotebookVisited, setTimesNotebookVisited] = useState(0);
   const [uniqueUserId, setUniqueUserId] = useState("");
   const [notebooksCreated, setNotebooksCreated] = useState(false);
+
+  useEffect(() => {
+    if (step === STEP.NOTEBOOK) {
+      setTimesNotebookVisited((prevValue) => prevValue + 1);
+    }
+  }, [step]);
 
   useEffect(() => {
     const uniqueId = getUniqueUserId();
@@ -141,10 +147,6 @@ function App(): JSX.Element {
     setStep(STEP.NOTEBOOK);
   }
 
-  function notebookRan() {
-    setNumRuns((prevValue) => prevValue + 1);
-  }
-
   function viewExperiment(e: number): void {
     if (!activity || activity.simulator.experiments.length < e - 1) {
       return;
@@ -186,8 +188,7 @@ function App(): JSX.Element {
           setExperiment={viewExperiment}
           viewSummary={viewSummary}
           runSimulation={viewSimulation}
-          notebookRan={notebookRan}
-          numRuns={numRuns}
+          timesNotebookVisited={timesNotebookVisited}
         />
       );
     } else if (step === STEP.SUMMARY) {

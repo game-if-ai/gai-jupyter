@@ -58,17 +58,16 @@ function NotebookComponent(props: {
   uniqueUserId: string;
   activity: Activity;
   curExperiment: AllExperimentTypes | undefined;
-  numRuns: number;
   setExperiment: (e: number) => void;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
-  notebookRan: () => void;
+  timesNotebookVisited: number;
 }): JSX.Element {
   const classes = useStyles();
   const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const shortcutKeyboard = useWithShortcutKeys();
-  const { activity, curExperiment, notebookRan, numRuns, uniqueUserId } = props;
+  const { activity, curExperiment, timesNotebookVisited, uniqueUserId } = props;
   const {
     cells,
     setupCellOutput,
@@ -79,11 +78,12 @@ function NotebookComponent(props: {
     editCode,
     resetCode,
     notebookIsRunning,
+    runNotebook,
   } = useWithNotebook({ curActivity: activity });
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
     validationCellOutput: validationCellOutput,
-    numCodeRuns: numRuns,
+    timesNotebookVisited,
     activeActivity: activity,
     notebookIsRunning: notebookIsRunning,
   });
@@ -102,9 +102,14 @@ function NotebookComponent(props: {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [didScroll, setDidScroll] = useState<boolean>(false);
   const [scrollPos, setScrollPos] = useState<number>(0);
-
   const kernelManager: KernelManager = useJupyter()
     .kernelManager as KernelManager;
+
+  useEffect(() => {
+    if (showResults && hasError) {
+      setShowResults(false);
+    }
+  }, [showResults, hasError]);
 
   useEffect(() => {
     if (kernel) {
@@ -265,8 +270,9 @@ function NotebookComponent(props: {
   }
 
   function simulate(): void {
-    notebookRan();
-    setShowResults(true);
+    runNotebook().then(() => {
+      setShowResults(true);
+    });
   }
 
   function onReset(event: React.MouseEvent<HTMLButtonElement>): void {
@@ -403,9 +409,8 @@ function NotebookComponent(props: {
                 disabled={
                   hasError ||
                   isSaving ||
-                  !Boolean(
-                    setupCellOutput.length && validationCellOutput.length
-                  )
+                  notebookIsRunning ||
+                  kernelStatus !== KernelConnectionStatus.FINE
                 }
                 onClick={simulate}
               >
@@ -450,7 +455,7 @@ function NotebookComponent(props: {
       </div>
       <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       <ActionPopup
-        open={showResults}
+        open={showResults && !hasError}
         onClose={() => setShowResults(false)}
         title="See results"
         text="Would you like to view your results?"
