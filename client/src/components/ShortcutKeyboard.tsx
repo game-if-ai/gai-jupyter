@@ -4,7 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import {
@@ -17,10 +17,30 @@ export function ShortcutKeyboard(props: {
 }): JSX.Element {
   const classes = useStyles();
   const { shortcutKeyboard } = props;
+  const [isMobile] = useState<boolean>(
+    /Android|iPhone/i.test(navigator.userAgent)
+  );
+  const [height] = useState<number>(window.innerHeight);
+  const [keyboardHeight, setKeyboardHeight] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    window.addEventListener("resize", resizeWindow);
+    return () => window.removeEventListener("resize", resizeWindow);
+  });
+
+  function resizeWindow() {
+    if (!isMobile) return;
+    setKeyboardHeight(height - window.innerHeight);
+  }
+
   return (
     <div
       className={classes.shortcutButtons}
-      style={{ display: shortcutKeyboard.isOpen ? "block" : "none" }}
+      style={{
+        display: shortcutKeyboard.isOpen ? "block" : "none",
+        bottom: keyboardHeight,
+      }}
     >
       {SHORTCUT_KEYS.map((s) => (
         <Button
@@ -42,30 +62,16 @@ export function ShortcutKeyboard(props: {
 }
 
 const useStyles = makeStyles(() => ({
-  root: {
-    display: "flex",
-    flexDirection: "column",
-    width: "100%",
-    height: "100vh",
-    alignItems: "center",
-    textAlign: "left",
-  },
-  cells: {
-    width: "100%",
-    flex: 1,
-    overflowY: "scroll",
-  },
   shortcutButtons: {
     display: "flex",
     flexDirection: "row",
     width: "100%",
+    height: 50,
+    position: "relative",
+    zIndex: 1,
+    backgroundColor: "white",
+    boxShadow: "10px 5px 5px black",
     overflowX: "scroll",
     whiteSpace: "nowrap",
-  },
-  infoButtons: {
-    display: "flex",
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "center",
   },
 }));

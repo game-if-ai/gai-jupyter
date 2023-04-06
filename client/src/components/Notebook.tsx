@@ -402,7 +402,6 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
       <div className={classes.cells} ref={scrollRef}>
         {Object.entries(cells)
@@ -435,6 +434,7 @@ function NotebookComponent(props: {
           uid={NOTEBOOK_UID}
         />
       </div>
+      <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       <ActionPopup
         open={showResults}
         onClose={() => setShowResults(false)}
