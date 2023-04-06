@@ -64,10 +64,11 @@ export function NotebookEditor(props: {
   dialogue: UseWithDialogue;
   shortcutKeyboard: UseWithShortcutKeys;
   hints: UseWithImproveCode;
+  isSaving: boolean;
   editCode: (cell: string, code: string) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { cellState, dialogue, shortcutKeyboard, hints } = props;
+  const { cellState, dialogue, shortcutKeyboard, hints, isSaving } = props;
   const { cell, output, errorOutput, lintOutput } = cellState;
   const cellId = cell.id;
   const [cellType] = useState(cell.getMetadata("gai_cell_type") || "");
@@ -288,7 +289,7 @@ export function NotebookEditor(props: {
         {isDisabled ? undefined : (
           <TooltipMsg elemId="hint" dialogue={dialogue}>
             <IconButton
-              disabled={!hints.hintsAvailable}
+              disabled={!hints.hintsAvailable || isSaving}
               onClick={hints.toastHint}
             >
               <HelpOutlineOutlined />

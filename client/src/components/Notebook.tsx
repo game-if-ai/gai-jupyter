@@ -428,6 +428,7 @@ function NotebookComponent(props: {
           .map((v) => (
             <NotebookEditor
               key={v[0]}
+              isSaving={isSaving}
               activity={activity}
               cellState={v[1]}
               editCode={editCode}
