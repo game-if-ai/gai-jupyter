@@ -352,11 +352,13 @@ function NotebookComponent(props: {
             }}
             style={{ color: "white", maxWidth: "50%" }}
           >
-            {Object.keys(cells).map((c, i) => (
-              <MenuItem key={i} value={c}>
-                {cells[c].cell.getMetadata("gai_title")}
-              </MenuItem>
-            ))}
+            {Object.keys(cells)
+              .filter((cellKey) => !cells[cellKey].cell.getMetadata("hidden"))
+              .map((c, i) => (
+                <MenuItem key={i} value={c}>
+                  {cells[c].cell.getMetadata("gai_title")}
+                </MenuItem>
+              ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
           {kernelStatusDisplay()}
