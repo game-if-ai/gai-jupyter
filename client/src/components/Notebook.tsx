@@ -371,7 +371,7 @@ function NotebookComponent(props: {
             style={{ color: "white", maxWidth: "50%" }}
           >
             {Object.keys(cells)
-              .filter((cellKey) => !cells[cellKey].cell.getMetadata("hidden"))
+              .filter((cellKey) => !cells[cellKey].hiddenCell)
               .map((c, i) => (
                 <MenuItem key={i} value={c}>
                   {cells[c].cell.getMetadata("gai_title")}
@@ -424,7 +424,7 @@ function NotebookComponent(props: {
       {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
       <div className={classes.cells} ref={scrollRef} onScroll={onScroll}>
         {Object.entries(cells)
-          .filter((v) => !v[1].cell.getMetadata("hidden"))
+          .filter((v) => !v[1].hiddenCell)
           .map((v) => (
             <NotebookEditor
               key={v[0]}

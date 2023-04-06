@@ -33,6 +33,7 @@ export interface CellState {
   cell: ICellModel;
   code: MultilineString;
   output: IOutput[];
+  hiddenCell: boolean;
   errorOutput?: IError;
   lintOutput?: string;
 }
@@ -117,6 +118,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
         cell: cellData,
         code: cellData.toJSON().source,
         output: [],
+        hiddenCell: cellData.getMetadata("hidden") || false,
       };
       cellData.stateChanged.connect((changedCell) => {
         const cellType = changedCell.getMetadata("gai_cell_type") as string;
@@ -152,6 +154,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
               cell: changedCell,
               code: changedCell.toJSON().source,
               output: outputs,
+              hiddenCell: changedCell.getMetadata("hidden") || false,
               errorOutput:
                 outputs[0] && isError(outputs[0]) ? outputs[0] : undefined,
             },
@@ -201,19 +204,22 @@ export function useWithNotebook(props: { curActivity: Activity }) {
   }
 
   function editCode(cell: string, code: string): void {
-    cells[cell].code = code;
-    if (cells[cell].cell.getMetadata("check_lint") === true) {
-      const key = Object.keys(cells).findIndex((c) => c === cell);
-      cells[Object.keys(cells)[key + 1]].code = `%%pycodestyle\n${code}`;
-    }
-    setCells({ ...cells });
-    for (const c of Object.values(cells)) {
-      if (c.cell.toJSON().source !== c.code) {
-        setSaveTimeout(2000); // save if code is edited
-        setIsSaving(true);
-        return;
+    setCells((prevValue) => {
+      prevValue[cell].code = code;
+      if (prevValue[cell].cell.getMetadata("check_lint") === true) {
+        const key = Object.keys(prevValue).findIndex((c) => c === cell);
+        prevValue[
+          Object.keys(prevValue)[key + 1]
+        ].code = `%%pycodestyle\n${code}`;
       }
-    }
+      for (const c of Object.values(prevValue)) {
+        if (c.cell.toJSON().source !== c.code) {
+          setSaveTimeout(2000); // save if code is edited
+          setIsSaving(true);
+        }
+      }
+      return prevValue;
+    });
   }
 
   function resetCode(experiment?: AllExperimentTypes): void {

@@ -69,8 +69,8 @@ export function NotebookEditor(props: {
   const classes = useStyles();
   const { cellState, dialogue, shortcutKeyboard, hints } = props;
   const { cell, output, errorOutput, lintOutput } = cellState;
-  const cellType = cell.getMetadata("gai_cell_type") || "";
   const cellId = cell.id;
+  const [cellType] = useState(cell.getMetadata("gai_cell_type") || "");
 
   const [showOutput, setShowOutput] = useState<boolean>(cellType === "MODEL");
   const [outputElement, setOutputElement] = useState<JSX.Element>();
