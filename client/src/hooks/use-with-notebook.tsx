@@ -58,6 +58,13 @@ export function useWithNotebook(props: { curActivity: Activity }) {
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
   const [notebookIsRunning, setNotebookIsRunning] = useState(false);
   const [notebookRunCount, setNotebookRuns] = useState(0);
+  const [initialConnection, setInitialConnection] = useState(false);
+
+  useEffect(() => {
+    if (initialConnection) {
+      runNotebook();
+    }
+  }, [initialConnection]);
 
   useEffect(() => {
     if (
@@ -158,6 +165,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     });
     setCells(cs);
     setNotebookConnected(true);
+    setInitialConnection(true);
     setIsSaving(false);
     if (!curExperiment) {
       setCurExperiment(notebook?.model?.toJSON() as INotebookContent);

@@ -56,7 +56,7 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       message:
-        "NumPy’s argmax function can be very useful in finding the highest weighted indices of the logits.",
+        "NumPy's argmax function can be very useful in finding the highest weighted indices of the logits.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
         return !(nmtCodeInfo as NMTCodeInfo).utilizesArgmax;

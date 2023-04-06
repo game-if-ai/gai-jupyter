@@ -50,7 +50,10 @@ export function useWithNMTCodeExamine(
   });
 
   useEffect(() => {
-    if (Object.keys(userCode).length === 0) {
+    if (
+      Object.keys(userCode).length === 0 ||
+      validationCellOutput.length === 0
+    ) {
       return;
     }
     const allUserInputCode = Object.values(userCode).flat();
