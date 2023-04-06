@@ -63,7 +63,7 @@ function Summary(props: {
           text: "Something seems wrong, barely better than random. Maybe check the model training.",
           noSave: true,
         });
-      } else if (experiment.evaluationScore <= 0.8) {
+      } else if (experiment.evaluationScore <= 0.9) {
         msgs.push({
           id: "notebook",
           title: "Results Okay",
