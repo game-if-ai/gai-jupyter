@@ -17,10 +17,13 @@ export function ShortcutKeyboard(props: {
 }): JSX.Element {
   const classes = useStyles();
   const { shortcutKeyboard } = props;
+
   return (
     <div
       className={classes.shortcutButtons}
-      style={{ display: shortcutKeyboard.isOpen ? "block" : "none" }}
+      style={{
+        display: shortcutKeyboard.isOpen ? "block" : "none",
+      }}
     >
       {SHORTCUT_KEYS.map((s) => (
         <Button
@@ -42,30 +45,17 @@ export function ShortcutKeyboard(props: {
 }
 
 const useStyles = makeStyles(() => ({
-  root: {
-    display: "flex",
-    flexDirection: "column",
-    width: "100%",
-    height: "100vh",
-    alignItems: "center",
-    textAlign: "left",
-  },
-  cells: {
-    width: "100%",
-    flex: 1,
-    overflowY: "scroll",
-  },
   shortcutButtons: {
     display: "flex",
     flexDirection: "row",
     width: "100%",
+    height: 50,
+    position: "absolute",
+    bottom: 0,
+    zIndex: 1,
+    backgroundColor: "white",
+    boxShadow: "0px -5px 5px rgba(0, 0, 0, 0.2)",
     overflowX: "scroll",
     whiteSpace: "nowrap",
-  },
-  infoButtons: {
-    display: "flex",
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "center",
   },
 }));

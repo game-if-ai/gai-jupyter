@@ -94,13 +94,14 @@ function NotebookComponent(props: {
   const [showResults, setShowResults] = useState<boolean>(false);
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
   const [kernel, setKernel] = useState<Kernel>();
-  const [didScroll, setDidScroll] = useState<boolean>(false);
   const [pastExperiments] = useState(props.activity.simulator.experiments);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [kernelStatus, setKernelStatus] = useState(
     KernelConnectionStatus.CONNECTING
   );
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [didScroll, setDidScroll] = useState<boolean>(false);
+  const [scrollPos, setScrollPos] = useState<number>(0);
 
   const kernelManager: KernelManager = useJupyter()
     .kernelManager as KernelManager;
@@ -229,6 +230,12 @@ function NotebookComponent(props: {
     cells,
   ]);
 
+  useEffect(() => {
+    if (curCell && !Object.keys(cells).includes(curCell)) {
+      scrollRef?.current?.scroll({ top: scrollPos });
+    }
+  }, [cells]);
+
   function toSimulation(): void {
     if (!notebook) {
       return;
@@ -281,6 +288,11 @@ function NotebookComponent(props: {
       top: offsetPosition,
       behavior: "smooth",
     });
+  }
+
+  function onScroll(e: React.UIEvent<HTMLDivElement, UIEvent>): void {
+    if (!scrollRef.current) return;
+    setScrollPos(scrollRef.current.scrollTop);
   }
 
   function kernelStatusDisplay(): JSX.Element {
@@ -404,9 +416,8 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
-      <div className={classes.cells} ref={scrollRef}>
+      <div className={classes.cells} ref={scrollRef} onScroll={onScroll}>
         {Object.entries(cells)
           .filter((v) => !v[1].cell.getMetadata("hidden"))
           .map((v) => (
@@ -437,6 +448,7 @@ function NotebookComponent(props: {
           uid={NOTEBOOK_UID}
         />
       </div>
+      <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       <ActionPopup
         open={showResults}
         onClose={() => setShowResults(false)}

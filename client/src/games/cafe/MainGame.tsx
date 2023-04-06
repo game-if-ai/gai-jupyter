@@ -90,8 +90,8 @@ export default class MainGame extends Phaser.Scene {
     });
     this.trash = addSprite(this, "bg_kitchen", "trash", {
       height: this.bgBot.displayHeight / 2,
+      x: bgTop.displayWidth / 2,
       y: bgTop.displayHeight / 2,
-      xRel: 1,
     });
     this.trash.state = "trash";
     this.timerText = addText(this, `Time: ${GAME_TIME}:00`, {
@@ -111,10 +111,10 @@ export default class MainGame extends Phaser.Scene {
       (this.cameras.main.displayHeight - bgTop.displayHeight) / 2 +
       bgTop.displayHeight / 2 +
       this.bgBot.displayHeight / 2;
-    const maxTextWidth =
-      this.cameras.main.displayWidth - this.trash.displayWidth;
+    const textX = (this.cameras.main.displayWidth - bgTop.displayWidth) / 2;
+    const maxTextWidth = this.trash.x - this.trash.displayWidth / 2 - textX;
     this.text = addText(this, " ", {
-      x: 5,
+      x: textX,
       y: yTextOffset,
       yRel: 0,
       maxWidth: maxTextWidth,
@@ -194,7 +194,8 @@ export default class MainGame extends Phaser.Scene {
     const item = addSprite(this, "food", spawn.item, {
       height: this.bgBot!.displayHeight / 1.5,
     });
-    item.setX(0);
+    const x = (this.cameras.main.displayWidth - this.bgBot!.displayWidth) / 2;
+    item.setX(x + item.displayWidth / 2);
     item.setData("review", spawn.review.review);
     item.setData("rating", spawn.review.rating);
     item.setData("idx", this.itemIdx);
