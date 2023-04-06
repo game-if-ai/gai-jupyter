@@ -10,6 +10,7 @@ import { Experiment, Simulator } from "../simulator";
 import { NMTCodeInfo } from "./hooks/use-with-nn-code-examine";
 import { getAllNMTCodeInfo } from "./hooks/examine-nn-code-helpers";
 import { extractAllUserInputCode } from "../../utils";
+import { evaluteNMTExperiment } from "./hooks/nmt-score-evaluation";
 
 export interface NMTSimulationOutput {}
 
@@ -29,7 +30,7 @@ export class NMTSimulator extends Simulator<
   NMTCodeInfo
 > {
   scoreExperiment(experiment: NMTExperiment): number {
-    return experiment.codeInfo.outputCorrectlyFormatted ? 1 : 0;
+    return evaluteNMTExperiment(experiment);
   }
 
   updateSummary(
