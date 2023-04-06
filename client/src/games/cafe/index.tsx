@@ -130,6 +130,24 @@ export const Cafe: Game = {
       apply,
       detail: "evaluate Logistic Regression model",
     },
+    {
+      label: "from nltk.stem import WordNetLemmatizer",
+      type: "text",
+      apply,
+      detail: "import lemmatizatizer",
+    },
+    {
+      label: "lemmatizer = WordNetLemmatizer()",
+      type: "text",
+      apply,
+      detail: "create lemmatizer object",
+    },
+    {
+      label: "lemmatizer.lemmatize(token)",
+      type: "text",
+      apply,
+      detail: "lemmatize",
+    },
   ],
   improveCodeHints: [
     {
