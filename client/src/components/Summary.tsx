@@ -52,27 +52,49 @@ function Summary(props: {
 
   useEffect(() => {
     const msgs: DialogueMessage[] = [];
-    if (experiment.evaluationScore <= 0.6) {
-      msgs.push({
-        id: "notebook",
-        title: "Results Very Bad",
-        text: "Something seems wrong, barely better than random. Maybe check the model training.",
-        noSave: true,
-      });
-    } else if (experiment.evaluationScore <= 0.8) {
-      msgs.push({
-        id: "notebook",
-        title: "Results Okay",
-        text: "The classifier works! But can we do better?",
-        noSave: true,
-      });
-    } else {
-      msgs.push({
-        id: "submit",
-        title: "Results Very Good",
-        text: "That was a good run! Do you want to submit this or tune it more?",
-        noSave: true,
-      });
+    if (
+      experiment.activityId === "cafe" ||
+      experiment.activityId === "fruitpicker"
+    ) {
+      if (experiment.evaluationScore <= 0.6) {
+        msgs.push({
+          id: "notebook",
+          title: "Results Very Bad",
+          text: "Something seems wrong, barely better than random. Maybe check the model training.",
+          noSave: true,
+        });
+      } else if (experiment.evaluationScore <= 0.8) {
+        msgs.push({
+          id: "notebook",
+          title: "Results Okay",
+          text: "The classifier works! But can we do better?",
+          noSave: true,
+        });
+      } else {
+        msgs.push({
+          id: "submit",
+          title: "Results Very Good",
+          text: "That was a good run! Do you want to submit this or tune it more?",
+          noSave: true,
+        });
+      }
+    }
+    if (experiment.activityId === "neural_machine_translation") {
+      if (experiment.evaluationScore === 0) {
+        msgs.push({
+          id: "notebook",
+          title: "Results Very Bad",
+          text: "You have not completed all the tasks for this experiment.",
+          noSave: true,
+        });
+      } else if (experiment.evaluationScore === 1) {
+        msgs.push({
+          id: "submit",
+          title: "Experiment Complete",
+          text: "Congratulations! You have completed all the requirements for this experiment.",
+          noSave: true,
+        });
+      }
     }
     dialogue.addMessages(msgs);
   }, [summary]);
