@@ -4,7 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Button } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import {
@@ -17,29 +17,12 @@ export function ShortcutKeyboard(props: {
 }): JSX.Element {
   const classes = useStyles();
   const { shortcutKeyboard } = props;
-  const [isMobile] = useState<boolean>(
-    /Android|iPhone/i.test(navigator.userAgent)
-  );
-  const [height] = useState<number>(window.innerHeight);
-  const [keyboardHeight, setKeyboardHeight] = useState<number>(0);
-
-  useEffect(() => {
-    if (!isMobile) return;
-    window.addEventListener("resize", resizeWindow);
-    return () => window.removeEventListener("resize", resizeWindow);
-  });
-
-  function resizeWindow() {
-    if (!isMobile) return;
-    setKeyboardHeight(height - window.innerHeight);
-  }
 
   return (
     <div
       className={classes.shortcutButtons}
       style={{
         display: shortcutKeyboard.isOpen ? "block" : "none",
-        bottom: keyboardHeight,
       }}
     >
       {SHORTCUT_KEYS.map((s) => (
@@ -67,10 +50,11 @@ const useStyles = makeStyles(() => ({
     flexDirection: "row",
     width: "100%",
     height: 50,
-    position: "relative",
+    position: "absolute",
+    bottom: 0,
     zIndex: 1,
     backgroundColor: "white",
-    boxShadow: "10px 5px 5px black",
+    boxShadow: "0px -5px 5px rgba(0, 0, 0, 0.2)",
     overflowX: "scroll",
     whiteSpace: "nowrap",
   },
