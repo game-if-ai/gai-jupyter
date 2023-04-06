@@ -146,7 +146,8 @@ export const Cafe: Game = {
       active: (cafeCodeInfo) => {
         return (
           (cafeCodeInfo as CafeCodeInfo).classifierModelUsed !==
-          "LOGISTIC_REGRESSION"
+            "LOGISTIC_REGRESSION" &&
+          (cafeCodeInfo as CafeCodeInfo).classifierModelUsed !== "NAIVE_BAYES"
         );
       },
     },
