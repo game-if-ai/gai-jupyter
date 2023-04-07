@@ -19,6 +19,7 @@ export interface NMTCodeInfo {
   utilizesArgmax: boolean;
   // Post run
   dataIsNumpyArray: boolean;
+  keywordZeroLookup: boolean;
   preprocessedDataCorrectDimensions: boolean;
   outputCorrectlyFormatted: boolean;
 }
@@ -45,6 +46,7 @@ export function useWithNMTCodeExamine(
     // Post run
     dataIsNumpyArray: false,
     preprocessedDataCorrectDimensions: false,
+    keywordZeroLookup: false,
     outputCorrectlyFormatted: false,
     loadStatus: "LOADING",
   });

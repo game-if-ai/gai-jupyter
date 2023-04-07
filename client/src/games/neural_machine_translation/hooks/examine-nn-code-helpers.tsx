@@ -14,7 +14,7 @@ export function getAllNMTCodeInfo(
     reshapesData: reshapesData(userCode),
     utilizesTokenizerWordIndex: utilizesTokenizerWordIndex(userCode),
     utilizesArgmax: utilizesArgmax(userCode),
-
+    keywordZeroLookup: keywordZeroLookup(validationCellOutput),
     dataIsNumpyArray: dataIsNumpyArray(validationCellOutput),
     preprocessedDataCorrectDimensions:
       preprocessedDataCorrectDimensions(validationCellOutput),
@@ -27,6 +27,18 @@ function outputCorrectlyFormatted(validationCellOutput: string[]): boolean {
   return Boolean(
     validationCellOutput.find((outputLine) =>
       outputLine.match(/Predicted translation:.*new jersey/)
+    )
+  );
+}
+
+function keywordZeroLookup(validationCellOutput: string[]): boolean {
+  return Boolean(
+    validationCellOutput.find((outputLine) =>
+      outputLine.match(/KeyError/) 
+    )
+  ) && Boolean(
+    validationCellOutput.find((outputLine)=>
+      outputLine.match(/0/)
     )
   );
 }

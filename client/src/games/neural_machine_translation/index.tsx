@@ -24,6 +24,14 @@ export const NeuralMachineTranslation: Activity = {
   improveCodeHints: [
     {
       message:
+        "0 (blank) is not in the tokenizers word_index. You have to handle it yourself",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (nmtCodeInfo) => {
+        return (nmtCodeInfo as NMTCodeInfo).keywordZeroLookup;
+      },
+    },
+    {
+      message:
         "When using text data with a neural network, it is crucial to first tokenize it. (Consider using the following tokenizer methods: fit_on_texts and texts_to_sequences functions",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
