@@ -124,7 +124,10 @@ function App(): JSX.Element {
     }
     const experimentScore = experiment.evaluationScore;
     if (!Cmi5.isCmiAvailable) {
-      console.log("cmi5 not available to send results");
+      console.log(
+        "cmi5 not available to send results",
+        `Score: ${experimentScore}`
+      );
       return;
     }
 
