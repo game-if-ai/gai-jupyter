@@ -56,6 +56,20 @@ const customErrorMessages: CustomErrorMessage[] = [
     message:
       "Your code contains syntax errors. Please review your code and address these errors.",
   },
+  {
+    condition: (errorOutput) => {
+      return errorOutput.ename === "ImportError";
+    },
+    message:
+      "Your code contains import errors. This may be due to incorrect spelling or importing a library or module that does not exist.",
+  },
+  {
+    condition: (errorOutput) => {
+      return errorOutput.ename === "NameError";
+    },
+    message:
+      "Your code contains a naming error. You may be trying to use an undeclared variable or function.",
+  },
 ];
 
 export function NotebookEditor(props: {

@@ -32,14 +32,11 @@ function outputCorrectlyFormatted(validationCellOutput: string[]): boolean {
 }
 
 function keywordZeroLookup(validationCellOutput: string[]): boolean {
-  return Boolean(
-    validationCellOutput.find((outputLine) =>
-      outputLine.match(/KeyError/) 
-    )
-  ) && Boolean(
-    validationCellOutput.find((outputLine)=>
-      outputLine.match(/0/)
-    )
+  return (
+    Boolean(
+      validationCellOutput.find((outputLine) => outputLine.match(/KeyError/))
+    ) &&
+    Boolean(validationCellOutput.find((outputLine) => outputLine.match(/0/)))
   );
 }
 
