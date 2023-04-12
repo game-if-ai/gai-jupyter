@@ -33,24 +33,30 @@ export function NMTCurrentExperimentView(props: {
   function curExperimentAverageDisplays(): CurExperimentAvgDisplay[] {
     return [
       {
-        metricName: "Tokenizes Data",
-        metricValue: currentExperiment.codeInfo.preprocessWithTokenizer,
+        metricName: "Utilizes the tokenizers fit_on_texts function",
+        metricValue: currentExperiment.codeInfo.callsFitOnTexts,
       },
       {
-        metricName: "Pads Data",
-        metricValue: currentExperiment.codeInfo.padsData,
+        metricName: "Utilizes the tokenizers texts_to_sequences function",
+        metricValue: currentExperiment.codeInfo.callsTextsToSequences,
       },
       {
-        metricName: "Reshapes Data to three dimensions",
-        metricValue: currentExperiment.codeInfo.reshapesData,
+        metricName: "Properly pads data",
+        metricValue:
+          currentExperiment.codeInfo.callsPadSequences &&
+          currentExperiment.codeInfo.callsPadSequencesWithPaddingPost &&
+          currentExperiment.codeInfo.callsPadSequencesTwice &&
+          currentExperiment.codeInfo.callsPadSequencesTwiceWithPaddingPost,
       },
       {
-        metricName: "Utilizes Tokenizer.word_index",
-        metricValue: currentExperiment.codeInfo.utilizesTokenizerWordIndex,
+        metricName: "Reshapes data to proper dimensions",
+        metricValue:
+          currentExperiment.codeInfo.callsReshape &&
+          currentExperiment.codeInfo.callsReshapeOnXAndY,
       },
       {
         metricName: "Utilizes Argmax",
-        metricValue: currentExperiment.codeInfo.utilizesArgmax,
+        metricValue: currentExperiment.codeInfo.callsArgmax,
       },
       {
         metricName: "Output is translated to french words using Neural Network",

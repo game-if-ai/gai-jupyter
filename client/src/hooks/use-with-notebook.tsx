@@ -162,6 +162,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
         });
       });
     }
+
     extractAndSetModelCellCode(activeNotebookModel.cells);
     activeNotebookModel.contentChanged.connect((changedNotebook) => {
       extractAndSetModelCellCode(changedNotebook.cells);

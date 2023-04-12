@@ -12,11 +12,17 @@ type LoadStatus = "LOADING" | "LOADED";
 
 export interface NMTCodeInfo {
   // Before run
-  preprocessWithTokenizer: boolean;
-  padsData: boolean;
-  reshapesData: boolean;
-  utilizesTokenizerWordIndex: boolean;
-  utilizesArgmax: boolean;
+  callsFitOnTexts: boolean;
+  callsTextsToSequences: boolean;
+  callsPadSequences: boolean;
+  callsPadSequencesWithPaddingPost: boolean;
+  callsPadSequencesTwice: boolean;
+  callsPadSequencesTwiceWithPaddingPost: boolean;
+  callsReshape: boolean;
+  callsReshapeOnXAndY: boolean;
+  callsArgmax: boolean;
+
+  hasValidationOutput: boolean;
   // Post run
   dataIsNumpyArray: boolean;
   keywordZeroLookup: boolean;
@@ -35,15 +41,21 @@ interface UseWithNNCodeExamine {
 
 export function useWithNMTCodeExamine(
   userCode: Record<string, string[]>,
-  validationCellOutput: any[]
+  validationCellOutput: any[],
+  notebookRunCount: number
 ): UseWithNNCodeExamine {
   const [nnCodeInfo, setNNCodeinfo] = useState<UserCodeInfoLoad>({
-    preprocessWithTokenizer: false,
-    padsData: false,
-    reshapesData: false,
-    utilizesTokenizerWordIndex: false,
-    utilizesArgmax: false,
+    callsFitOnTexts: false,
+    callsTextsToSequences: false,
+    callsPadSequences: false,
+    callsPadSequencesWithPaddingPost: false,
+    callsPadSequencesTwice: false,
+    callsPadSequencesTwiceWithPaddingPost: false,
+    callsReshape: false,
+    callsReshapeOnXAndY: false,
+    callsArgmax: false,
     // Post run
+    hasValidationOutput: false,
     dataIsNumpyArray: false,
     preprocessedDataCorrectDimensions: false,
     keywordZeroLookup: false,
@@ -54,7 +66,7 @@ export function useWithNMTCodeExamine(
   useEffect(() => {
     if (
       Object.keys(userCode).length === 0 ||
-      validationCellOutput.length === 0
+      (notebookRunCount === 0 && validationCellOutput.length === 0)
     ) {
       return;
     }
@@ -63,7 +75,7 @@ export function useWithNMTCodeExamine(
       ...getAllNMTCodeInfo(allUserInputCode, validationCellOutput as string[]),
       loadStatus: "LOADED",
     });
-  }, [userCode, validationCellOutput]);
+  }, [userCode, validationCellOutput, notebookRunCount]);
 
   return {
     codeInfo: nnCodeInfo,

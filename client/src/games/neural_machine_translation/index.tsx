@@ -24,26 +24,42 @@ export const NeuralMachineTranslation: Activity = {
   improveCodeHints: [
     {
       message:
-        "0 (blank) is not in the tokenizers word_index. You have to handle it yourself",
+        "When using text data with a neural network, it is crucial to first tokenize it. You first need to call the tokenizer's fit_on_texts method to determine the vocabulary of the data.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
-        return (nmtCodeInfo as NMTCodeInfo).keywordZeroLookup;
+        return !(nmtCodeInfo as NMTCodeInfo).callsFitOnTexts;
       },
     },
     {
       message:
-        "When using text data with a neural network, it is crucial to first tokenize it. (Consider using the following tokenizer methods: fit_on_texts and texts_to_sequences functions",
+        "You need to call the tokenizer's texts_to_sequences method to actually tokenize the input and return the tokens.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
-        return !(nmtCodeInfo as NMTCodeInfo).preprocessWithTokenizer;
+        return !(nmtCodeInfo as NMTCodeInfo).callsTextsToSequences;
       },
     },
     {
       message:
-        "Your data entries are required to be of equal length, this can be achieved by utilizing the pad_sequences function.",
+        "The pad_sequences function will ensure all sequences have the same length.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
-        return !(nmtCodeInfo as NMTCodeInfo).padsData;
+        return !(nmtCodeInfo as NMTCodeInfo).callsPadSequences;
+      },
+    },
+    {
+      message:
+        "Add the padding='post' parameter to padding_sequences so that blanks are added to the end.",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (nmtCodeInfo) => {
+        return !(nmtCodeInfo as NMTCodeInfo).callsPadSequencesWithPaddingPost;
+      },
+    },
+    {
+      message:
+        "The maximum sentence length of y is greater than x. You need to pad x again to be the same size as y using the maxlen parameter of pad_sequences.",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (nmtCodeInfo) => {
+        return !(nmtCodeInfo as NMTCodeInfo).callsPadSequencesTwice;
       },
     },
     {
@@ -51,25 +67,35 @@ export const NeuralMachineTranslation: Activity = {
         "Keras's sparse_categorical_crossentropy function requires the labels to be in 3 dimensions; use the numpy arrays reshape function to achieve this.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
-        return !(nmtCodeInfo as NMTCodeInfo).reshapesData;
+        return !(nmtCodeInfo as NMTCodeInfo).callsReshape;
       },
     },
+
     {
-      message:
-        "Be sure to utilize the tokenizer's word_index to convert the prediction's arbitrary id's to human readable words.",
+      message: "You need to reshape both x and y.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
-        return !(nmtCodeInfo as NMTCodeInfo).utilizesTokenizerWordIndex;
+        return !(nmtCodeInfo as NMTCodeInfo).callsReshapeOnXAndY;
       },
     },
+
     {
       message:
         "NumPy's argmax function can be very useful in finding the highest weighted indices of the logits.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
-        return !(nmtCodeInfo as NMTCodeInfo).utilizesArgmax;
+        return !(nmtCodeInfo as NMTCodeInfo).callsArgmax;
       },
     },
+
+    {
+      message: "Run your code to first before seeing more hints!",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (nmtCodeInfo) => {
+        return !(nmtCodeInfo as NMTCodeInfo).hasValidationOutput;
+      },
+    },
+
     {
       message:
         "Your data must be a numpy array to continue. Please double check your code.",
@@ -84,6 +110,14 @@ export const NeuralMachineTranslation: Activity = {
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
         return !(nmtCodeInfo as NMTCodeInfo).preprocessedDataCorrectDimensions;
+      },
+    },
+    {
+      message:
+        "0 (blank) is not in the tokenizers word_index. You have to handle it yourself",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (nmtCodeInfo) => {
+        return (nmtCodeInfo as NMTCodeInfo).keywordZeroLookup;
       },
     },
     {

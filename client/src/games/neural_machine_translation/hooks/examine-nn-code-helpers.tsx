@@ -9,18 +9,41 @@ export function getAllNMTCodeInfo(
   validationCellOutput: string[]
 ): NMTCodeInfo {
   return {
-    preprocessWithTokenizer: tokenizesData(userCode),
-    padsData: padsData(userCode),
-    reshapesData: reshapesData(userCode),
-    utilizesTokenizerWordIndex: utilizesTokenizerWordIndex(userCode),
-    utilizesArgmax: utilizesArgmax(userCode),
-    keywordZeroLookup: keywordZeroLookup(validationCellOutput),
+    callsFitOnTexts: callsFitOnTexts(userCode),
+    callsTextsToSequences: callsTextsToSequences(userCode),
+    callsPadSequences: callsPadSequences(userCode),
+    callsPadSequencesWithPaddingPost:
+      callsPadSequencesWithPaddingPost(userCode),
+    callsPadSequencesTwice: callsPadSequencesTwice(userCode),
+    callsPadSequencesTwiceWithPaddingPost:
+      callsPadSequencesTwiceWithPaddingPost(userCode),
+    callsReshape: callsReshape(userCode),
+    callsReshapeOnXAndY: callsReshapeOnXAndY(userCode),
+    callsArgmax: callsArgmax(userCode),
+
+    hasValidationOutput: validationCellOutput.length > 0,
     dataIsNumpyArray: dataIsNumpyArray(validationCellOutput),
+    keywordZeroLookup: keywordZeroLookup(validationCellOutput),
     preprocessedDataCorrectDimensions:
       preprocessedDataCorrectDimensions(validationCellOutput),
-
     outputCorrectlyFormatted: outputCorrectlyFormatted(validationCellOutput),
   };
+}
+
+function callsPadSequencesWithPaddingPost(userCode: string[]): boolean {
+  return Boolean(
+    userCode.find((codeLine) =>
+      codeLine.match(/pad_sequences\(.*padding=.*post.*\)/)
+    )
+  );
+}
+
+function callsPadSequencesTwiceWithPaddingPost(userCode: string[]): boolean {
+  return (
+    userCode.filter((codeLine) =>
+      codeLine.match(/pad_sequences\(.*padding=.*post.*\)/)
+    ).length > 1
+  );
 }
 
 function outputCorrectlyFormatted(validationCellOutput: string[]): boolean {
@@ -76,29 +99,36 @@ function dataIsNumpyArray(validationCellOutput: string[]): boolean {
   );
 }
 
-function utilizesArgmax(userCode: string[]): boolean {
+function callsArgmax(userCode: string[]): boolean {
   return Boolean(userCode.find((codeLine) => codeLine.match(/.argmax\(.*\)/)));
 }
 
-function utilizesTokenizerWordIndex(userCode: string[]): boolean {
-  return Boolean(userCode.find((codeLine) => codeLine.match(/.word_index/)));
-}
-
-function padsData(userCode: string[]): boolean {
+function callsPadSequences(userCode: string[]): boolean {
   return Boolean(userCode.find((codeLine) => codeLine.match(/pad_sequences/)));
 }
-function reshapesData(userCode: string[]): boolean {
+
+function callsPadSequencesTwice(userCode: string[]): boolean {
+  return (
+    userCode.filter((codeLine) => codeLine.match(/pad_sequences/)).length > 1
+  );
+}
+
+function callsReshape(userCode: string[]): boolean {
   return Boolean(userCode.find((codeLine) => codeLine.match(/reshape/)));
 }
 
-export function tokenizesData(userCode: string[]) {
+export function callsFitOnTexts(userCode: string[]) {
   const fitOnTextFuncUsed = Boolean(
     userCode.find((codeLine) => codeLine.match(/.fit_on_texts\(.*\)/))
   );
+  return fitOnTextFuncUsed;
+}
+
+export function callsTextsToSequences(userCode: string[]) {
   const textsToSequencesFuncUsed = Boolean(
     userCode.find((codeLine) => codeLine.match(/.texts_to_sequences\(.*\)/))
   );
-  return fitOnTextFuncUsed && textsToSequencesFuncUsed;
+  return textsToSequencesFuncUsed;
 }
 
 export function isRemovingStopwords(userCode: string[]): boolean {
@@ -109,6 +139,16 @@ export function isRemovingStopwords(userCode: string[]): boolean {
     userCode.find((codeLine) => codeLine.match(/stopwords.words\(.*\)/))
   );
   return importsStopwords && initializesStopwords;
+}
+
+export function callsReshapeOnXAndY(userCode: string[]): boolean {
+  const reshapesX = Boolean(
+    userCode.find((codeLine) => codeLine.match(/reshape\(.*x.*\)/i))
+  );
+  const reshapesY = Boolean(
+    userCode.find((codeLine) => codeLine.match(/reshape\(.*y.*\)/i))
+  );
+  return reshapesX && reshapesY;
 }
 
 export function extractNMTCellOutput(cell: ICellModel): string[] {

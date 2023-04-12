@@ -29,14 +29,27 @@ export function useWithImproveCode(props: {
   timesNotebookVisited: number;
   activeActivity: Activity;
   notebookIsRunning: boolean;
+  notebookRunCount: number;
 }): UseWithImproveCode {
-  const { timesNotebookVisited, activeActivity, notebookIsRunning } = props;
+  const {
+    timesNotebookVisited,
+    activeActivity,
+    notebookIsRunning,
+    userCode,
+    validationCellOutput,
+    notebookRunCount,
+  } = props;
   const [hintDisplayed, setHintDisplayed] = useState(false);
   const [activeHintIndex, setActiveHintIndex] = useState(-1);
   const [activeToasts, setActiveToasts] = useState<ImproveCodeHint[]>([]);
   const { codeInfo, loadStatus: codeInfoLoadStatus } =
-    activeActivity.codeExamine(props.userCode, props.validationCellOutput);
+    activeActivity.codeExamine(
+      userCode,
+      validationCellOutput,
+      notebookRunCount
+    );
   const { improveCodeHints } = activeActivity;
+
   function toastHint() {
     let activeHintIndexCopy = activeHintIndex;
     if (activeHintIndex === -1) {

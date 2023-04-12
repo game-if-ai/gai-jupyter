@@ -37,7 +37,8 @@ export interface Activity {
   simulator: AllSimulatorTypes;
   codeExamine: (
     userCode: Record<string, string[]>,
-    validationCellOutput: any
+    validationCellOutput: any,
+    numCodeRuns: number
   ) => LoadedCodeInfo;
   improveCodeHints: ImproveCodeHint[];
   extractValidationCellOutput?: (cell: ICellModel) => any;

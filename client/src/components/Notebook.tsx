@@ -78,6 +78,7 @@ function NotebookComponent(props: {
     editCode,
     resetCode,
     notebookIsRunning,
+    notebookRunCount,
     runNotebook,
   } = useWithNotebook({ curActivity: activity });
   const hints = useWithImproveCode({
@@ -86,6 +87,7 @@ function NotebookComponent(props: {
     timesNotebookVisited,
     activeActivity: activity,
     notebookIsRunning: notebookIsRunning,
+    notebookRunCount,
   });
   const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
   const sawTutorial = Boolean(sessionStorageGet("saw_notebook_walkthrough"));
