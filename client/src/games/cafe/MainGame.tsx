@@ -29,21 +29,24 @@ export default class MainGame extends Phaser.Scene {
   isPaused: boolean;
   isMuted: boolean;
   numCorrect: number;
+  config?: CafeGameParams;
+  eventSystem?: Phaser.Events.EventEmitter;
+
   items: Phaser.GameObjects.Sprite[];
   itemIdx: number;
-  trash?: Phaser.GameObjects.Sprite;
-  bear?: Phaser.GameObjects.Image;
-  stars?: Phaser.GameObjects.Image;
-  speech?: Phaser.GameObjects.Image;
-  bgBot?: Phaser.GameObjects.Image;
-  offset: number;
-  text?: Phaser.GameObjects.Text;
   timerText?: Phaser.GameObjects.Text;
   accuracyText?: Phaser.GameObjects.Text;
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
-  config?: CafeGameParams;
-  eventSystem?: Phaser.Events.EventEmitter;
+
+  trash?: Phaser.GameObjects.Sprite;
+  bear?: Phaser.GameObjects.Image;
+  sparkle?: Phaser.GameObjects.Image;
+  cross?: Phaser.GameObjects.Image;
+  speechBubble?: Phaser.GameObjects.Image;
+  bgBot?: Phaser.GameObjects.Image;
+  offset: number;
+  text?: Phaser.GameObjects.Text;
 
   constructor() {
     super("MainGame");
@@ -59,7 +62,8 @@ export default class MainGame extends Phaser.Scene {
   preload() {
     this.load.setPath("assets/cafe");
     this.load.image("background", "background.png");
-    this.load.image("stars", "stars.png");
+    this.load.image("sparkle", "sparkle.png");
+    this.load.image("cross", "cross.png");
     this.load.setPath("assets/cafe/sprites");
     this.load.atlas("bg_kitchen", "bg_kitchen.png", "bg_kitchen.json");
     this.load.atlas("char_bears", "char_bears.png", "char_bears.json");
@@ -67,6 +71,7 @@ export default class MainGame extends Phaser.Scene {
     this.load.atlas("food", "food.png", "food.json");
     this.load.setPath("assets/cafe/sounds");
     this.load.audio("match", ["match.ogg", "match.mp3"]);
+    this.load.audio("wrong", ["wrong.mp3"]);
   }
 
   create(data: CafeGameParams) {
@@ -81,11 +86,11 @@ export default class MainGame extends Phaser.Scene {
       height: bgTop.displayHeight / 3,
     });
     this.bear.setY(this.bear.y - (bgTop.displayHeight / 8 + 5));
-    this.speech = addImage(this, "char_speech", "...", {
+    this.speechBubble = addImage(this, "char_speech", "...", {
       height: bgTop.displayHeight / 4,
     });
-    this.speech.setX(this.speech.x - this.bear.displayWidth / 2);
-    this.speech.setY(this.speech.y - this.bear.displayHeight);
+    this.speechBubble.setX(this.speechBubble.x - this.bear.displayWidth / 2);
+    this.speechBubble.setY(this.speechBubble.y - this.bear.displayHeight);
     this.bgBot = addImage(this, "bg_kitchen", "bottom", {
       width: bgTop.displayWidth,
       y: bgTop.displayHeight / 2,
@@ -96,10 +101,16 @@ export default class MainGame extends Phaser.Scene {
       y: bgTop.displayHeight / 2,
     });
     this.trash.state = "trash";
-    this.stars = addImage(this, "stars", undefined, {
+    // add effects
+    this.sparkle = addImage(this, "sparkle", undefined, {
       height: bgTop.displayHeight / 3,
     });
-    this.stars.setAlpha(0);
+    this.sparkle.setAlpha(0);
+    this.cross = addImage(this, "cross", undefined, {
+      height: bgTop.displayHeight / 3,
+    });
+    this.cross.setAlpha(0);
+    // add text
     this.timerText = addText(this, `Time: ${GAME_TIME}:00`, {
       x: 5,
       width: 0.5,
@@ -153,7 +164,7 @@ export default class MainGame extends Phaser.Scene {
       timeScale: this.speed,
       loop: true,
       callback: () => {
-        this.speech!.y = this.speech!.y + 2 * a2;
+        this.speechBubble!.y = this.speechBubble!.y + 2 * a2;
         a2 *= -1;
       },
       callbackScope: this,
@@ -263,71 +274,29 @@ export default class MainGame extends Phaser.Scene {
       item = i;
     }
     if (item.data.list["rating"] === 1) {
-      this.goodResponse(item);
-      this.stars?.setPosition(this.bear?.x, this.bear?.y);
-      this.tweens.add({
-        targets: this.stars,
-        alpha: 1,
-        yoyo: true,
-        duration: 200 / this.speed,
-        ease: "sine.inout",
-      });
+      this.goodResponse(item, this.bear!);
     } else {
-      this.badResponse(item);
+      this.badResponse(item, this.bear!);
     }
-    this.tweens.add({
-      targets: item,
-      x: this.bear!.x,
-      y: this.bear!.y,
-      duration: 300 / this.speed,
-      ease: "sine.inout",
-      onComplete: () => {
-        this.speech?.setTexture("char_speech", "...");
-        this.deleteItem(item);
-      },
-    });
   }
 
   trashItem() {
     const item = this.items.find((i) => i.state !== "deleted");
     if (item) {
       if (item.data.list["rating"] === 0) {
-        this.goodResponse(item);
-        this.stars?.setPosition(this.trash?.x, this.trash?.y);
-        this.tweens.add({
-          targets: this.stars,
-          alpha: 1,
-          yoyo: true,
-          duration: 200 / this.speed,
-          ease: "sine.inout",
-        });
+        this.goodResponse(item, this.trash!);
       } else {
-        this.badResponse(item);
-        this.tweens.add({
-          targets: this.trash,
-          alpha: 0,
-          yoyo: true,
-          repeat: 2,
-          duration: 100 / this.speed,
-          ease: "sine.inout",
-        });
+        this.badResponse(item, this.trash!);
       }
-      this.tweens.add({
-        targets: item,
-        x: this.trash!.x,
-        y: this.trash!.y,
-        duration: 300 / this.speed,
-        ease: "sine.inout",
-        onComplete: () => {
-          this.speech?.setTexture("char_speech", "...");
-          this.deleteItem(item);
-        },
-      });
     }
   }
 
-  goodResponse(item: Phaser.GameObjects.Sprite) {
-    this.speech?.setTexture("char_speech", "good");
+  goodResponse(
+    item: Phaser.GameObjects.Sprite,
+    destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite
+  ) {
+    // character nods and shows heart text
+    this.speechBubble?.setTexture("char_speech", "good");
     this.time.addEvent({
       delay: 100,
       timeScale: this.speed,
@@ -344,6 +313,7 @@ export default class MainGame extends Phaser.Scene {
       },
       callbackScope: this,
     });
+    // item flys to destination
     this.tweens.add({
       targets: item,
       scale: 1.4,
@@ -352,11 +322,35 @@ export default class MainGame extends Phaser.Scene {
       ease: "sine.inout",
       duration: 100 / this.speed,
     });
+    this.tweens.add({
+      targets: item,
+      x: destination.x,
+      y: destination.y,
+      duration: 300 / this.speed,
+      ease: "sine.inout",
+      onComplete: () => {
+        this.speechBubble?.setTexture("char_speech", "...");
+        this.deleteItem(item);
+      },
+    });
+    // shows sparkle
+    this.sparkle?.setPosition(destination.x, destination.y);
+    this.tweens.add({
+      targets: this.sparkle,
+      alpha: 1,
+      yoyo: true,
+      duration: 200 / this.speed,
+      ease: "sine.inout",
+    });
     this.sound.play("match");
   }
 
-  badResponse(item: Phaser.GameObjects.Sprite) {
-    this.speech?.setTexture("char_speech", "bad");
+  badResponse(
+    item: Phaser.GameObjects.Sprite,
+    destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite
+  ) {
+    // character shakes head and shows X text
+    this.speechBubble?.setTexture("char_speech", "bad");
     let a1 = false;
     this.time.addEvent({
       delay: 100,
@@ -368,6 +362,7 @@ export default class MainGame extends Phaser.Scene {
       },
       callbackScope: this,
     });
+    // item flys to destination
     this.tweens.add({
       targets: item,
       alpha: 0,
@@ -376,6 +371,28 @@ export default class MainGame extends Phaser.Scene {
       duration: 100 / this.speed,
       ease: "sine.inout",
     });
+    this.tweens.add({
+      targets: item,
+      x: destination.x,
+      y: destination.y,
+      duration: 300 / this.speed,
+      ease: "sine.inout",
+      onComplete: () => {
+        this.speechBubble?.setTexture("char_speech", "...");
+        this.deleteItem(item);
+      },
+    });
+    // shows crossed out
+    this.cross?.setPosition(destination.x, destination.y);
+    this.tweens.add({
+      targets: this.cross,
+      alpha: 1,
+      yoyo: true,
+      repeat: 1,
+      duration: 100 / this.speed,
+      ease: "sine.inout",
+    });
+    this.sound.play("wrong");
   }
 
   deleteItem(item: Phaser.GameObjects.Sprite) {
