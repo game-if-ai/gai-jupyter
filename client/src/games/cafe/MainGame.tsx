@@ -33,6 +33,7 @@ export default class MainGame extends Phaser.Scene {
   itemIdx: number;
   trash?: Phaser.GameObjects.Sprite;
   bear?: Phaser.GameObjects.Image;
+  stars?: Phaser.GameObjects.Image;
   speech?: Phaser.GameObjects.Image;
   bgBot?: Phaser.GameObjects.Image;
   offset: number;
@@ -58,6 +59,7 @@ export default class MainGame extends Phaser.Scene {
   preload() {
     this.load.setPath("assets/cafe");
     this.load.image("background", "background.png");
+    this.load.image("stars", "stars.png");
     this.load.setPath("assets/cafe/sprites");
     this.load.atlas("bg_kitchen", "bg_kitchen.png", "bg_kitchen.json");
     this.load.atlas("char_bears", "char_bears.png", "char_bears.json");
@@ -94,6 +96,10 @@ export default class MainGame extends Phaser.Scene {
       y: bgTop.displayHeight / 2,
     });
     this.trash.state = "trash";
+    this.stars = addImage(this, "stars", undefined, {
+      height: bgTop.displayHeight / 3,
+    });
+    this.stars.setAlpha(0);
     this.timerText = addText(this, `Time: ${GAME_TIME}:00`, {
       x: 5,
       width: 0.5,
@@ -258,9 +264,28 @@ export default class MainGame extends Phaser.Scene {
     }
     if (item.data.list["rating"] === 1) {
       this.goodResponse(item);
+      this.stars?.setPosition(this.bear?.x, this.bear?.y);
+      this.tweens.add({
+        targets: this.stars,
+        alpha: 1,
+        yoyo: true,
+        duration: 200 / this.speed,
+        ease: "sine.inout",
+      });
     } else {
       this.badResponse(item);
     }
+    this.tweens.add({
+      targets: item,
+      x: this.bear!.x,
+      y: this.bear!.y,
+      duration: 300 / this.speed,
+      ease: "sine.inout",
+      onComplete: () => {
+        this.speech?.setTexture("char_speech", "...");
+        this.deleteItem(item);
+      },
+    });
   }
 
   trashItem() {
@@ -268,14 +293,30 @@ export default class MainGame extends Phaser.Scene {
     if (item) {
       if (item.data.list["rating"] === 0) {
         this.goodResponse(item);
+        this.stars?.setPosition(this.trash?.x, this.trash?.y);
+        this.tweens.add({
+          targets: this.stars,
+          alpha: 1,
+          yoyo: true,
+          duration: 200 / this.speed,
+          ease: "sine.inout",
+        });
       } else {
         this.badResponse(item);
+        this.tweens.add({
+          targets: this.trash,
+          alpha: 0,
+          yoyo: true,
+          repeat: 2,
+          duration: 100 / this.speed,
+          ease: "sine.inout",
+        });
       }
       this.tweens.add({
         targets: item,
         x: this.trash!.x,
         y: this.trash!.y,
-        duration: 200 / this.speed,
+        duration: 300 / this.speed,
         ease: "sine.inout",
         onComplete: () => {
           this.speech?.setTexture("char_speech", "...");
@@ -310,10 +351,6 @@ export default class MainGame extends Phaser.Scene {
       yoyo: true,
       ease: "sine.inout",
       duration: 100 / this.speed,
-      onComplete: () => {
-        this.speech?.setTexture("char_speech", "...");
-        this.deleteItem(item);
-      },
     });
     this.sound.play("match");
   }
@@ -338,10 +375,6 @@ export default class MainGame extends Phaser.Scene {
       repeat: 2,
       duration: 100 / this.speed,
       ease: "sine.inout",
-      onComplete: () => {
-        this.speech?.setTexture("char_speech", "...");
-        this.deleteItem(item);
-      },
     });
   }
 
