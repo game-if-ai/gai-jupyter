@@ -5,7 +5,8 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { ICellModel } from "@jupyterlab/cells";
 
 export interface UseWithShortcutKeys {
@@ -13,11 +14,33 @@ export interface UseWithShortcutKeys {
   isOpen: boolean;
   setKey: (k: ShortcutKey | undefined) => void;
   setCell: (cell: ICellModel) => void;
+
+  isMobile: boolean;
+  isMobileKeyboardOpen: boolean;
+  mobileKeyboardHeight: number;
+  setIsOpen: (open: boolean) => void;
 }
 
 export function useWithShortcutKeys(): UseWithShortcutKeys {
   const [key, setKey] = useState<ShortcutKey>();
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isMobile] = useState<boolean>(
+    /Android|iPhone/i.test(navigator.userAgent)
+  );
+  const [height] = useState<number>(window?.visualViewport?.height || 0);
+  const [mobileKeyboardHeight, setMobileKeyboardHeight] = useState<number>(0);
+  const isMobileKeyboardOpen = useDetectKeyboardOpen();
+
+  useEffect(() => {
+    if (!isMobile) return;
+    window.visualViewport!.addEventListener("resize", updateViewport);
+    return () =>
+      window.visualViewport!.removeEventListener("resize", updateViewport);
+  }, [isMobile]);
+
+  function updateViewport() {
+    setMobileKeyboardHeight(height - window.visualViewport!.height);
+  }
 
   function setCell(cell: ICellModel): void {
     if (cell.getMetadata("contenteditable") === false) {
@@ -28,10 +51,15 @@ export function useWithShortcutKeys(): UseWithShortcutKeys {
   }
 
   return {
+    isMobile,
+    isMobileKeyboardOpen,
+    mobileKeyboardHeight,
+
     key,
     isOpen,
     setKey,
     setCell,
+    setIsOpen,
   };
 }
 

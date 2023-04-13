@@ -16,20 +16,27 @@ export function ShortcutKeyboard(props: {
   shortcutKeyboard: UseWithShortcutKeys;
 }): JSX.Element {
   const classes = useStyles();
-  const { shortcutKeyboard } = props;
+  const {
+    isOpen,
+    isMobile,
+    isMobileKeyboardOpen,
+    mobileKeyboardHeight,
+    setKey,
+  } = props.shortcutKeyboard;
 
   return (
     <div
       className={classes.shortcutButtons}
       style={{
-        display: shortcutKeyboard.isOpen ? "block" : "none",
+        display: isOpen ? "block" : "none",
+        bottom: isMobile && isMobileKeyboardOpen ? mobileKeyboardHeight : 0,
       }}
     >
       {SHORTCUT_KEYS.map((s) => (
         <Button
           key={s.text}
           color="primary"
-          onClick={() => shortcutKeyboard.setKey(s)}
+          onClick={() => setKey(s)}
           style={{
             maxWidth: "30px",
             minWidth: "30px",
@@ -51,7 +58,6 @@ const useStyles = makeStyles(() => ({
     width: "100%",
     height: 50,
     position: "absolute",
-    bottom: 0,
     zIndex: 1,
     backgroundColor: "white",
     boxShadow: "0px -5px 5px rgba(0, 0, 0, 0.2)",
