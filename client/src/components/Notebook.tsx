@@ -251,7 +251,8 @@ function NotebookComponent(props: {
       setupCellOutput,
       validationCellOutput,
       notebook,
-      activity.id
+      activity.id,
+      hints.getDisplayedHints()
     );
     props.setExperiment(activity.simulator.experiments.length - 1);
     props.runSimulation(0);
@@ -265,7 +266,8 @@ function NotebookComponent(props: {
       setupCellOutput,
       validationCellOutput,
       notebook,
-      activity.id
+      activity.id,
+      hints.getDisplayedHints()
     );
     props.setExperiment(activity.simulator.experiments.length - 1);
     props.viewSummary();

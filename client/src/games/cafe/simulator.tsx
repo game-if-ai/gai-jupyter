@@ -13,6 +13,7 @@ import { ActivityID } from "games";
 import { getAllCafeCodeInfo } from "./hooks/examine-cafe-code-helpers";
 import { CafeCodeInfo } from "./hooks/use-with-cafe-code-examine";
 import { evaluateCafeExperiment } from "./hooks/cafe-score-evaluation";
+import { ImproveCodeHint } from "hooks/use-with-improve-code";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
@@ -110,9 +111,16 @@ export class CafeSimulator extends Simulator<
     inputs: number[],
     outputs: ClassifierOutput[][],
     notebook: INotebookState,
-    activityId: ActivityID
+    activityId: ActivityID,
+    displayedHints: ImproveCodeHint[]
   ): CafeExperiment {
-    const experiment = super.simulate(inputs, outputs, notebook, activityId);
+    const experiment = super.simulate(
+      inputs,
+      outputs,
+      notebook,
+      activityId,
+      displayedHints
+    );
 
     if (experiment.notebookContent) {
       const codeInfo: CafeCodeInfo = getAllCafeCodeInfo(

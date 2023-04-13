@@ -15,12 +15,14 @@ type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
 export interface ImproveCodeHint {
   message: string;
   active: (codeInfo: CodeInfoTypes, numRuns: number) => boolean;
+  conditionDescription: string;
   visibility: HintVisibilityType;
 }
 
 export interface UseWithImproveCode {
   toastHint: () => void;
   hintsAvailable: boolean;
+  getDisplayedHints: () => ImproveCodeHint[];
 }
 
 export function useWithImproveCode(props: {
@@ -83,6 +85,19 @@ export function useWithImproveCode(props: {
     }
   }
 
+  function getDisplayedHints() {
+    const displayedHints = improveCodeHints.filter(
+      (hint) => !hint.active(codeInfo, 0)
+    ); //inactive hints mean they are already satisfied
+    const currentlyActiveHint = improveCodeHints.find((hint) =>
+      hint.active(codeInfo, 0)
+    );
+    return [
+      ...displayedHints,
+      ...(currentlyActiveHint ? [currentlyActiveHint] : []),
+    ];
+  }
+
   useEffect(() => {
     if (codeInfoLoadStatus === "LOADING" || notebookIsRunning) {
       return;
@@ -123,5 +138,6 @@ export function useWithImproveCode(props: {
   return {
     toastHint,
     hintsAvailable: activeHintIndex !== -1,
+    getDisplayedHints,
   };
 }

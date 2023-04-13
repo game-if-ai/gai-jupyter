@@ -9,6 +9,7 @@ import { v4 as uuid } from "uuid";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { INotebookContent } from "@jupyterlab/nbformat";
 import { ActivityID } from "games";
+import { ImproveCodeHint } from "hooks/use-with-improve-code";
 
 export interface Experiment<SimulationOutput, Summary, CodeInfo> {
   id: string;
@@ -21,6 +22,7 @@ export interface Experiment<SimulationOutput, Summary, CodeInfo> {
   activityId: ActivityID;
   summary: Summary;
   evaluationScore: number;
+  displayedHints: ImproveCodeHint[];
 }
 
 export abstract class Simulator<SimulationOutput, Summary, CodeInfo> {
@@ -35,12 +37,14 @@ export abstract class Simulator<SimulationOutput, Summary, CodeInfo> {
   simulate(
     inputs: number[],
     outputs: any,
-    notebook: INotebookState | undefined,
-    activityId: ActivityID
+    notebook: INotebookState,
+    activityId: ActivityID,
+    displayedHints: ImproveCodeHint[]
   ): Experiment<SimulationOutput, Summary, CodeInfo> {
-    const notebookContent = notebook?.model
+    const notebookContent = notebook.model
       ? (notebook.model.toJSON() as INotebookContent)
       : undefined;
+
     const experiment: Experiment<SimulationOutput, Summary, CodeInfo> = {
       id: uuid(),
       activityId,
@@ -49,6 +53,7 @@ export abstract class Simulator<SimulationOutput, Summary, CodeInfo> {
       trainInstances: inputs[0],
       testInstances: inputs[1],
       simulations: [],
+      displayedHints: displayedHints,
       codeInfo: {} as any,
       summary: {} as any,
       evaluationScore: 0,

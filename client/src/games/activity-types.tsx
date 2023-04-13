@@ -7,15 +7,18 @@ The full terms of this copyright and license should always be found in the root 
 import {
   CafeExperiment,
   CafeSimulationOutput,
+  CafeSimulationsSummary,
   CafeSimulator,
 } from "./cafe/simulator";
 import {
   FruitPickerExperiment,
   FruitSimulationOutput,
+  FruitSimulationsSummary,
 } from "./fruit-picker/simulator";
 import {
   NMTExperiment,
   NMTSimulationOutput,
+  NMTSimulationsSummary,
   NMTSimulator,
 } from "./neural_machine_translation/simulator";
 import { FruitSimulator } from "./fruit-picker/simulator";
@@ -32,6 +35,12 @@ export type AllExperimentTypes =
   | CafeExperiment
   | FruitPickerExperiment
   | NMTExperiment;
+
+export type AllSummaryTypes =
+  | CafeSimulationsSummary
+  | FruitSimulationsSummary
+  | NMTSimulationsSummary;
+
 export type GameExperimentTypes = CafeExperiment | FruitPickerExperiment;
 
 export type AllSimulatorTypes = NMTSimulator | FruitSimulator | CafeSimulator;

@@ -12,6 +12,7 @@ import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
 import { evaluateFruitPickerExperiment } from "./hooks/fruit-picker-score-evaluation";
 import { FruitPickerCodeInfo } from "./hooks/use-with-fruit-picker-code-examine";
+import { ImproveCodeHint } from "hooks/use-with-improve-code";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
@@ -118,9 +119,16 @@ export class FruitSimulator extends Simulator<
     inputs: number[],
     outputs: FruitClassifierOutput[][],
     notebook: INotebookState,
-    activityId: ActivityID
+    activityId: ActivityID,
+    displayedHints: ImproveCodeHint[]
   ): FruitPickerExperiment {
-    const experiment = super.simulate(inputs, outputs, notebook, activityId);
+    const experiment = super.simulate(
+      inputs,
+      outputs,
+      notebook,
+      activityId,
+      displayedHints
+    );
     for (let run = 0; run < outputs.length; run++) {
       const sim = this.play();
       const simClassifierData = outputs[run];

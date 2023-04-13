@@ -11,12 +11,13 @@ import { NMTCodeInfo } from "./hooks/use-with-nn-code-examine";
 import { getAllNMTCodeInfo } from "./hooks/examine-nn-code-helpers";
 import { extractAllUserInputCode } from "../../utils";
 import { evaluteNMTExperiment } from "./hooks/nmt-score-evaluation";
+import { ImproveCodeHint } from "hooks/use-with-improve-code";
 
 export interface NMTSimulationOutput {}
 
 export type NMTClassifierOutput = string[];
 
-export interface NMTSimulationsSummary {}
+export interface NMTSimulationsSummary extends NMTCodeInfo {}
 
 export type NMTExperiment = Experiment<
   NMTSimulationOutput,
@@ -37,7 +38,7 @@ export class NMTSimulator extends Simulator<
     simulations: NMTSimulationOutput[],
     summary: NMTSimulationsSummary
   ): NMTSimulationsSummary {
-    return {};
+    return summary;
   }
 
   play(): NMTSimulationOutput {
@@ -48,19 +49,25 @@ export class NMTSimulator extends Simulator<
     inputs: number[],
     outputs: NMTClassifierOutput,
     notebook: INotebookState,
-    activityId: ActivityID
+    activityId: ActivityID,
+    displayedHints: ImproveCodeHint[]
   ): NMTExperiment {
-    const experiment = super.simulate(inputs, outputs, notebook, activityId);
+    const experiment = super.simulate(
+      inputs,
+      outputs,
+      notebook,
+      activityId,
+      displayedHints
+    );
     if (experiment.notebookContent) {
       experiment.codeInfo = getAllNMTCodeInfo(
         extractAllUserInputCode(experiment.notebookContent),
         outputs
       );
     }
+    experiment.summary = experiment.codeInfo;
     experiment.evaluationScore = this.scoreExperiment(experiment);
     this.experiments.push(experiment);
-
-    experiment.evaluationScore = this.scoreExperiment(experiment);
     return experiment;
   }
 }

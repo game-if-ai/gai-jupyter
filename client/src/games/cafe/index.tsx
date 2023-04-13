@@ -154,12 +154,17 @@ export const Cafe: Game = {
       message:
         "You are currently using a dummy classifier model, try a real one! (Naive Bayes, Logistic Regression, etc.)",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
+      conditionDescription:
+        "Checks if the user is still using the dummy classifier.",
       active: (cafeCodeInfo) => {
         return (cafeCodeInfo as CafeCodeInfo).classifierModelUsed === "DUMMY";
       },
     },
     {
       message: "Consider giving a Logistical Regression model a try!",
+      conditionDescription:
+        "Checks if the user isn't using either the logistic regression or naive bayes model.",
+
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (cafeCodeInfo) => {
         return (
@@ -171,6 +176,9 @@ export const Cafe: Game = {
     },
     {
       message: "Consider giving a Naive Bayes model a try!",
+      conditionDescription:
+        "Checks that the user is not using the naive bayes model.",
+
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (cafeCodeInfo) => {
         return (
@@ -180,6 +188,9 @@ export const Cafe: Game = {
     },
     {
       message: "Consider lemmatizing the reviews!",
+      conditionDescription:
+        "Checks that the user is using the naive bayes model and not lemmatizing.",
+
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active(cafeCodeInfo) {
         const { classifierModelUsed, usingLemmatization } =
@@ -190,6 +201,8 @@ export const Cafe: Game = {
     {
       message:
         "Your classifier is working very well! Do you want to submit this or keep playing with it?",
+      conditionDescription: "always true",
+
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: () => {
         return true;

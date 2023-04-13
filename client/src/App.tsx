@@ -16,13 +16,14 @@ import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
 import { sessionStorageStore } from "./local-storage";
 import { ContentsManager } from "@jupyterlab/services";
-import { getUniqueUserId } from "./utils";
+import { getCmiParams, getUniqueUserId } from "./utils";
 import { TEMP_NOTEBOOK_DIR } from "./local-constants";
 import {
   AllExperimentTypes,
   GameExperimentTypes,
 } from "./games/activity-types";
 import { CircularProgress } from "@mui/material";
+import { submitNotebookExperimentGQL } from "./api";
 
 enum STEP {
   PICK_GAME,
@@ -123,6 +124,24 @@ function App(): JSX.Element {
       return;
     }
     const experimentScore = experiment.evaluationScore;
+    const {
+      activityId,
+      notebookContent: notebookState,
+      summary,
+      displayedHints,
+    } = experiment;
+    submitNotebookExperimentGQL({
+      cmi5LaunchParameters: getCmiParams(experiment.activityId),
+      activityId,
+      notebookState: JSON.stringify(notebookState || "{}"),
+      summary,
+      displayedHints: displayedHints.map((hint) => {
+        return {
+          message: hint.message,
+          conditionDescription: hint.conditionDescription,
+        };
+      }),
+    });
     if (!Cmi5.isCmiAvailable) {
       console.log(
         "cmi5 not available to send results",

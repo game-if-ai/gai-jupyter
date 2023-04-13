@@ -10,7 +10,7 @@ import { INotebookState, newUuid } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
-import { LaunchParameters } from "@xapi/cmi5";
+import Cmi5, { LaunchParameters } from "@xapi/cmi5";
 import { GaiCellTypes, UNIQUE_USER_ID_LS } from "./local-constants";
 import { UserInputCellsCode } from "./hooks/use-with-notebook";
 import { localStorageGet, localStorageStore } from "./local-storage";
@@ -169,20 +169,34 @@ export function sortExperimentsByF1Score(experiments: GameExperimentTypes[]) {
   return experiments.slice().sort(f1ScoreComparison);
 }
 
-export function getCmiParamsFromUri(): LaunchParameters {
+export function getCmiParams(notebookActivityId: string): LaunchParameters {
   const searchParams = new URL(window.location.href).searchParams;
-  const activityId = searchParams.get("activityId") || "";
-  const actor = searchParams.get("actor") || "";
+  const activityId = searchParams.get("activityId") || notebookActivityId;
+  const actor = searchParams.get("actor") || "{}";
   const endpoint = searchParams.get("endpoint") || "";
   const fetch = searchParams.get("fetch") || "";
   const registration = searchParams.get("registration") || "";
-  return {
+  let launchParams: LaunchParameters = {
     activityId: activityId,
-    actor: JSON.parse(actor),
+    actor: {
+      ...JSON.parse(actor),
+      name: getUniqueUserId(),
+    },
     endpoint: endpoint,
     fetch: fetch,
     registration: registration,
   };
+  if (Cmi5.isCmiAvailable) {
+    try {
+      launchParams = {
+        ...launchParams,
+        ...Cmi5.instance.getLaunchParameters(),
+      };
+    } catch (err) {
+      console.error("failed to get cmi5 instance launch parameters");
+    }
+  }
+  return launchParams;
 }
 
 export function getUniqueUserId(): string {
