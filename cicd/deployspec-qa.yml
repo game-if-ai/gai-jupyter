@@ -6,7 +6,7 @@ env:
   parameter-store:
     S3_DEPLOY_BUCKET_QA: "/gameifai/qa/s3-websites/NAME"
     CDN_ID_QA: "/gameifai/qa/CLOUDFRONT_DISTRIBUTION_ID"
-    REACT_APP_GRAPHQL_ENDPOINT: "/gameifai/dev/GRAPHQL_ENDPOINT"
+    REACT_APP_GRAPHQL_ENDPOINT: "/gameifai/graphql/prod/mongo_uri"
     REACT_APP_JUPYTER_SERVER_HTTP_URL_DEV: "/gameifai/dev/JUPYTER_SERVER_HTTP_URL"
     REACT_APP_JUPYTER_SERVER_WS_URL_DEV: "/gameifai/dev/JUPYTER_SERVER_WS_URL"
     REACT_APP_JUPYTER_SERVER_TOKEN_DEV: "/gameifai/dev/JUPYTER_SERVER_TOKEN"
