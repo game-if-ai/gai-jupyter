@@ -259,22 +259,22 @@ function NotebookComponent(props: {
   }
 
   function toSummary(): void {
-    if (!notebook) {
-      return;
-    }
-    activity.simulator.simulate(
-      setupCellOutput,
-      validationCellOutput,
-      notebook,
-      activity.id,
-      hints.getDisplayedHints()
-    );
     props.setExperiment(activity.simulator.experiments.length - 1);
     props.viewSummary();
   }
 
   function simulate(): void {
+    if (!notebook) {
+      return;
+    }
     runNotebook().then(() => {
+      activity.simulator.simulate(
+        setupCellOutput,
+        validationCellOutput,
+        notebook,
+        activity.id,
+        hints.getDisplayedHints()
+      );
       setShowResults(true);
     });
   }

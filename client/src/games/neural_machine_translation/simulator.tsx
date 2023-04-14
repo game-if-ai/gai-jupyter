@@ -9,7 +9,10 @@ import { ActivityID } from "games";
 import { Experiment, Simulator } from "../simulator";
 import { NMTCodeInfo } from "./hooks/use-with-nn-code-examine";
 import { getAllNMTCodeInfo } from "./hooks/examine-nn-code-helpers";
-import { extractAllUserInputCode } from "../../utils";
+import {
+  extractAllUserInputCode,
+  storeNotebookExperimentInGql,
+} from "../../utils";
 import { evaluteNMTExperiment } from "./hooks/nmt-score-evaluation";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
 
@@ -68,6 +71,7 @@ export class NMTSimulator extends Simulator<
     experiment.summary = experiment.codeInfo;
     experiment.evaluationScore = this.scoreExperiment(experiment);
     this.experiments.push(experiment);
+    storeNotebookExperimentInGql(experiment);
     return experiment;
   }
 }

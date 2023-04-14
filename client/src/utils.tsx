@@ -14,8 +14,9 @@ import Cmi5, { LaunchParameters } from "@xapi/cmi5";
 import { GaiCellTypes, UNIQUE_USER_ID_LS } from "./local-constants";
 import { UserInputCellsCode } from "./hooks/use-with-notebook";
 import { localStorageGet, localStorageStore } from "./local-storage";
-import { GameExperimentTypes } from "games/activity-types";
+import { AllExperimentTypes, GameExperimentTypes } from "games/activity-types";
 import { EditorView } from "codemirror";
+import { submitNotebookExperimentGQL } from "./api";
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
   return [...a.slice(0, i), item, ...a.slice(i + 1)];
@@ -261,3 +262,29 @@ export const apply = (view: EditorView, completion: Completion) => {
   });
   return true;
 };
+
+export function storeNotebookExperimentInGql(experiment: AllExperimentTypes) {
+  const {
+    activityId,
+    notebookContent: notebookState,
+    summary,
+    displayedHints,
+  } = experiment;
+  submitNotebookExperimentGQL({
+    cmi5LaunchParameters: getCmiParams(experiment.activityId),
+    activityId,
+    notebookState: JSON.stringify(notebookState || "{}"),
+    summary,
+    displayedHints: displayedHints.map((hint) => {
+      return {
+        message: hint.message,
+        conditionDescription: hint.conditionDescription,
+      };
+    }),
+  }).catch((err) => {
+    console.error(
+      "There was an issue with saving the experiment to graphql",
+      err
+    );
+  });
+}

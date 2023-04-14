@@ -7,7 +7,12 @@ The full terms of this copyright and license should always be found in the root 
 
 import { Fruit, Fruits, FruitTrait } from "./types";
 import { Experiment, Simulator } from "../simulator";
-import { average, random, randomInt } from "../../utils";
+import {
+  average,
+  random,
+  randomInt,
+  storeNotebookExperimentInGql,
+} from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
 import { evaluateFruitPickerExperiment } from "./hooks/fruit-picker-score-evaluation";
@@ -215,6 +220,7 @@ export class FruitSimulator extends Simulator<
     if (experiment.simulations.length > 0) {
       this.experiments.push(experiment);
     }
+    storeNotebookExperimentInGql(experiment);
     return experiment;
   }
 }

@@ -7,7 +7,12 @@ The full terms of this copyright and license should always be found in the root 
 
 import { Experiment, Simulator } from "../simulator";
 import { Review, Reviews } from "./types";
-import { average, extractAllUserInputCode, randomInt } from "../../utils";
+import {
+  average,
+  extractAllUserInputCode,
+  randomInt,
+  storeNotebookExperimentInGql,
+} from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
 import { ActivityID } from "games";
 import { getAllCafeCodeInfo } from "./hooks/examine-cafe-code-helpers";
@@ -167,6 +172,8 @@ export class CafeSimulator extends Simulator<
     if (experiment.simulations.length > 0) {
       this.experiments.push(experiment);
     }
+
+    storeNotebookExperimentInGql(experiment);
     return experiment;
   }
 }
