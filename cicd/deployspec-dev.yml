@@ -3,13 +3,13 @@ version: 0.2
 env:
   variables:
     STAGE: 'dev'
+    REACT_APP_GRAPHQL_ENDPOINT: "https://graphql-dev.gameifai.org/graphql"
   parameter-store:
     S3_DEPLOY_BUCKET_DEV: "/gameifai/dev/s3-websites/NAME"
     CDN_ID_DEV: "/gameifai/dev/CLOUDFRONT_DISTRIBUTION_ID"
-    REACT_APP_GRAPHQL_ENDPOINT: "/gameifai/graphql/dev/mongo_uri"
-    REACT_APP_JUPYTER_SERVER_HTTP_URL_DEV: "/gameifai/dev/JUPYTER_SERVER_HTTP_URL"
-    REACT_APP_JUPYTER_SERVER_WS_URL_DEV: "/gameifai/dev/JUPYTER_SERVER_WS_URL"
-    REACT_APP_JUPYTER_SERVER_TOKEN_DEV: "/gameifai/dev/JUPYTER_SERVER_TOKEN"
+    REACT_APP_JUPYTER_SERVER_HTTP_URL: "/gameifai/dev/JUPYTER_SERVER_HTTP_URL"
+    REACT_APP_JUPYTER_SERVER_WS_URL: "/gameifai/dev/JUPYTER_SERVER_WS_URL"
+    REACT_APP_JUPYTER_SERVER_TOKEN: "/gameifai/dev/JUPYTER_SERVER_TOKEN"
 
 phases:
   install:
