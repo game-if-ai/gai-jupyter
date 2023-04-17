@@ -141,11 +141,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
           setSetupCellOutput(extractSetupCellOutput(changedCell));
         }
         if (cellType === GaiCellTypes.VALIDATION) {
-          setValidationCellOutput(
-            curActivity.extractValidationCellOutput
-              ? curActivity.extractValidationCellOutput(changedCell)
-              : extractValidationCellOutput(changedCell)
-          );
+          setValidationCellOutput(getValidationCellOutput(changedCell));
         }
         setCells((prevValue) => {
           return {
@@ -176,14 +172,27 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     }
   }
 
+  function getValidationCellOutput(changedCell: ICellModel) {
+    if (curActivity.extractValidationCellOutput) {
+      return curActivity.extractValidationCellOutput(changedCell);
+    }
+    return extractValidationCellOutput(changedCell);
+  }
+
   async function runNotebook() {
+    if (!notebook) {
+      return;
+    }
     setNotebookIsRunning(true);
-    await notebook?.adapter?.commands
-      .execute("notebook:run-all")
-      .finally(() => {
-        setNotebookIsRunning(false);
-        setNotebookRuns((prevValue) => prevValue + 1);
-      });
+    try {
+      await notebook.adapter?.commands.execute("notebook:run-all");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setNotebookIsRunning(false);
+      setNotebookRuns((prevValue) => prevValue + 1);
+      return notebook;
+    }
   }
 
   function extractAndSetModelCellCode(notebookCells: CellList) {

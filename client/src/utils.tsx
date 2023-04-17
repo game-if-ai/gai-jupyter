@@ -17,6 +17,7 @@ import { localStorageGet, localStorageStore } from "./local-storage";
 import { AllExperimentTypes, GameExperimentTypes } from "games/activity-types";
 import { EditorView } from "codemirror";
 import { submitNotebookExperimentGQL } from "./api";
+import { Activity } from "./games";
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
   return [...a.slice(0, i), item, ...a.slice(i + 1)];
@@ -138,6 +139,31 @@ export function extractSetupCellOutput(cell: ICellModel): number[] {
     0, 0,
   ];
   return data;
+}
+
+export function extractSetupAndValidationCellOutputs(
+  notebook: INotebookState,
+  curActivity: Activity
+) {
+  let setupCellOutput: number[] = [];
+  let validationCellOutput: any[] = [];
+  if (!notebook.model) {
+    return [setupCellOutput, validationCellOutput];
+  }
+  const notebookCells = notebook.model.cells;
+  for (let i = 0; i < notebookCells.length; i++) {
+    const curCell = notebookCells.get(i);
+    const cellType = curCell.getMetadata("gai_cell_type") as string;
+    if (cellType === GaiCellTypes.SETUP) {
+      setupCellOutput = extractSetupCellOutput(curCell);
+    }
+    if (cellType === GaiCellTypes.VALIDATION) {
+      validationCellOutput = curActivity.extractValidationCellOutput
+        ? curActivity.extractValidationCellOutput(curCell)
+        : extractValidationCellOutput(curCell);
+    }
+  }
+  return [setupCellOutput, validationCellOutput];
 }
 
 export function extractValidationCellOutput<T>(cell: ICellModel): T[][] {

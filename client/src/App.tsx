@@ -149,13 +149,6 @@ function App(): JSX.Element {
     setStep(STEP.NOTEBOOK);
   }
 
-  function viewExperiment(e: number): void {
-    if (!activity || activity.simulator.experiments.length < e - 1) {
-      return;
-    }
-    setExperiment(activity.simulator.experiments[e]);
-  }
-
   function viewSimulation(i: number): void {
     if (!activity) {
       return;
@@ -187,7 +180,7 @@ function App(): JSX.Element {
           uniqueUserId={uniqueUserId}
           activity={activity!}
           curExperiment={experiment}
-          setExperiment={viewExperiment}
+          setExperiment={setExperiment}
           viewSummary={viewSummary}
           runSimulation={viewSimulation}
           timesNotebookVisited={timesNotebookVisited}

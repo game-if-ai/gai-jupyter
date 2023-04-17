@@ -47,6 +47,7 @@ import { ShortcutKeyboard } from "./ShortcutKeyboard";
 import "react-toastify/dist/ReactToastify.css";
 import { AllExperimentTypes } from "../games/activity-types";
 import { useWithImproveCode } from "../hooks/use-with-improve-code";
+import { extractSetupAndValidationCellOutputs } from "../utils";
 
 export enum KernelConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -58,7 +59,9 @@ function NotebookComponent(props: {
   uniqueUserId: string;
   activity: Activity;
   curExperiment: AllExperimentTypes | undefined;
-  setExperiment: (e: number) => void;
+  setExperiment: React.Dispatch<
+    React.SetStateAction<AllExperimentTypes | undefined>
+  >;
   viewSummary: () => void;
   runSimulation: (i: number) => void;
   timesNotebookVisited: number;
@@ -254,12 +257,10 @@ function NotebookComponent(props: {
       activity.id,
       hints.getDisplayedHints()
     );
-    props.setExperiment(activity.simulator.experiments.length - 1);
     props.runSimulation(0);
   }
 
   function toSummary(): void {
-    props.setExperiment(activity.simulator.experiments.length - 1);
     props.viewSummary();
   }
 
@@ -267,14 +268,21 @@ function NotebookComponent(props: {
     if (!notebook) {
       return;
     }
-    runNotebook().then(() => {
-      activity.simulator.simulate(
+    runNotebook().then((ranNotebook) => {
+      if (!ranNotebook) {
+        return;
+      }
+      const [setupCellOutput, validationCellOutput] =
+        extractSetupAndValidationCellOutputs(ranNotebook, activity);
+      const experiment = activity.simulator.simulate(
         setupCellOutput,
         validationCellOutput,
-        notebook,
+        ranNotebook,
         activity.id,
         hints.getDisplayedHints()
       );
+      console.log("Setting experiment to", experiment);
+      props.setExperiment(experiment);
       setShowResults(true);
     });
   }
