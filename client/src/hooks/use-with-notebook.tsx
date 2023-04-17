@@ -20,7 +20,6 @@ import {
 } from "@jupyterlab/nbformat";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
-import { useInterval } from "./use-interval";
 import {
   extractSetupCellOutput,
   extractValidationCellOutput,
@@ -54,29 +53,18 @@ export function useWithNotebook(props: { curActivity: Activity }) {
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [hasError, setHasError] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [saveTimeout, setSaveTimeout] = useState<number>(0);
-  const notebook = selectNotebook(NOTEBOOK_UID);
-  const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
+  const [isEdited, setIsEdited] = useState<boolean>(false);
   const [notebookIsRunning, setNotebookIsRunning] = useState(false);
   const [notebookRunCount, setNotebookRuns] = useState(0);
-  const [initialConnection, setInitialConnection] = useState(false);
 
-  useEffect(() => {
-    if (initialConnection) {
-      runNotebook();
-    }
-  }, [initialConnection]);
+  const notebook = selectNotebook(NOTEBOOK_UID);
+  const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
 
   useEffect(() => {
     if (
       !activeNotebookModel?.model?.cells ||
       !notebook?.adapter?.commands ||
       notebookConnected
-    ) {
-      return;
-    }
-    if (
-      !notebook.adapter.commands.listCommands().includes("notebook:run-all")
     ) {
       return;
     }
@@ -92,21 +80,6 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     }
     setHasError(false);
   }, [cells]);
-
-  useInterval(
-    (isCancelled) => {
-      if (isCancelled()) {
-        return;
-      }
-      if (saveTimeout <= 1000) {
-        setSaveTimeout(0);
-        save();
-      } else {
-        setSaveTimeout((prevValue) => prevValue - 1000);
-      }
-    },
-    saveTimeout > 0 ? 1000 : null
-  );
 
   function connect(activeNotebookModel: INotebookModel) {
     const cs: Record<string, CellState> = {};
@@ -158,14 +131,13 @@ export function useWithNotebook(props: { curActivity: Activity }) {
         });
       });
     }
-
     extractAndSetModelCellCode(activeNotebookModel.cells);
     activeNotebookModel.contentChanged.connect((changedNotebook) => {
       extractAndSetModelCellCode(changedNotebook.cells);
     });
     setCells(cs);
     setNotebookConnected(true);
-    setInitialConnection(true);
+    setIsEdited(false);
     setIsSaving(false);
     if (!curExperiment) {
       setCurExperiment(notebook?.model?.toJSON() as INotebookContent);
@@ -224,8 +196,8 @@ export function useWithNotebook(props: { curActivity: Activity }) {
       }
       for (const c of Object.values(prevValue)) {
         if (c.cell.toJSON().source !== c.code) {
-          setSaveTimeout(2000); // save if code is edited
-          setIsSaving(true);
+          setIsEdited(true);
+          break;
         }
       }
       return prevValue;
@@ -240,19 +212,20 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     setValidationCellOutput([]);
     if (experiment && experiment.notebookContent) {
       notebook.adapter.setNotebookModel(experiment.notebookContent);
-      setIsSaving(true);
+      setIsEdited(true);
       setNotebookConnected(false);
     } else if (curExperiment) {
       notebook.adapter.setNotebookModel(curExperiment);
-      setIsSaving(true);
+      setIsEdited(true);
       setNotebookConnected(false);
     }
   }
 
-  function save(): void {
-    if (!notebook || !notebook.model || !notebook.adapter) {
+  function saveNotebook(): void {
+    if (isSaving || !notebook || !notebook.model || !notebook.adapter) {
       return;
     }
+    setIsSaving(true);
     setSetupCellOutput([]);
     setValidationCellOutput([]);
     const source = notebook.model.toJSON() as INotebookContent;
@@ -273,12 +246,14 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     validationCellOutput,
     userInputCellsCode,
     hasError,
+    isEdited,
     isSaving,
-    editCode,
-    resetCode,
     notebookIsRunning,
     notebookRunCount,
     notebookInitialRunComplete: notebookRunCount > 0,
+    saveNotebook,
     runNotebook,
+    editCode,
+    resetCode,
   };
 }

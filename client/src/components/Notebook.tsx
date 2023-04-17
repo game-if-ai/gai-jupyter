@@ -27,7 +27,7 @@ import {
   Toolbar,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { PlayArrow, Info, Restore, ErrorOutline } from "@mui/icons-material";
+import { PlayArrow, Info, Restore, Save } from "@mui/icons-material";
 
 import { Activity, isGameActivity } from "../games";
 import { useWithNotebook } from "../hooks/use-with-notebook";
@@ -77,11 +77,13 @@ function NotebookComponent(props: {
     validationCellOutput,
     userInputCellsCode,
     hasError,
+    isEdited,
     isSaving,
-    editCode,
-    resetCode,
     notebookIsRunning,
     notebookRunCount,
+    editCode,
+    resetCode,
+    saveNotebook,
     runNotebook,
   } = useWithNotebook({ curActivity: activity });
   const hints = useWithImproveCode({
@@ -414,20 +416,23 @@ function NotebookComponent(props: {
                   size={28}
                 />
               ) : undefined}
-              {hasError ? (
-                <ErrorOutline style={{ position: "absolute", fontSize: 28 }} />
-              ) : undefined}
-              <IconButton
-                disabled={
-                  hasError ||
-                  isSaving ||
-                  notebookIsRunning ||
-                  kernelStatus !== KernelConnectionStatus.FINE
-                }
-                onClick={simulate}
-              >
-                <PlayArrow />
-              </IconButton>
+              {isEdited ? (
+                <IconButton disabled={isSaving} onClick={saveNotebook}>
+                  <Save />
+                </IconButton>
+              ) : (
+                <IconButton
+                  disabled={
+                    hasError ||
+                    isSaving ||
+                    notebookIsRunning ||
+                    kernelStatus !== KernelConnectionStatus.FINE
+                  }
+                  onClick={simulate}
+                >
+                  <PlayArrow />
+                </IconButton>
+              )}
             </div>
           </TooltipMsg>
         </Toolbar>
