@@ -24,7 +24,7 @@ export const NeuralMachineTranslation: Activity = {
   improveCodeHints: [
     {
       message:
-        "When using text data with a neural network, it is crucial to first tokenize it. You first need to call the tokenizer's fit_on_texts method to determine the vocabulary of the data.",
+        "When using text data with a neural network, it is crucial to first tokenize it. You need to add this as the first line of tokenize_and_pad: tokenizer.fit_on_texts(x)",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       conditionDescription:
         "Checks that the user has called the fit_on_texts function.",
@@ -34,7 +34,7 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       message:
-        "You need to call the tokenizer's texts_to_sequences method to actually tokenize the input and return the tokens.",
+        "To tokenize the input and return the tokens, you need to use this code to get the tokens: tokenizer.texts_to_sequences(x)",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       conditionDescription:
         "Checks that the user has called the texts_to_sequences function.",
@@ -44,11 +44,10 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       message:
-        "The pad_sequences function will ensure all sequences have the same length.",
+        "The pad_sequences function will ensure all sequences have the same length. Example code: pad_sequences(tokenizer.texts_to_sequences(x), padding='post')",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       conditionDescription:
         "Checks that the user has called the pad_sequences function.",
-
       active: (nmtCodeInfo) => {
         return !(nmtCodeInfo as NMTCodeInfo).callsPadSequences;
       },
@@ -66,7 +65,7 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       message:
-        "The maximum sentence length of y is greater than x. You need to pad x again to be the same size as y using the maxlen parameter of pad_sequences.",
+        "The maximum sentence length of y is greater than x. You need to pad x again to be the same size as y using the maxlen parameter of pad_sequences. Example code: pad_sequences(raw_x, maxlen=raw_y.shape[1], padding'post')",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       conditionDescription:
         "Checks that the user has called the pad_sequences function twice.",
@@ -77,7 +76,7 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       message:
-        "Keras's sparse_categorical_crossentropy function requires the labels to be in 3 dimensions; use the numpy arrays reshape function to achieve this.",
+        "Keras's sparse_categorical_crossentropy function requires the labels to be in 3 dimensions; if x is an ndarray, you can use the following code to add an extra dimension of size 1: x.reshape(*x.shape, 1)",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       conditionDescription:
         "Checks that the user has called the reshape function.",
@@ -100,7 +99,7 @@ export const NeuralMachineTranslation: Activity = {
 
     {
       message:
-        "NumPy's argmax function can be very useful in finding the highest weighted indices of the logits.",
+        "NumPy's argmax function can be very useful in finding the highest weighted indices of the logits. Example code: np.argmax(logits,1)",
       conditionDescription:
         "Checks that the user has called the argmax function.",
 
