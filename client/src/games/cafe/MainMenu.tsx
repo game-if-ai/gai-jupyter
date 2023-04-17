@@ -67,17 +67,6 @@ export default class MainMenu extends Phaser.Scene {
       width: 0.5,
       maxFontSize: 32,
     });
-    const yTextOffset =
-      (this.cameras.main.displayHeight - bgTop.displayHeight) / 2 +
-      bgTop.displayHeight / 2 +
-      bgBot.displayHeight / 2;
-    const textX = (this.cameras.main.displayWidth - bgTop.displayWidth) / 2;
-    const maxTextWidth = trash.x - trash.displayWidth / 2 - textX;
-    addText(
-      this,
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-      { x: textX, y: yTextOffset, yRel: 0, maxWidth: maxTextWidth }
-    );
     this.images.push(
       addSprite(this, "food", "riceball", { height: bgBot.displayHeight / 1.5 })
     );
