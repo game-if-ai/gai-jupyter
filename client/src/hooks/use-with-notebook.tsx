@@ -27,6 +27,7 @@ import {
 } from "../utils";
 import { AllExperimentTypes } from "games/activity-types";
 import { Activity } from "../games";
+import { KernelConnectionStatus } from "../components/Notebook";
 
 export interface CellState {
   cell: ICellModel;
@@ -41,30 +42,56 @@ export type CellsStates = Record<string, CellState>;
 
 export type UserInputCellsCode = Record<string, string[]>;
 
-export function useWithNotebook(props: { curActivity: Activity }) {
-  const { curActivity } = props;
+export function useWithNotebook(props: {
+  curActivity: Activity;
+  curExperiment?: AllExperimentTypes;
+  kernelStatus: KernelConnectionStatus;
+}) {
+  const { curActivity, curExperiment, kernelStatus } = props;
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
+  const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
+  const [curExperimentLoaded, setCurExperimentLoaded] = useState(false);
+
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
   const [validationCellOutput, setValidationCellOutput] = useState<any[]>([]);
   const [cells, setCells] = useState<CellsStates>({});
-
-  const [curExperiment, setCurExperiment] = useState<INotebookContent>();
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [hasError, setHasError] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isEdited, setIsEdited] = useState<boolean>(false);
   const [notebookIsRunning, setNotebookIsRunning] = useState(false);
   const [notebookRunCount, setNotebookRuns] = useState(0);
-
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
+  const [initialConnectionMade, setInitialConnectionMade] = useState(false);
+
+  useEffect(() => {
+    if (
+      curExperimentLoaded ||
+      kernelStatus !== KernelConnectionStatus.FINE ||
+      !notebook ||
+      !notebook.adapter ||
+      !curExperiment ||
+      !curExperiment.notebookContent
+    ) {
+      return;
+    }
+    if (loadedWithExperiment) {
+      notebook.adapter.setNotebookModel(curExperiment.notebookContent);
+      notebook.adapter.commands.execute("notebook:save").finally(() => {
+        setNotebookConnected(false);
+        setCurExperimentLoaded(true);
+      });
+    }
+  }, [loadedWithExperiment, notebook, kernelStatus]);
 
   useEffect(() => {
     if (
       !activeNotebookModel?.model?.cells ||
       !notebook?.adapter?.commands ||
-      notebookConnected
+      notebookConnected ||
+      (loadedWithExperiment && !curExperimentLoaded)
     ) {
       return;
     }
@@ -137,11 +164,9 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     });
     setCells(cs);
     setNotebookConnected(true);
+    setInitialConnectionMade(true);
     setIsEdited(false);
     setIsSaving(false);
-    if (!curExperiment) {
-      setCurExperiment(notebook?.model?.toJSON() as INotebookContent);
-    }
   }
 
   function getValidationCellOutput(changedCell: ICellModel) {
@@ -157,6 +182,7 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     }
     setNotebookIsRunning(true);
     try {
+      await notebook.adapter?.commands.execute("notebook:save");
       await notebook.adapter?.commands.execute("notebook:run-all");
     } catch (err) {
       console.error(err);
@@ -214,8 +240,8 @@ export function useWithNotebook(props: { curActivity: Activity }) {
       notebook.adapter.setNotebookModel(experiment.notebookContent);
       setIsEdited(true);
       setNotebookConnected(false);
-    } else if (curExperiment) {
-      notebook.adapter.setNotebookModel(curExperiment);
+    } else if (curExperiment?.notebookContent) {
+      notebook.adapter.setNotebookModel(curExperiment.notebookContent);
       setIsEdited(true);
       setNotebookConnected(false);
     }
@@ -255,5 +281,6 @@ export function useWithNotebook(props: { curActivity: Activity }) {
     runNotebook,
     editCode,
     resetCode,
+    initialConnectionMade,
   };
 }

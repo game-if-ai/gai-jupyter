@@ -70,6 +70,9 @@ function NotebookComponent(props: {
   const dialogue = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const shortcutKeyboard = useWithShortcutKeys();
+  const [kernelStatus, setKernelStatus] = useState(
+    KernelConnectionStatus.CONNECTING
+  );
   const { activity, curExperiment, timesNotebookVisited, uniqueUserId } = props;
   const {
     cells,
@@ -80,12 +83,13 @@ function NotebookComponent(props: {
     isEdited,
     isSaving,
     notebookIsRunning,
+    initialConnectionMade: notebookInitialized,
     notebookRunCount,
     editCode,
     resetCode,
     saveNotebook,
     runNotebook,
-  } = useWithNotebook({ curActivity: activity });
+  } = useWithNotebook({ curActivity: activity, curExperiment, kernelStatus });
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
     validationCellOutput: validationCellOutput,
@@ -99,13 +103,10 @@ function NotebookComponent(props: {
   const [curCell, setCurCell] = useState<string>("");
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [showResults, setShowResults] = useState<boolean>(false);
-  const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
+
   const [kernel, setKernel] = useState<Kernel>();
   const [pastExperiments] = useState(props.activity.simulator.experiments);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const [kernelStatus, setKernelStatus] = useState(
-    KernelConnectionStatus.CONNECTING
-  );
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [didScroll, setDidScroll] = useState<boolean>(false);
   const [scrollPos, setScrollPos] = useState<number>(0);
@@ -438,36 +439,44 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      {Object.entries(cells).length === 0 ? <CircularProgress /> : undefined}
-      <div className={classes.cells} ref={scrollRef} onScroll={onScroll}>
-        {Object.entries(cells)
-          .filter((v) => !v[1].hiddenCell)
-          .map((v) => (
-            <NotebookEditor
-              key={v[0]}
-              isSaving={isSaving}
-              activity={activity}
-              cellState={v[1]}
-              editCode={editCode}
-              dialogue={dialogue}
-              shortcutKeyboard={shortcutKeyboard}
-              hints={hints}
-            />
-          ))}
-      </div>
+      {Object.entries(cells).length === 0 || !notebookInitialized ? (
+        <span
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          {" "}
+          <span
+            style={{ color: "#1976d2", fontWeight: "bold", marginRight: "5px" }}
+          >
+            Loading Notebook
+          </span>{" "}
+          <CircularProgress />{" "}
+        </span>
+      ) : (
+        <div className={classes.cells} ref={scrollRef} onScroll={onScroll}>
+          {Object.entries(cells)
+            .filter((v) => !v[1].hiddenCell)
+            .map((v) => (
+              <NotebookEditor
+                key={v[0]}
+                isSaving={isSaving}
+                activity={activity}
+                cellState={v[1]}
+                editCode={editCode}
+                dialogue={dialogue}
+                shortcutKeyboard={shortcutKeyboard}
+                hints={hints}
+              />
+            ))}
+        </div>
+      )}
       <div style={{ display: "none" }}>
         <Notebook
           kernel={kernel}
-          model={
-            loadedWithExperiment && curExperiment?.notebookContent
-              ? curExperiment.notebookContent
-              : undefined
-          }
-          path={
-            loadedWithExperiment && curExperiment?.notebookContent
-              ? undefined
-              : `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${props.activity.id}/test.ipynb`
-          }
+          path={`/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${props.activity.id}/test.ipynb`}
           uid={NOTEBOOK_UID}
         />
       </div>
