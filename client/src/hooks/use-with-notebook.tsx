@@ -79,10 +79,8 @@ export function useWithNotebook(props: {
     }
     if (loadedWithExperiment) {
       notebook.adapter.setNotebookModel(curExperiment.notebookContent);
-      notebook.adapter.commands.execute("notebook:save").finally(() => {
-        setNotebookConnected(false);
-        setCurExperimentLoaded(true);
-      });
+      setNotebookConnected(false);
+      setCurExperimentLoaded(true);
     }
   }, [loadedWithExperiment, notebook, kernelStatus]);
 
