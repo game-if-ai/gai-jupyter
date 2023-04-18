@@ -58,6 +58,7 @@ export function useWithImproveCode(props: {
     if (activeHintIndex === -1) {
       return;
     }
+
     while (activeHintIndexCopy >= 0) {
       const hintToShow = improveCodeHints[activeHintIndexCopy];
       const hintAlreadyShowing = Boolean(
