@@ -332,10 +332,6 @@ export function hintClickedCmi5() {
         "en-US": `Hint Button Clicked`,
       },
     },
-    object: {
-      id: `${window.location.protocol}//${window.location.host}`,
-      objectType: "Activity",
-    },
   });
 }
 
@@ -356,10 +352,6 @@ export function hintDisplayedCmi5(hint: ImproveCodeHint) {
         "Hint Message Displayed": hint.message,
         "Hint Condition": hint.conditionDescription,
       },
-    },
-    object: {
-      id: `${window.location.protocol}//${window.location.host}`,
-      objectType: "Activity",
     },
   });
 }
