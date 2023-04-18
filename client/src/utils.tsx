@@ -18,6 +18,7 @@ import { AllExperimentTypes, GameExperimentTypes } from "games/activity-types";
 import { EditorView } from "codemirror";
 import { submitNotebookExperimentGQL } from "./api";
 import { Activity } from "./games";
+import { ImproveCodeHint } from "hooks/use-with-improve-code";
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
   return [...a.slice(0, i), item, ...a.slice(i + 1)];
@@ -312,5 +313,49 @@ export function storeNotebookExperimentInGql(experiment: AllExperimentTypes) {
       "There was an issue with saving the experiment to graphql",
       err
     );
+  });
+}
+
+export function hintClickedCmi5() {
+  if (!Cmi5.isCmiAvailable) {
+    console.log("cmi5 not available to save hint clicked");
+    return;
+  }
+  Cmi5.instance.sendCmi5AllowedStatement({
+    verb: {
+      id: `https://gameifai.org/xapi/verb/hintbuttonclicked`,
+      display: {
+        "en-US": `Hint Button Clicked`,
+      },
+    },
+    object: {
+      id: `${window.location.protocol}//${window.location.host}`,
+      objectType: "Activity",
+    },
+  });
+}
+
+export function hintDisplayedCmi5(hint: ImproveCodeHint) {
+  if (!Cmi5.isCmiAvailable) {
+    console.log("cmi5 not available to save hint", `Hint: ${hint.message}`);
+    return;
+  }
+  Cmi5.instance.sendCmi5AllowedStatement({
+    verb: {
+      id: `https://gameifai.org/xapi/verb/hintdisplayed`,
+      display: {
+        "en-US": `Hint Displayed`,
+      },
+    },
+    result: {
+      extensions: {
+        "Hint Message Displayed": hint.message,
+        "Hint Condition": hint.conditionDescription,
+      },
+    },
+    object: {
+      id: `${window.location.protocol}//${window.location.host}`,
+      objectType: "Activity",
+    },
   });
 }

@@ -38,7 +38,7 @@ import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
 import { UseWithDialogue } from "../hooks/use-with-dialogue";
 import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
-import { capitalizeFirst } from "../utils";
+import { capitalizeFirst, hintClickedCmi5 } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 import { UseWithImproveCode } from "../hooks/use-with-improve-code";
 import { Output } from "./Output";
@@ -304,7 +304,10 @@ export function NotebookEditor(props: {
           <TooltipMsg elemId="hint" dialogue={dialogue}>
             <IconButton
               disabled={!hints.hintsAvailable || isSaving}
-              onClick={hints.toastHint}
+              onClick={() => {
+                hints.toastHint();
+                hintClickedCmi5();
+              }}
             >
               <HelpOutlineOutlined />
             </IconButton>

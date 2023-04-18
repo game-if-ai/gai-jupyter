@@ -161,41 +161,30 @@ export const Cafe: Game = {
       },
     },
     {
-      message: "Consider giving a Logistical Regression model a try!",
-      conditionDescription:
-        "Checks if the user isn't using either the logistic regression or naive bayes model.",
-
+      message: "Consider giving the Naive Bayes model a try!",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
+      conditionDescription:
+        "Checks if the user is still using the dummy classifier.",
       active: (cafeCodeInfo) => {
-        return (
-          (cafeCodeInfo as CafeCodeInfo).classifierModelUsed !==
-            "LOGISTIC_REGRESSION" &&
-          (cafeCodeInfo as CafeCodeInfo).classifierModelUsed !== "NAIVE_BAYES"
-        );
+        return (cafeCodeInfo as CafeCodeInfo).classifierModelUsed === "DUMMY";
       },
     },
     {
-      message: "Consider giving a Naive Bayes model a try!",
-      conditionDescription:
-        "Checks that the user is not using the naive bayes model.",
-
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
-      active: (cafeCodeInfo) => {
-        return (
-          (cafeCodeInfo as CafeCodeInfo).classifierModelUsed !== "NAIVE_BAYES"
-        );
-      },
-    },
-    {
-      message: "Consider lemmatizing the reviews!",
-      conditionDescription:
-        "Checks that the user is using the naive bayes model and not lemmatizing.",
-
+      message: "Consider preprocessing your data with stemming!",
+      conditionDescription: "Checks that the user is stemming their data.",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active(cafeCodeInfo) {
-        const { classifierModelUsed, usingLemmatization } =
-          cafeCodeInfo as CafeCodeInfo;
-        return classifierModelUsed === "NAIVE_BAYES" && !usingLemmatization;
+        const { usingStemming } = cafeCodeInfo as CafeCodeInfo;
+        return !usingStemming;
+      },
+    },
+    {
+      message: "Consider a Logistic Regression model a try!",
+      conditionDescription: "Checks if the user is using a Naive Bayes model",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active(cafeCodeInfo) {
+        const { classifierModelUsed } = cafeCodeInfo as CafeCodeInfo;
+        return classifierModelUsed === "NAIVE_BAYES";
       },
     },
     {

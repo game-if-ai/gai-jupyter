@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Activity } from "../games";
 import { CodeInfoTypes } from "games/activity-types";
+import { hintDisplayedCmi5 } from "../utils";
 
 type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
 
@@ -72,6 +73,7 @@ export function useWithImproveCode(props: {
         activeHintIndexCopy--;
         continue;
       }
+      hintDisplayedCmi5(hintToShow);
       setActiveToasts((prevValue) => [...prevValue, hintToShow]);
       toast(hintToShow.message, {
         onClose: () => {

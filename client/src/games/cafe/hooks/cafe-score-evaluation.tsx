@@ -147,6 +147,7 @@ function getMetricCutoffScore(metric: Metric, metricValue: number): number {
 
 export function evaluateCafeExperiment(curExperiment: CafeExperiment) {
   let finalScore = 0;
+  const { codeInfo } = curExperiment;
 
   const evaluationMetricWeights: MetricWeights = {
     F1SCORE: 0.5,
@@ -154,7 +155,7 @@ export function evaluateCafeExperiment(curExperiment: CafeExperiment) {
     PRECISION: 0.0,
     RECALL: 0.0,
   };
-  // Score +0-0.15 for better performance of metrics of interest vs. a baseline (e.g., set an expected performance and std-dev)
+  // Score +0-0.20 for better performance of metrics of interest vs. a baseline (e.g., set an expected performance and std-dev)
   const classifierPerformanceWeight = 0.15;
   const [highestWeightedMetric, highestWeightedMetricValue] =
     getHighestWeightedMetricAndValue(curExperiment, evaluationMetricWeights);
@@ -163,21 +164,24 @@ export function evaluateCafeExperiment(curExperiment: CafeExperiment) {
     classifierPerformanceWeight;
   finalScore += classifierPerformanceWeightedScore;
 
-  // Score: +0.5 for code executes and generates any non-zero valid evaluation for metrics that are important
-  if (highestWeightedMetricValue > 0) {
-    finalScore += 0.5;
+  const someCodeChanges =
+    codeInfo.usingLemmatization ||
+    codeInfo.classifierModelUsed === "LOGISTIC_REGRESSION" ||
+    codeInfo.classifierModelUsed === "NAIVE_BAYES";
+
+  // Score: +0.4 for changed code executes and generates any non-zero valid evaluation for metrics that are important
+  if (someCodeChanges && highestWeightedMetricValue > 0) {
+    finalScore += 0.4;
   }
 
   // Score +0-0.35 for % of key elements in code that are contained (patterns of importance: should all be contained hints)
-  const { codeInfo } = curExperiment;
 
-  codeInfo.classifierModelUsed === "LOGISTIC_REGRESSION" &&
-    (finalScore += 0.35);
+  codeInfo.classifierModelUsed === "LOGISTIC_REGRESSION" && (finalScore += 0.3);
 
-  codeInfo.classifierModelUsed === "NAIVE_BAYES" && (finalScore += 0.35 / 2); //half points if they use naives bay without lemmatization
-  codeInfo.classifierModelUsed === "NAIVE_BAYES" &&
-    codeInfo.usingLemmatization &&
-    (finalScore += 0.35 / 2);
+  codeInfo.classifierModelUsed === "NAIVE_BAYES" && (finalScore += 0.3);
+
+  codeInfo.usingLemmatization && (finalScore += 0.15);
+  codeInfo.usingStemming && (finalScore += 0.2);
 
   return finalScore;
 }

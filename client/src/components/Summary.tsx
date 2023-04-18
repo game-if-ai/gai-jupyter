@@ -80,14 +80,14 @@ function Summary(props: {
       }
     }
     if (experiment.activityId === "neural_machine_translation") {
-      if (experiment.evaluationScore === 0) {
+      if (experiment.evaluationScore < 1) {
         msgs.push({
           id: "notebook",
-          title: "Results Very Bad",
+          title: "Incomplete",
           text: "You have not completed all the tasks for this experiment.",
           noSave: true,
         });
-      } else if (experiment.evaluationScore === 1) {
+      } else {
         msgs.push({
           id: "submit",
           title: "Experiment Complete",

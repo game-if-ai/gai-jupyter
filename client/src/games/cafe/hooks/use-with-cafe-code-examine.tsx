@@ -16,6 +16,7 @@ type LoadStatus = "LOADING" | "LOADED";
 
 export interface CafeCodeInfo {
   usingLemmatization: boolean;
+  usingStemming: boolean;
   removesStopwords: boolean;
   cleansContractions: boolean;
   classifierModelUsed: ClassifierModel;
@@ -36,6 +37,7 @@ export function useWithCafeCodeExamine(
 ): UseWithCafeCodeExamine {
   const [cafeCodeInfo, setCafeCodeInfo] = useState<CafeCodeInfoLoad>({
     usingLemmatization: false,
+    usingStemming: false,
     classifierModelUsed: "NONE",
     featureExtractionUsed: "NONE",
     removesStopwords: false,

@@ -20,11 +20,22 @@ export type FeatureExtractionMethods =
 export function getAllCafeCodeInfo(userCode: string[]): CafeCodeInfo {
   return {
     usingLemmatization: isUsingLemmatization(userCode),
+    usingStemming: isUsingStemming(userCode),
     classifierModelUsed: getClassifierModelUsed(userCode),
     featureExtractionUsed: getFeatureExtractionMethodUsed(userCode),
     removesStopwords: isRemovingStopwords(userCode),
     cleansContractions: isCleaningContractions(userCode),
   };
+}
+
+export function isUsingStemming(userCode: string[]): boolean {
+  const importsLemmatizer = Boolean(
+    userCode.find((codeLine) => codeLine.match(/import.*PorterStemmer/))
+  );
+  const usesLemmatizer = Boolean(
+    userCode.find((codeLine) => codeLine.match(/.stem\(.*\)/))
+  );
+  return importsLemmatizer && usesLemmatizer;
 }
 
 export function isUsingLemmatization(userCode: string[]): boolean {

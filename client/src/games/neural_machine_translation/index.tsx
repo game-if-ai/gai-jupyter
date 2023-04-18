@@ -174,7 +174,7 @@ export const NeuralMachineTranslation: Activity = {
       detail: "",
     },
     {
-      label: 'tokenizer.pad_sequences(x, padding="post")',
+      label: 'pad_sequences(x, padding="post")',
       type: "text",
       apply,
       detail: "",
@@ -187,6 +187,12 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       label: "np.argmax(logits, 1)",
+      type: "text",
+      apply,
+      detail: "",
+    },
+    {
+      label: ".reshape(n, m)",
       type: "text",
       apply,
       detail: "",
