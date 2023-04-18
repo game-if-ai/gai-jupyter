@@ -534,15 +534,15 @@ function NotebookComponent(props: {
           horizontal: "left",
         }}
       >
-        {pastExperiments.reverse().map((e, i) => (
+        {[...pastExperiments].reverse().map((e) => (
           <MenuItem
-            key={i}
+            key={e.id}
             onClick={() => {
               resetCode(e);
               setAnchorEl(null);
             }}
           >
-            {new Date(e.time).toLocaleTimeString()}
+            {`${new Date(e.time).toLocaleTimeString()}`}
           </MenuItem>
         ))}
       </Popover>
