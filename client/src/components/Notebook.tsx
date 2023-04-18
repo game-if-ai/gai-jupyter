@@ -291,11 +291,7 @@ function NotebookComponent(props: {
   }
 
   function onReset(event: React.MouseEvent<HTMLButtonElement>): void {
-    if (pastExperiments.length === 0) {
-      resetCode();
-    } else {
-      setAnchorEl(event.currentTarget);
-    }
+    setAnchorEl(event.currentTarget);
   }
 
   function scrollTo(cell: string): void {
@@ -399,7 +395,7 @@ function NotebookComponent(props: {
             <Info />
           </IconButton>
           <TooltipMsg elemId="reset" dialogue={dialogue}>
-            <IconButton onClick={onReset}>
+            <IconButton onClick={onReset} disabled={!pastExperiments.length}>
               <Restore />
             </IconButton>
           </TooltipMsg>
@@ -518,24 +514,17 @@ function NotebookComponent(props: {
           horizontal: "left",
         }}
       >
-        <Select
-          onChange={(e) => {
-            const idx = e.target.value as number;
-            if (idx === -1) {
-              resetCode();
-            } else {
-              resetCode(pastExperiments[idx]);
-            }
-            setAnchorEl(null);
-          }}
-          style={{ color: "white", width: 200 }}
-        >
-          {pastExperiments.map((e, i) => (
-            <MenuItem key={i} value={i}>
-              {`${e.time}`}
-            </MenuItem>
-          ))}
-        </Select>
+        {pastExperiments.reverse().map((e, i) => (
+          <MenuItem
+            key={i}
+            onClick={() => {
+              resetCode(e);
+              setAnchorEl(null);
+            }}
+          >
+            {new Date(e.time).toLocaleTimeString()}
+          </MenuItem>
+        ))}
       </Popover>
     </div>
   );
