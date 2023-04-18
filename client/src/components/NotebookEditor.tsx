@@ -93,6 +93,7 @@ export function NotebookEditor(props: {
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
   const [editor, setEditor] = useState<EditorView>();
   const [lintCompartment] = useState(new Compartment());
+  const [hasError, setHasError] = useState<boolean>(false);
 
   function autocomplete(context: CompletionContext) {
     const word = context.matchBefore(/\w*/);
@@ -195,6 +196,7 @@ export function NotebookEditor(props: {
   useEffect(() => {
     if (outputElement && !output.length) {
       setOutputElement(undefined);
+      setHasError(false);
     } else if (output.length) {
       const o = output[0];
       if (o && isError(o)) {
@@ -209,6 +211,9 @@ export function NotebookEditor(props: {
           noSave: true,
           timer: 5000,
         });
+        setHasError(true);
+      } else {
+        setHasError(false);
       }
       setOutputElement(<Output outputs={output} />);
     }
@@ -318,7 +323,9 @@ export function NotebookEditor(props: {
         <TooltipMsg elemId={`output-${cellId}`} dialogue={dialogue}>
           <Button
             data-elemid={`output-${cellId}`}
-            startIcon={showOutput ? <Visibility /> : <VisibilityOff />}
+            startIcon={
+              showOutput || hasError ? <Visibility /> : <VisibilityOff />
+            }
             onClick={() => setShowOutput(!showOutput)}
           >
             Output
@@ -326,7 +333,7 @@ export function NotebookEditor(props: {
         </TooltipMsg>
       </div>
       <div id={`code-input-${cellId}`} />
-      <Collapse in={showOutput} timeout={500} unmountOnExit>
+      <Collapse in={showOutput || hasError} timeout={500} unmountOnExit>
         {outputElement}
       </Collapse>
     </div>
