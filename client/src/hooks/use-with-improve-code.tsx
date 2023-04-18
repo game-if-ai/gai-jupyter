@@ -74,7 +74,7 @@ export function useWithImproveCode(props: {
         activeHintIndexCopy--;
         continue;
       }
-      hintDisplayedCmi5(hintToShow);
+      hintDisplayedCmi5(hintToShow, activeActivity.id);
       setActiveToasts((prevValue) => [...prevValue, hintToShow]);
       toast(hintToShow.message, {
         onClose: () => {

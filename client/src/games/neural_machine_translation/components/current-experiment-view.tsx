@@ -51,8 +51,7 @@ export function NMTCurrentExperimentView(props: {
       {
         metricName: "Reshapes data to proper dimensions",
         metricValue:
-          currentExperiment.codeInfo.callsReshape &&
-          currentExperiment.codeInfo.callsReshapeOnXAndY,
+          currentExperiment.codeInfo.preprocessedDataCorrectDimensions,
       },
       {
         metricName: "Utilizes Argmax",

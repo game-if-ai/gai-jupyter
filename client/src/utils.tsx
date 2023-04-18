@@ -17,7 +17,7 @@ import { localStorageGet, localStorageStore } from "./local-storage";
 import { AllExperimentTypes, GameExperimentTypes } from "games/activity-types";
 import { EditorView } from "codemirror";
 import { submitNotebookExperimentGQL } from "./api";
-import { Activity } from "./games";
+import { Activity, ActivityID } from "./games";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
@@ -320,7 +320,7 @@ export function storeNotebookExperimentInGql(experiment: AllExperimentTypes) {
   });
 }
 
-export function hintClickedCmi5() {
+export function hintClickedCmi5(activityId: ActivityID) {
   if (!Cmi5.isCmiAvailable) {
     console.log("cmi5 not available to save hint clicked");
     return;
@@ -332,10 +332,17 @@ export function hintClickedCmi5() {
         "en-US": `Hint Button Clicked`,
       },
     },
+    object: {
+      id: `${activityId}`,
+      objectType: "Activity",
+    },
   });
 }
 
-export function hintDisplayedCmi5(hint: ImproveCodeHint) {
+export function hintDisplayedCmi5(
+  hint: ImproveCodeHint,
+  activityId: ActivityID
+) {
   if (!Cmi5.isCmiAvailable) {
     console.log("cmi5 not available to save hint", `Hint: ${hint.message}`);
     return;
@@ -352,6 +359,10 @@ export function hintDisplayedCmi5(hint: ImproveCodeHint) {
         "Hint Message Displayed": hint.message,
         "Hint Condition": hint.conditionDescription,
       },
+    },
+    object: {
+      id: `${activityId}`,
+      objectType: "Activity",
     },
   });
 }

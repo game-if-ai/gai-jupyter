@@ -83,7 +83,8 @@ export function NotebookEditor(props: {
   editCode: (cell: string, code: string) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { cellState, dialogue, shortcutKeyboard, hints, isSaving } = props;
+  const { cellState, dialogue, shortcutKeyboard, hints, isSaving, activity } =
+    props;
   const { cell, output, errorOutput, lintOutput } = cellState;
   const cellId = cell.id;
   const [cellType] = useState(cell.getMetadata("gai_cell_type") || "");
@@ -308,7 +309,7 @@ export function NotebookEditor(props: {
               disabled={!hints.hintsAvailable || isSaving}
               onClick={() => {
                 hints.toastHint();
-                hintClickedCmi5();
+                hintClickedCmi5(activity.id);
               }}
             >
               <HelpOutlineOutlined />

@@ -192,7 +192,7 @@ export const NeuralMachineTranslation: Activity = {
       detail: "",
     },
     {
-      label: ".reshape(n, m)",
+      label: ".reshape()",
       type: "text",
       apply,
       detail: "",
