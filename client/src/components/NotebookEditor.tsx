@@ -304,17 +304,15 @@ export function NotebookEditor(props: {
           </Typography>
         </TooltipMsg>
         {isDisabled ? undefined : (
-          <TooltipMsg elemId="hint" dialogue={dialogue}>
-            <IconButton
-              disabled={!hints.hintsAvailable || isSaving}
-              onClick={() => {
-                hints.toastHint();
-                hintClickedCmi5(activity.id);
-              }}
-            >
-              <HelpOutlineOutlined />
-            </IconButton>
-          </TooltipMsg>
+          <IconButton
+            disabled={!hints.hintsAvailable || isSaving}
+            onClick={() => {
+              hints.toastHint();
+              hintClickedCmi5(activity.id);
+            }}
+          >
+            <HelpOutlineOutlined />
+          </IconButton>
         )}
         <div style={{ flexGrow: 1 }} />
         <TooltipMsg elemId={`output-${cellId}`} dialogue={dialogue}>
