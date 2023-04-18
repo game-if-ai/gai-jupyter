@@ -116,11 +116,15 @@ export function extractCellCode(cell: ICellModel | ICell): string[] {
       ? (cell as ICellModel).toJSON()
       : (cell as ICell);
   const cellSource = cellData.source;
-  return Array.isArray(cellSource)
-    ? cellSource.filter(
+  return formatCellCode(cellSource);
+}
+
+export function formatCellCode(code: string | string[]): string[] {
+  return Array.isArray(code)
+    ? code.filter(
         (codeLine) => !codeLine.trim().startsWith("#") && codeLine.length > 0
       )
-    : cellSource
+    : code
         .split("\n")
         .filter(
           (codeLine) => !codeLine.trim().startsWith("#") && codeLine.length > 0

@@ -24,6 +24,7 @@ import {
   extractSetupCellOutput,
   extractValidationCellOutput,
   extractCellCode,
+  formatCellCode,
 } from "../utils";
 import { AllExperimentTypes } from "games/activity-types";
 import { Activity } from "../games";
@@ -191,11 +192,16 @@ export function useWithNotebook(props: {
     }
   }
 
-  function extractAndSetModelCellCode(notebookCells: CellList) {
+  function extractAndSetModelCellCode(
+    notebookCells: CellList,
+    cells?: Record<string, CellState>
+  ) {
     let evalCellCount = 0;
     for (let i = 0; i < notebookCells.length; i++) {
       const cell = notebookCells.get(i);
-      const cellSource = extractCellCode(cell);
+      const cellSource = cells
+        ? formatCellCode(cells[cell.id].code)
+        : extractCellCode(cell);
       const cellType = cell.getMetadata("gai_cell_type");
       if (cellType === GaiCellTypes.MODEL) {
         setUserInputCellsCode((prevValue) => {
@@ -210,6 +216,8 @@ export function useWithNotebook(props: {
   }
 
   function editCode(cell: string, code: string): void {
+    const notebookCells = activeNotebookModel?.model?.cells;
+    if (!notebookCells) return;
     setCells((prevValue) => {
       prevValue[cell].code = code;
       if (prevValue[cell].cell.getMetadata("check_lint") === true) {
@@ -221,9 +229,9 @@ export function useWithNotebook(props: {
       for (const c of Object.values(prevValue)) {
         if (c.cell.toJSON().source !== c.code) {
           setIsEdited(true);
-          break;
         }
       }
+      extractAndSetModelCellCode(notebookCells, prevValue);
       return prevValue;
     });
   }
