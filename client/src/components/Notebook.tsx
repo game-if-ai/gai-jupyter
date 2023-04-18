@@ -215,7 +215,7 @@ function NotebookComponent(props: {
         {
           id: "reset",
           title: "Reset Code",
-          text: "This is the reset button. It will reset all edited notebook cells to the state they were in originally. If you want to undo changes to an individual cell, use that notebook's undo button instead.",
+          text: "This is the reset button. It will reset all edited notebook cells to a previous run state.",
         },
         {
           id: "run",
