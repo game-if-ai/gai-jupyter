@@ -8,7 +8,6 @@ The full terms of this copyright and license should always be found in the root 
 
 import React, { useEffect, useState } from "react";
 import { isError, IError } from "@jupyterlab/nbformat";
-
 import { Button, Collapse, IconButton, Typography } from "@mui/material";
 import {
   EditOff,
@@ -20,7 +19,7 @@ import {
 } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { minimalSetup, EditorView, basicSetup } from "codemirror";
-import { CompletionContext } from "@codemirror/autocomplete";
+import { CompletionContext, autocompletion } from "@codemirror/autocomplete";
 import { python } from "@codemirror/lang-python";
 import { indentUnit } from "@codemirror/language";
 import { linter, lintGutter, Diagnostic } from "@codemirror/lint";
@@ -42,6 +41,8 @@ import { capitalizeFirst } from "../utils";
 import { TooltipMsg } from "./Dialogue";
 import { UseWithImproveCode } from "../hooks/use-with-improve-code";
 import { Output } from "./Output";
+
+import "../codemirror.css";
 
 interface CustomErrorMessage {
   condition: (errorOutput: IError) => boolean;
@@ -122,6 +123,7 @@ export function NotebookEditor(props: {
         return StateEffect.define(undefined).of(null);
       }),
       lintCompartment.of(linter(() => [])),
+      autocompletion({ optionClass: () => "autocompleteOption" }),
       isDisabled ? minimalSetup : basicSetup,
     ];
     if (!isDisabled) {
