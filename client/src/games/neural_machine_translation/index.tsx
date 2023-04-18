@@ -154,8 +154,7 @@ export const NeuralMachineTranslation: Activity = {
     {
       message:
         "Remember to join the output so that it forms a single string (' '.join(output_words)",
-      conditionDescription:
-        "if there is no join call present",
+      conditionDescription: "if there is no join call present",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
         return (nmtCodeInfo as NMTCodeInfo).callsJoin;
@@ -203,24 +202,6 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       label: ".reshape()",
-      type: "text",
-      apply,
-      detail: "",
-    },
-    {
-      label: "from nltk.stem import PorterStemmer",
-      type: "text",
-      apply,
-      detail: "",
-    },
-    {
-      label: "stemmer = PorterStemmer()",
-      type: "text",
-      apply,
-      detail: "",
-    },
-    {
-      label: "stemmer.stem(x)",
       type: "text",
       apply,
       detail: "",

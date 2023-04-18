@@ -32,11 +32,7 @@ export function getAllNMTCodeInfo(
 }
 
 function callsJoin(userCode: string[]): boolean {
-  return Boolean(
-    userCode.find((codeLine)=>
-      codeLine.match(/.join\(.*\)/)
-    )
-  );
+  return Boolean(userCode.find((codeLine) => codeLine.match(/.join\(.*\)/)));
 }
 
 function callsPadSequencesWithPaddingPost(userCode: string[]): boolean {

@@ -148,6 +148,24 @@ export const Cafe: Game = {
       apply,
       detail: "lemmatize",
     },
+    {
+      label: "from nltk.stem import PorterStemmer",
+      type: "text",
+      apply,
+      detail: "",
+    },
+    {
+      label: "stemmer = PorterStemmer()",
+      type: "text",
+      apply,
+      detail: "",
+    },
+    {
+      label: "stemmer.stem(x)",
+      type: "text",
+      apply,
+      detail: "",
+    },
   ],
   improveCodeHints: [
     {
