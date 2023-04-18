@@ -18,11 +18,15 @@ export function ShortcutKeyboard(props: {
   const classes = useStyles();
   const {
     isOpen,
-    // isMobile,
+    isMobile,
     // isMobileKeyboardOpen,
     // mobileKeyboardHeight,
     setKey,
   } = props.shortcutKeyboard;
+
+  if (!isMobile) {
+    return <div />;
+  }
 
   return (
     <div
