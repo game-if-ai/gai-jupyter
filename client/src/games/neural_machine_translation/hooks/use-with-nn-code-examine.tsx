@@ -21,6 +21,7 @@ export interface NMTCodeInfo {
   callsReshape: boolean;
   callsReshapeOnXAndY: boolean;
   callsArgmax: boolean;
+  callsJoin: boolean;
 
   hasValidationOutput: boolean;
   // Post run
@@ -54,6 +55,7 @@ export function useWithNMTCodeExamine(
     callsReshape: false,
     callsReshapeOnXAndY: false,
     callsArgmax: false,
+    callsJoin: false,
     // Post run
     hasValidationOutput: false,
     dataIsNumpyArray: false,

@@ -27,7 +27,13 @@ import {
   Toolbar,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { PlayArrow, Info, Restore, Save } from "@mui/icons-material";
+import {
+  PlayArrow,
+  Info,
+  Restore,
+  Save,
+  HelpOutlineOutlined,
+} from "@mui/icons-material";
 
 import { Activity, isGameActivity } from "../games";
 import { useWithNotebook } from "../hooks/use-with-notebook";
@@ -47,7 +53,10 @@ import { ShortcutKeyboard } from "./ShortcutKeyboard";
 import "react-toastify/dist/ReactToastify.css";
 import { AllExperimentTypes } from "../games/activity-types";
 import { useWithImproveCode } from "../hooks/use-with-improve-code";
-import { extractSetupAndValidationCellOutputs } from "../utils";
+import {
+  extractSetupAndValidationCellOutputs,
+  hintClickedCmi5,
+} from "../utils";
 
 export enum KernelConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -206,7 +215,7 @@ function NotebookComponent(props: {
         {
           id: "reset",
           title: "Reset Code",
-          text: "This is the reset button. It will reset all edited notebook cells to the state they were in originally. If you want to undo changes to an individual cell, use that notebook's undo button instead.",
+          text: "This is the reset button. It will reset all edited notebook cells to a previous run state.",
         },
         {
           id: "run",
@@ -394,6 +403,17 @@ function NotebookComponent(props: {
           <IconButton onClick={() => setShowDescription(true)}>
             <Info />
           </IconButton>
+          <TooltipMsg elemId="hint" dialogue={dialogue}>
+            <IconButton
+              disabled={!hints.hintsAvailable || isSaving}
+              onClick={() => {
+                hints.toastHint();
+                hintClickedCmi5(activity.id);
+              }}
+            >
+              <HelpOutlineOutlined />
+            </IconButton>
+          </TooltipMsg>
           <TooltipMsg elemId="reset" dialogue={dialogue}>
             <IconButton onClick={onReset} disabled={!pastExperiments.length}>
               <Restore />
@@ -514,15 +534,15 @@ function NotebookComponent(props: {
           horizontal: "left",
         }}
       >
-        {pastExperiments.reverse().map((e, i) => (
+        {[...pastExperiments].reverse().map((e) => (
           <MenuItem
-            key={i}
+            key={e.id}
             onClick={() => {
               resetCode(e);
               setAnchorEl(null);
             }}
           >
-            {new Date(e.time).toLocaleTimeString()}
+            {`${new Date(e.time).toLocaleTimeString()}`}
           </MenuItem>
         ))}
       </Popover>

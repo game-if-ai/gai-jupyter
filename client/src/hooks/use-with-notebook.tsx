@@ -113,10 +113,11 @@ export function useWithNotebook(props: {
     for (let i = 0; i < notebookCells.length; i++) {
       const cellData = notebookCells.get(i);
       const cellId = cellData.id;
+      const outputs = cellData.toJSON().outputs as IOutput[];
       cs[cellId] = {
         cell: cellData,
         code: cellData.toJSON().source,
-        output: [],
+        output: outputs || [],
         hiddenCell: cellData.getMetadata("hidden") || false,
       };
       cellData.stateChanged.connect((changedCell) => {

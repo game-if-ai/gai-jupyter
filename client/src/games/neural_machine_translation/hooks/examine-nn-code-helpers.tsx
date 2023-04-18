@@ -20,6 +20,7 @@ export function getAllNMTCodeInfo(
     callsReshape: callsReshape(userCode),
     callsReshapeOnXAndY: callsReshapeOnXAndY(userCode),
     callsArgmax: callsArgmax(userCode),
+    callsJoin: callsJoin(userCode),
 
     hasValidationOutput: validationCellOutput.length > 0,
     dataIsNumpyArray: dataIsNumpyArray(validationCellOutput),
@@ -28,6 +29,14 @@ export function getAllNMTCodeInfo(
       preprocessedDataCorrectDimensions(validationCellOutput),
     outputCorrectlyFormatted: outputCorrectlyFormatted(validationCellOutput),
   };
+}
+
+function callsJoin(userCode: string[]): boolean {
+  return Boolean(
+    userCode.find((codeLine)=>
+      codeLine.match(/.join\(.*\)/)
+    )
+  );
 }
 
 function callsPadSequencesWithPaddingPost(userCode: string[]): boolean {
