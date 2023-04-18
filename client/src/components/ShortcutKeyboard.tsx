@@ -18,9 +18,9 @@ export function ShortcutKeyboard(props: {
   const classes = useStyles();
   const {
     isOpen,
-    isMobile,
-    isMobileKeyboardOpen,
-    mobileKeyboardHeight,
+    // isMobile,
+    // isMobileKeyboardOpen,
+    // mobileKeyboardHeight,
     setKey,
   } = props.shortcutKeyboard;
 
@@ -29,7 +29,7 @@ export function ShortcutKeyboard(props: {
       className={classes.shortcutButtons}
       style={{
         display: isOpen ? "block" : "none",
-        bottom: isMobile && isMobileKeyboardOpen ? mobileKeyboardHeight : 0,
+        // bottom: isMobile && isMobileKeyboardOpen ? mobileKeyboardHeight : 0,
       }}
     >
       {SHORTCUT_KEYS.map((s) => (
@@ -57,7 +57,7 @@ const useStyles = makeStyles(() => ({
     flexDirection: "row",
     width: "100%",
     height: 50,
-    position: "absolute",
+    // position: "absolute",
     zIndex: 1,
     backgroundColor: "white",
     boxShadow: "0px -5px 5px rgba(0, 0, 0, 0.2)",

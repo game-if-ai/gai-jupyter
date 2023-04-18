@@ -86,7 +86,6 @@ export function NotebookEditor(props: {
   const { cell, output, errorOutput, lintOutput } = cellState;
   const cellId = cell.id;
   const [cellType] = useState(cell.getMetadata("gai_cell_type") || "");
-
   const [showOutput, setShowOutput] = useState<boolean>(cellType === "MODEL");
   const [outputElement, setOutputElement] = useState<JSX.Element>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
@@ -114,6 +113,7 @@ export function NotebookEditor(props: {
       keymap.of([indentWithTab]), // enable TAB key
       indentUnit.of("    "), // use 4 spaces for indents
       EditorState.readOnly.of(isDisabled), // disable editing
+      EditorView.lineWrapping,
       EditorView.focusChangeEffect.of((_, focusing) => {
         // detect when cell clicked
         if (focusing) {

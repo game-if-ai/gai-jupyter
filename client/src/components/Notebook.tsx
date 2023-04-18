@@ -439,6 +439,7 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
+      <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       {Object.entries(cells).length === 0 || !notebookInitialized ? (
         <span
           style={{
@@ -480,7 +481,6 @@ function NotebookComponent(props: {
           uid={NOTEBOOK_UID}
         />
       </div>
-      <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
       <ActionPopup
         open={showResults && !hasError}
         onClose={() => setShowResults(false)}
