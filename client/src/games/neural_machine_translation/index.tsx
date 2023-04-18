@@ -99,7 +99,7 @@ export const NeuralMachineTranslation: Activity = {
 
     {
       message:
-        "NumPy's argmax function can be very useful in finding the highest weighted indices of the logits. Example code: np.argmax(logits,1)",
+        "Consider the output, all possible words have a logit probability. NumPy's argmax function can help pick the best word with the highest weighted index.  Example code: np.argmax(logits,1)",
       conditionDescription:
         "Checks that the user has called the argmax function.",
 
@@ -149,6 +149,16 @@ export const NeuralMachineTranslation: Activity = {
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
         return (nmtCodeInfo as NMTCodeInfo).keywordZeroLookup;
+      },
+    },
+    {
+      message:
+        "Remember to join the output so that it forms a single string (' '.join(output_words)",
+      conditionDescription:
+        "if there is no join call present",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (nmtCodeInfo) => {
+        return (nmtCodeInfo as NMTCodeInfo).callsJoin;
       },
     },
     {
