@@ -44,7 +44,6 @@ export abstract class Simulator<SimulationOutput, Summary, CodeInfo> {
     const notebookContent = notebook.model
       ? (notebook.model.toJSON() as INotebookContent)
       : undefined;
-
     const experiment: Experiment<SimulationOutput, Summary, CodeInfo> = {
       id: uuid(),
       activityId,
