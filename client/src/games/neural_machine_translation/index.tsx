@@ -76,7 +76,7 @@ export const NeuralMachineTranslation: Activity = {
     },
     {
       message:
-        "Keras's sparse_categorical_crossentropy function requires the labels to be in 3 dimensions; if x is an ndarray, you can use the following code to add an extra dimension of size 1: x.reshape(*x.shape, 1)",
+        "Keras's sparse_categorical_crossentropy function requires the labels to be in 3 dimensions; if padded_x is an ndarray, you can use the following code to add an extra dimension of size 1: padded_x.reshape(*padded_x.shape, 1)",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       conditionDescription:
         "Checks that the user has called the reshape function.",
@@ -96,10 +96,9 @@ export const NeuralMachineTranslation: Activity = {
         return !(nmtCodeInfo as NMTCodeInfo).callsReshapeOnXAndY;
       },
     },
-
     {
       message:
-        "Consider the output, all possible words have a logit probability. NumPy's argmax function can help pick the best word with the highest weighted index.  Example code: np.argmax(logits,1)",
+        "Consider the output, all possible words have a logit probability. NumPy's argmax function can help pick the best word with the highest weighted index. Example code: np.argmax(logits,1)",
       conditionDescription:
         "Checks that the user has called the argmax function.",
 
@@ -108,7 +107,16 @@ export const NeuralMachineTranslation: Activity = {
         return !(nmtCodeInfo as NMTCodeInfo).callsArgmax;
       },
     },
-
+    {
+      message:
+        "When argmax is used on a 2D array of logits, you are then given a single list of word indices.",
+      conditionDescription:
+        "Checks that the user has called the argmax function.",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (nmtCodeInfo) => {
+        return !(nmtCodeInfo as NMTCodeInfo).callsArgmax;
+      },
+    },
     {
       message: "Run your code to first before seeing more hints!",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
