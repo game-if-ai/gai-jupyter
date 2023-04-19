@@ -116,7 +116,6 @@ export function NotebookEditor(props: {
       keymap.of([indentWithTab]), // enable TAB key
       indentUnit.of("    "), // use 4 spaces for indents
       EditorState.readOnly.of(isDisabled), // disable editing
-      EditorView.lineWrapping,
       EditorView.focusChangeEffect.of((_, focusing) => {
         // detect when cell clicked
         if (focusing) {
