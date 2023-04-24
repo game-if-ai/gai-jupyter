@@ -7,22 +7,23 @@ The full terms of this copyright and license should always be found in the root 
 import React from "react";
 import { Button } from "@mui/material";
 import { makeStyles } from "@mui/styles";
+
+import { useAppSelector } from "../store";
 import {
   SHORTCUT_KEYS,
-  UseWithShortcutKeys,
-} from "../hooks/use-with-shortcut-keys";
+  useWithShortcutKeys,
+} from "../store/keyboard/useWithKeyboard";
 
-export function ShortcutKeyboard(props: {
-  shortcutKeyboard: UseWithShortcutKeys;
-}): JSX.Element {
+export function ShortcutKeyboard(): JSX.Element {
   const classes = useStyles();
+  const isOpen = useAppSelector((s) => s.keyboard.isOpen);
+
   const {
-    isOpen,
     isMobile,
     // isMobileKeyboardOpen,
     // mobileKeyboardHeight,
-    setKey,
-  } = props.shortcutKeyboard;
+    selectKey,
+  } = useWithShortcutKeys();
 
   if (!isMobile) {
     return <div />;
@@ -40,7 +41,7 @@ export function ShortcutKeyboard(props: {
         <Button
           key={s.text}
           color="primary"
-          onClick={() => setKey(s)}
+          onClick={() => selectKey(s)}
           style={{
             maxWidth: "30px",
             minWidth: "30px",

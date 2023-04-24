@@ -35,10 +35,9 @@ import {
   HelpOutlineOutlined,
 } from "@mui/icons-material";
 
-import { Activity, isGameActivity } from "../games";
+import { isGameActivity } from "../games";
 import { useWithNotebook } from "../hooks/use-with-notebook";
-import { useWithDialogue } from "../hooks/use-with-dialogue";
-import { useWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
+import { useWithDialogue } from "../store/dialogue/useWithDialogue";
 import {
   GaiCellTypes,
   NOTEBOOK_UID,
@@ -51,9 +50,11 @@ import { ActionPopup } from "./Popup";
 import { ShortcutKeyboard } from "./ShortcutKeyboard";
 
 import "react-toastify/dist/ReactToastify.css";
-import { AllExperimentTypes } from "../games/activity-types";
 import { useWithImproveCode } from "../hooks/use-with-improve-code";
 import { extractSetupAndValidationCellOutputs } from "../utils";
+import { STEP } from "../store/state";
+import { useAppSelector } from "../store";
+import { useWithState } from "../store/state/useWithState";
 
 export enum KernelConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -61,25 +62,22 @@ export enum KernelConnectionStatus {
   FINE = "FINE",
 }
 
-function NotebookComponent(props: {
-  uniqueUserId: string;
-  activity: Activity;
-  curExperiment: AllExperimentTypes | undefined;
-  setExperiment: React.Dispatch<
-    React.SetStateAction<AllExperimentTypes | undefined>
-  >;
-  viewSummary: () => void;
-  runSimulation: (i: number) => void;
-  timesNotebookVisited: number;
-}): JSX.Element {
+function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
+  const { uniqueUserId } = props;
+  const { loadSimulation, loadExperiment, toStep } = useWithState();
+  const experiment = useAppSelector((s) => s.state.experiment);
+  const activity = useAppSelector((s) => s.state.activity);
+  const timesNotebookVisited = useAppSelector(
+    (s) => s.state.timesNotebookVisited
+  );
+  const isKeyboardOpen = useAppSelector((s) => s.keyboard.isOpen);
+
   const classes = useStyles();
-  const dialogue = useWithDialogue();
+  const { messages, curMessage, addMessages } = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
-  const shortcutKeyboard = useWithShortcutKeys();
   const [kernelStatus, setKernelStatus] = useState(
     KernelConnectionStatus.CONNECTING
   );
-  const { activity, curExperiment, timesNotebookVisited, uniqueUserId } = props;
   const {
     cells,
     setupCellOutput,
@@ -95,12 +93,16 @@ function NotebookComponent(props: {
     resetCode,
     saveNotebook,
     runNotebook,
-  } = useWithNotebook({ curActivity: activity, curExperiment, kernelStatus });
+  } = useWithNotebook({
+    curActivity: activity!,
+    curExperiment: experiment,
+    kernelStatus,
+  });
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
     validationCellOutput: validationCellOutput,
     timesNotebookVisited,
-    activeActivity: activity,
+    activeActivity: activity!,
     notebookIsRunning: notebookIsRunning,
     notebookRunCount,
   });
@@ -111,7 +113,7 @@ function NotebookComponent(props: {
   const [showResults, setShowResults] = useState<boolean>(false);
 
   const [kernel, setKernel] = useState<Kernel>();
-  const [pastExperiments] = useState(props.activity.simulator.experiments);
+  const [pastExperiments] = useState(activity!.simulator.experiments);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [didScroll, setDidScroll] = useState<boolean>(false);
@@ -207,7 +209,7 @@ function NotebookComponent(props: {
           text: "This is the hint button. It will give you suggestions based on your current code implementation.",
         });
       }
-      dialogue.addMessages([
+      addMessages([
         ...messages,
         {
           id: "reset",
@@ -228,8 +230,8 @@ function NotebookComponent(props: {
       !didScroll &&
       sawTutorial &&
       !showDescription &&
-      dialogue.messages.length === 0 &&
-      !dialogue.curMessage &&
+      messages.length === 0 &&
+      !curMessage &&
       Object.values(cells).length > 0
     ) {
       setDidScroll(true);
@@ -241,13 +243,7 @@ function NotebookComponent(props: {
         scrollTo(modelCell.cell.id);
       }
     }
-  }, [
-    showDescription,
-    sawTutorial,
-    dialogue.messages,
-    dialogue.curMessage,
-    cells,
-  ]);
+  }, [showDescription, sawTutorial, messages, curMessage, cells]);
 
   useEffect(() => {
     if (curCell && !Object.keys(cells).includes(curCell)) {
@@ -259,18 +255,14 @@ function NotebookComponent(props: {
     if (!notebook) {
       return;
     }
-    activity.simulator.simulate(
+    activity!.simulator.simulate(
       setupCellOutput,
       validationCellOutput,
       notebook,
-      activity.id,
+      activity!.id,
       hints.getDisplayedHints()
     );
-    props.runSimulation(0);
-  }
-
-  function toSummary(): void {
-    props.viewSummary();
+    loadSimulation(0);
   }
 
   function simulate(): void {
@@ -282,16 +274,15 @@ function NotebookComponent(props: {
         return;
       }
       const [setupCellOutput, validationCellOutput] =
-        extractSetupAndValidationCellOutputs(ranNotebook, activity);
-      const experiment = activity.simulator.simulate(
+        extractSetupAndValidationCellOutputs(ranNotebook, activity!);
+      const experiment = activity!.simulator.simulate(
         setupCellOutput,
         validationCellOutput,
         ranNotebook,
-        activity.id,
+        activity!.id,
         hints.getDisplayedHints()
       );
-      console.log("Setting experiment to", experiment);
-      props.setExperiment(experiment);
+      loadExperiment(experiment);
       setShowResults(true);
     });
   }
@@ -305,8 +296,7 @@ function NotebookComponent(props: {
     if (!element || !scrollRef.current) {
       return;
     }
-    const offsetPosition =
-      element.offsetTop - 75 - (shortcutKeyboard.isOpen ? 50 : 0);
+    const offsetPosition = element.offsetTop - 75 - (isKeyboardOpen ? 50 : 0);
     scrollRef.current.scrollTo({
       top: offsetPosition,
       behavior: "smooth",
@@ -400,7 +390,7 @@ function NotebookComponent(props: {
           <IconButton onClick={() => setShowDescription(true)}>
             <Info />
           </IconButton>
-          <TooltipMsg elemId="hint" dialogue={dialogue}>
+          <TooltipMsg elemId="hint">
             <IconButton
               disabled={!hints.hintsAvailable || isSaving}
               onClick={() => {
@@ -411,12 +401,12 @@ function NotebookComponent(props: {
               <HelpOutlineOutlined />
             </IconButton>
           </TooltipMsg>
-          <TooltipMsg elemId="reset" dialogue={dialogue}>
+          <TooltipMsg elemId="reset">
             <IconButton onClick={onReset} disabled={!pastExperiments.length}>
               <Restore />
             </IconButton>
           </TooltipMsg>
-          <TooltipMsg elemId="run" dialogue={dialogue}>
+          <TooltipMsg elemId="run">
             <div
               style={{
                 display: "flex",
@@ -452,7 +442,7 @@ function NotebookComponent(props: {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      <ShortcutKeyboard shortcutKeyboard={shortcutKeyboard} />
+      <ShortcutKeyboard />
       {Object.entries(cells).length === 0 || !notebookInitialized ? (
         <span
           style={{
@@ -477,11 +467,8 @@ function NotebookComponent(props: {
               <NotebookEditor
                 key={v[0]}
                 isSaving={isSaving}
-                activity={activity}
                 cellState={v[1]}
                 editCode={editCode}
-                dialogue={dialogue}
-                shortcutKeyboard={shortcutKeyboard}
                 hints={hints}
               />
             ))}
@@ -490,7 +477,9 @@ function NotebookComponent(props: {
       <div style={{ display: "none" }}>
         <Notebook
           kernel={kernel}
-          path={`/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${props.activity.id}/test.ipynb`}
+          path={`/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${
+            activity!.id
+          }/test.ipynb`}
           uid={NOTEBOOK_UID}
         />
       </div>
@@ -500,24 +489,20 @@ function NotebookComponent(props: {
         title="See results"
         text="Would you like to view your results?"
       >
-        {isGameActivity(activity) ? (
-          <TooltipMsg elemId="view-sim" dialogue={dialogue} placement="bottom">
+        {isGameActivity(activity!) ? (
+          <TooltipMsg elemId="view-sim" placement="bottom">
             <Button onClick={toSimulation}>View Simulation</Button>
           </TooltipMsg>
         ) : undefined}
-        <TooltipMsg
-          elemId="view-summary"
-          dialogue={dialogue}
-          placement="bottom"
-        >
-          <Button onClick={toSummary}>View Summary</Button>
+        <TooltipMsg elemId="view-summary" placement="bottom">
+          <Button onClick={() => toStep(STEP.SUMMARY)}>View Summary</Button>
         </TooltipMsg>
       </ActionPopup>
       <ActionPopup
         open={showDescription}
         onClose={() => setShowDescription(false)}
-        title={activity.title}
-        text={activity.description}
+        title={activity!.title}
+        text={activity!.description}
       >
         <Button onClick={() => setShowDescription(false)}>Okay</Button>
       </ActionPopup>

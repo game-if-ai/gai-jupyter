@@ -9,10 +9,11 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { UseWithDialogue } from "../../../hooks/use-with-dialogue";
 import { TooltipMsg } from "../../../components/Dialogue";
 import { formatDateTime } from "../../../utils";
 import { NMTExperiment } from "../simulator";
+import { useAppSelector } from "../../../store";
+import { useWithState } from "../../../store/state/useWithState";
 
 interface CurExperimentAvgDisplay {
   metricName: string;
@@ -21,45 +22,43 @@ interface CurExperimentAvgDisplay {
 
 export function NMTCurrentExperimentView(props: {
   classes: Record<string, any>;
-  currentExperiment: NMTExperiment;
-  dialogue: UseWithDialogue;
-  runSimulation: (i: number) => void;
-  goToNotebook: () => void;
   onSubmit: () => void;
 }) {
-  const { currentExperiment } = props;
-  const { time: dateOfExperiment } = currentExperiment;
+  const experiment = useAppSelector(
+    (s) => s.state.experiment! as NMTExperiment
+  );
+  const { time: dateOfExperiment } = experiment;
+  const { toNotebook } = useWithState();
 
   function curExperimentAverageDisplays(): CurExperimentAvgDisplay[] {
     return [
       {
         metricName: "Utilizes the tokenizers fit_on_texts function",
-        metricValue: currentExperiment.codeInfo.callsFitOnTexts,
+        metricValue: experiment.codeInfo.callsFitOnTexts,
       },
       {
         metricName: "Utilizes the tokenizers texts_to_sequences function",
-        metricValue: currentExperiment.codeInfo.callsTextsToSequences,
+        metricValue: experiment.codeInfo.callsTextsToSequences,
       },
       {
         metricName: "Properly pads data",
         metricValue:
-          currentExperiment.codeInfo.callsPadSequences &&
-          currentExperiment.codeInfo.callsPadSequencesWithPaddingPost &&
-          currentExperiment.codeInfo.callsPadSequencesTwice &&
-          currentExperiment.codeInfo.callsPadSequencesTwiceWithPaddingPost,
+          experiment.codeInfo.callsPadSequences &&
+          experiment.codeInfo.callsPadSequencesWithPaddingPost &&
+          experiment.codeInfo.callsPadSequencesTwice &&
+          experiment.codeInfo.callsPadSequencesTwiceWithPaddingPost,
       },
       {
         metricName: "Reshapes data to proper dimensions",
-        metricValue:
-          currentExperiment.codeInfo.preprocessedDataCorrectDimensions,
+        metricValue: experiment.codeInfo.preprocessedDataCorrectDimensions,
       },
       {
         metricName: "Utilizes Argmax",
-        metricValue: currentExperiment.codeInfo.callsArgmax,
+        metricValue: experiment.codeInfo.callsArgmax,
       },
       {
         metricName: "Output is translated to french words using Neural Network",
-        metricValue: currentExperiment.codeInfo.outputCorrectlyFormatted,
+        metricValue: experiment.codeInfo.outputCorrectlyFormatted,
       },
     ];
   }
@@ -102,7 +101,7 @@ export function NMTCurrentExperimentView(props: {
       </TableContainer>
       <Typography variant="h5">Summary</Typography>
       <Typography>
-        {currentExperiment.codeInfo.outputCorrectlyFormatted
+        {experiment.codeInfo.outputCorrectlyFormatted
           ? "Great job! You were able to preprocess and postprocess that data fed into a neural network."
           : "Oh no, your translated output does not look quite correct. Please review the experiment goals."}
       </Typography>
@@ -111,17 +110,17 @@ export function NMTCurrentExperimentView(props: {
         elevation={3}
       >
         <BottomNavigation>
-          <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
+          <TooltipMsg elemId="notebook">
             <Button
               data-elemid="notebook"
               variant="contained"
-              onClick={props.goToNotebook}
+              onClick={toNotebook}
               style={{ margin: 10 }}
             >
               Notebook
             </Button>
           </TooltipMsg>
-          <TooltipMsg elemId="submit" dialogue={props.dialogue}>
+          <TooltipMsg elemId="submit">
             <Button
               data-elemid="submit"
               variant="contained"

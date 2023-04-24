@@ -16,15 +16,15 @@ import {
 import { Activities, Activity, isGameActivity } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
+import { useWithState } from "../store/state/useWithState";
 
-function ActivityPicker(props: {
-  loadActivity: (g: Activity) => void;
-}): JSX.Element {
+function ActivityPicker(): JSX.Element {
   const [activity, setActivity] = useState<Activity>();
   const { width, height } = useWithWindowSize();
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
   const { loadPhaserGame, destroyPhaserGame } =
     useWithPhaserGame(gameContainerRef);
+  const { loadActivity } = useWithState();
 
   function selectGame(id: string): void {
     const activity = Activities.find((g) => g.id === id);
@@ -42,7 +42,7 @@ function ActivityPicker(props: {
       return;
     }
     destroyPhaserGame();
-    props.loadActivity(activity);
+    loadActivity(activity);
   }
 
   return (

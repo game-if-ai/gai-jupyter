@@ -9,44 +9,33 @@ The full terms of this copyright and license should always be found in the root 
 import React, { useEffect, useState } from "react";
 import { Button } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { DialogueMessage, useWithDialogue } from "../hooks/use-with-dialogue";
+
+import {
+  DialogueMessage,
+  useWithDialogue,
+} from "../store/dialogue/useWithDialogue";
 import { AllExperimentTypes } from "../games/activity-types";
 import { CafeCurrentExperimentView } from "../games/cafe/components/current-experiment-view";
-import { CafeExperiment } from "../games/cafe/simulator";
 import { CafePreviousExperimentsView } from "../games/cafe/components/previous-experiment-view";
 import { FruitPickerCurrentExperimentView } from "../games/fruit-picker/components/current-experiment-view";
-import { FruitPickerExperiment } from "../games/fruit-picker/simulator";
 import { FruitPickerPreviousExperimentsView } from "../games/fruit-picker/components/previous-experiment-view";
 import { NMTCurrentExperimentView } from "../games/neural_machine_translation/components/current-experiment-view";
-import { NMTExperiment } from "../games/neural_machine_translation/simulator";
+import { useWithState } from "../store/state/useWithState";
+import { useAppSelector } from "../store";
 
-function Summary(props: {
-  experiment: AllExperimentTypes;
-  isGameActivity: boolean;
-  previousExperiments: AllExperimentTypes[];
-  runSimulation: (i: number) => void;
-  goToNotebook: () => void;
-  setExperiment: React.Dispatch<
-    React.SetStateAction<AllExperimentTypes | undefined>
-  >;
-  onSubmit: () => void;
-}): JSX.Element {
-  const {
-    runSimulation,
-    goToNotebook,
-    experiment,
-    previousExperiments,
-    setExperiment,
-    onSubmit,
-    isGameActivity,
-  } = props;
-  const { summary } = experiment;
+function Summary(props: { onSubmit: () => void }): JSX.Element {
+  const { loadExperiment } = useWithState();
+  const activity = useAppSelector((s) => s.state.activity!);
+  const experiment = useAppSelector((s) => s.state.experiment!);
+  const summary = experiment.summary;
+  const previousExperiments = activity.simulator.experiments;
+
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
-  const dialogue = useWithDialogue();
+  const { addMessages } = useWithDialogue();
 
   function _setExperiment(experiment: AllExperimentTypes) {
-    setExperiment(experiment);
+    loadExperiment(experiment);
     setViewPreviousExperiments(false);
   }
 
@@ -96,7 +85,7 @@ function Summary(props: {
         });
       }
     }
-    dialogue.addMessages(msgs);
+    addMessages(msgs);
   }, [summary]);
 
   function curExperimentView() {
@@ -105,35 +94,21 @@ function Summary(props: {
         return (
           <CafeCurrentExperimentView
             classes={classes}
-            currentExperiment={experiment as CafeExperiment}
-            dialogue={dialogue}
-            isGameActivity={isGameActivity}
-            runSimulation={runSimulation}
-            goToNotebook={goToNotebook}
-            onSubmit={onSubmit}
+            onSubmit={props.onSubmit}
           />
         );
       case "fruitpicker":
         return (
           <FruitPickerCurrentExperimentView
             classes={classes}
-            currentExperiment={experiment as FruitPickerExperiment}
-            dialogue={dialogue}
-            isGameActivity={isGameActivity}
-            runSimulation={runSimulation}
-            goToNotebook={goToNotebook}
-            onSubmit={onSubmit}
+            onSubmit={props.onSubmit}
           />
         );
       case "neural_machine_translation":
         return (
           <NMTCurrentExperimentView
             classes={classes}
-            currentExperiment={experiment as NMTExperiment}
-            dialogue={dialogue}
-            runSimulation={runSimulation}
-            goToNotebook={goToNotebook}
-            onSubmit={onSubmit}
+            onSubmit={props.onSubmit}
           />
         );
       default:
@@ -147,20 +122,14 @@ function Summary(props: {
         return (
           <CafePreviousExperimentsView
             classes={classes}
-            previousExperiments={previousExperiments as CafeExperiment[]}
-            dialogue={dialogue}
             setExperiment={_setExperiment}
-            currentExperiment={experiment as CafeExperiment}
           />
         );
       case "fruitpicker":
         return (
           <FruitPickerPreviousExperimentsView
             classes={classes}
-            previousExperiments={previousExperiments as FruitPickerExperiment[]}
-            dialogue={dialogue}
             setExperiment={_setExperiment}
-            currentExperiment={experiment as FruitPickerExperiment}
           />
         );
       case "neural_machine_translation":

@@ -13,9 +13,11 @@ import {
   Typography,
 } from "@mui/material";
 import { Launch } from "@mui/icons-material";
-import { CafeExperiment } from "games/cafe/simulator";
-import { UseWithDialogue } from "hooks/use-with-dialogue";
+
 import { TooltipMsg } from "../../../components/Dialogue";
+import { CafeExperiment } from "../simulator";
+import { useAppSelector } from "../../../store";
+import { useWithState } from "../../../store/state/useWithState";
 import { formatDateTime, round } from "../../../utils";
 
 interface CurExperimentAvgDisplay {
@@ -25,22 +27,20 @@ interface CurExperimentAvgDisplay {
 
 export function CafeCurrentExperimentView(props: {
   classes: Record<string, any>;
-  currentExperiment: CafeExperiment;
-  dialogue: UseWithDialogue;
-  isGameActivity: boolean;
-  runSimulation: (i: number) => void;
-  goToNotebook: () => void;
   onSubmit: () => void;
 }) {
-  const { isGameActivity, currentExperiment } = props;
   const classes = props.classes;
+  const experiment = useAppSelector(
+    (s) => s.state.experiment! as CafeExperiment
+  );
+  const { loadSimulation, toNotebook } = useWithState();
   const {
     summary,
     simulations,
     time: dateOfExperiment,
     trainInstances,
     testInstances,
-  } = currentExperiment;
+  } = experiment;
 
   function curExperimentAverageDisplays(): CurExperimentAvgDisplay[] {
     return [
@@ -120,11 +120,9 @@ export function CafeCurrentExperimentView(props: {
             <TableCell align="right">Precision</TableCell>
             <TableCell align="right">Recall</TableCell>
             <TableCell align="right">F1 Score</TableCell>
-            {isGameActivity ? (
-              <TableCell align="right" className={classes.sticky}>
-                View
-              </TableCell>
-            ) : undefined}
+            <TableCell align="right" className={classes.sticky}>
+              View
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -140,16 +138,11 @@ export function CafeCurrentExperimentView(props: {
               <TableCell align="center">{round(s.precision)}</TableCell>
               <TableCell align="center">{round(s.recall)}</TableCell>
               <TableCell align="center">{round(s.f1Score)}</TableCell>
-              {isGameActivity ? (
-                <TableCell align="center" className={classes.sticky}>
-                  <IconButton
-                    size="small"
-                    onClick={() => props.runSimulation(i)}
-                  >
-                    <Launch />
-                  </IconButton>
-                </TableCell>
-              ) : undefined}
+              <TableCell align="center" className={classes.sticky}>
+                <IconButton size="small" onClick={() => loadSimulation(i)}>
+                  <Launch />
+                </IconButton>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -160,26 +153,24 @@ export function CafeCurrentExperimentView(props: {
         elevation={3}
       >
         <BottomNavigation>
-          <TooltipMsg elemId="notebook" dialogue={props.dialogue}>
+          <TooltipMsg elemId="notebook">
             <Button
               data-elemid="notebook"
               variant="contained"
-              onClick={props.goToNotebook}
+              onClick={toNotebook}
               style={{ margin: 10 }}
             >
               Notebook
             </Button>
           </TooltipMsg>
-          {isGameActivity ? (
-            <Button
-              variant="contained"
-              onClick={() => props.runSimulation(0)}
-              style={{ marginTop: 10, marginBottom: 10 }}
-            >
-              Simulator
-            </Button>
-          ) : undefined}
-          <TooltipMsg elemId="submit" dialogue={props.dialogue}>
+          <Button
+            variant="contained"
+            onClick={() => loadSimulation(0)}
+            style={{ marginTop: 10, marginBottom: 10 }}
+          >
+            Simulator
+          </Button>
+          <TooltipMsg elemId="submit">
             <Button
               data-elemid="submit"
               variant="contained"

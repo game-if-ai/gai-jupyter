@@ -10,59 +10,8 @@ import { useEffect, useState } from "react";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { ICellModel } from "@jupyterlab/cells";
 
-export interface UseWithShortcutKeys {
-  key: ShortcutKey | undefined;
-  isOpen: boolean;
-  setKey: (k: ShortcutKey | undefined) => void;
-  setCell: (cell: ICellModel) => void;
-
-  isMobile: boolean;
-  isMobileKeyboardOpen: boolean;
-  mobileKeyboardHeight: number;
-  setIsOpen: (open: boolean) => void;
-}
-
-export function useWithShortcutKeys(): UseWithShortcutKeys {
-  const [key, setKey] = useState<ShortcutKey>();
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isMobile] = useState<boolean>(
-    /Android|iPhone/i.test(navigator.userAgent)
-  );
-  const [height] = useState<number>(window?.visualViewport?.height || 0);
-  const [mobileKeyboardHeight, setMobileKeyboardHeight] = useState<number>(0);
-  const isMobileKeyboardOpen = useDetectKeyboardOpen();
-
-  useEffect(() => {
-    if (!isMobile) return;
-    window.visualViewport!.addEventListener("resize", updateViewport);
-    return () =>
-      window.visualViewport!.removeEventListener("resize", updateViewport);
-  }, [isMobile]);
-
-  function updateViewport() {
-    setMobileKeyboardHeight(height - window.visualViewport!.height);
-  }
-
-  function setCell(cell: ICellModel): void {
-    if (cell.getMetadata("contenteditable") === false) {
-      setIsOpen(false);
-    } else {
-      setIsOpen(true);
-    }
-  }
-
-  return {
-    isMobile,
-    isMobileKeyboardOpen,
-    mobileKeyboardHeight,
-
-    key,
-    isOpen,
-    setKey,
-    setCell,
-    setIsOpen,
-  };
-}
+import { useAppDispatch, useAppSelector } from "../";
+import { setKey, setOpen } from ".";
 
 export interface ShortcutKey {
   text: string;
@@ -90,3 +39,52 @@ export const SHORTCUT_KEYS: ShortcutKey[] = [
   { text: "!" },
   { text: "?" },
 ];
+
+export interface UseWithShortcutKeys {
+  isMobile: boolean;
+  isMobileKeyboardOpen: boolean;
+  mobileKeyboardHeight: number;
+  selectCell: (cell: ICellModel) => void;
+  selectKey: (key: ShortcutKey | undefined) => void;
+}
+
+export function useWithShortcutKeys(): UseWithShortcutKeys {
+  const [isMobile] = useState<boolean>(
+    /Android|iPhone/i.test(navigator.userAgent)
+  );
+  const [height] = useState<number>(window?.visualViewport?.height || 0);
+  const [mobileKeyboardHeight, setMobileKeyboardHeight] = useState<number>(0);
+  const isMobileKeyboardOpen = useDetectKeyboardOpen();
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (!isMobile) return;
+    window.visualViewport!.addEventListener("resize", updateViewport);
+    return () =>
+      window.visualViewport!.removeEventListener("resize", updateViewport);
+  }, [isMobile]);
+
+  function updateViewport() {
+    setMobileKeyboardHeight(height - window.visualViewport!.height);
+  }
+
+  function selectKey(key: ShortcutKey | undefined) {
+    dispatch(setKey(key));
+  }
+
+  function selectCell(cell: ICellModel): void {
+    if (cell.getMetadata("contenteditable") === false) {
+      dispatch(setOpen(false));
+    } else {
+      dispatch(setOpen(true));
+    }
+  }
+
+  return {
+    isMobile,
+    isMobileKeyboardOpen,
+    mobileKeyboardHeight,
+    selectKey,
+    selectCell,
+  };
+}

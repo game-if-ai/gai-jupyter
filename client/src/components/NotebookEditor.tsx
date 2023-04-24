@@ -33,13 +33,13 @@ import {
 } from "@codemirror/commands";
 import { keymap } from "@codemirror/view";
 
-import { Activity } from "../games";
 import { CellState } from "../hooks/use-with-notebook";
-import { UseWithDialogue } from "../hooks/use-with-dialogue";
-import { UseWithShortcutKeys } from "../hooks/use-with-shortcut-keys";
 import { capitalizeFirst } from "../utils";
-import { TooltipMsg } from "./Dialogue";
+import { useWithDialogue } from "../store/dialogue/useWithDialogue";
 import { UseWithImproveCode } from "../hooks/use-with-improve-code";
+import { useAppSelector } from "../store";
+import { useWithShortcutKeys } from "../store/keyboard/useWithKeyboard";
+import { TooltipMsg } from "./Dialogue";
 import { Output } from "./Output";
 
 import "../codemirror.css";
@@ -74,17 +74,13 @@ const customErrorMessages: CustomErrorMessage[] = [
 ];
 
 export function NotebookEditor(props: {
-  activity: Activity;
   cellState: CellState;
-  dialogue: UseWithDialogue;
-  shortcutKeyboard: UseWithShortcutKeys;
   hints: UseWithImproveCode;
   isSaving: boolean;
   editCode: (cell: string, code: string) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { cellState, dialogue, shortcutKeyboard, hints, isSaving, activity } =
-    props;
+  const { cellState, hints, isSaving } = props;
   const { cell, output, errorOutput, lintOutput } = cellState;
   const cellId = cell.id;
   const [cellType] = useState(cell.getMetadata("gai_cell_type") || "");
@@ -95,12 +91,17 @@ export function NotebookEditor(props: {
   const [lintCompartment] = useState(new Compartment());
   const [hasError, setHasError] = useState<boolean>(false);
 
+  const key = useAppSelector((s) => s.keyboard.key);
+  const activity = useAppSelector((s) => s.state.activity!);
+  const { selectCell, selectKey } = useWithShortcutKeys();
+  const { addMessage } = useWithDialogue();
+
   function autocomplete(context: CompletionContext) {
     const word = context.matchBefore(/\w*/);
     if (!word || (word.from === word.to && !context.explicit)) return null;
     return {
       from: word.from,
-      options: props.activity.autocompletion,
+      options: activity.autocompletion,
     };
   }
 
@@ -118,9 +119,7 @@ export function NotebookEditor(props: {
       EditorState.readOnly.of(isDisabled), // disable editing
       EditorView.focusChangeEffect.of((_, focusing) => {
         // detect when cell clicked
-        if (focusing) {
-          shortcutKeyboard.setCell(cell);
-        }
+        if (focusing) selectCell(cell);
         return StateEffect.define(undefined).of(null);
       }),
       lintCompartment.of(linter(() => [])),
@@ -137,7 +136,7 @@ export function NotebookEditor(props: {
         })
       );
     }
-    if (props.activity.autocompletion) {
+    if (activity.autocompletion) {
       extensions.push(
         python().language.data.of({
           autocomplete: autocomplete,
@@ -173,10 +172,9 @@ export function NotebookEditor(props: {
   }, [cellState.code]);
 
   useEffect(() => {
-    if (!editor || !shortcutKeyboard.key || isDisabled) {
+    if (!editor || !key || isDisabled) {
       return;
     }
-    const key = shortcutKeyboard.key;
     const cursor = editor.state.selection.ranges[0];
     const transaction = editor.state.update({
       changes: {
@@ -189,8 +187,8 @@ export function NotebookEditor(props: {
     editor.dispatch({
       selection: { anchor: cursor.from + (key.offset || 1) },
     });
-    shortcutKeyboard.setKey(undefined);
-  }, [shortcutKeyboard.key]);
+    selectKey(undefined);
+  }, [key]);
 
   useEffect(() => {
     if (outputElement && !output.length) {
@@ -202,7 +200,7 @@ export function NotebookEditor(props: {
         const customErrorMessage = customErrorMessages.find((customError) =>
           customError.condition(o)
         );
-        dialogue.addMessage({
+        addMessage({
           id: `output-${cellId}`,
           text:
             customErrorMessage?.message ||
@@ -302,7 +300,7 @@ export function NotebookEditor(props: {
             </IconButton>
           </div>
         )}
-        <TooltipMsg elemId={`cell-${cellId}`} dialogue={dialogue}>
+        <TooltipMsg elemId={`cell-${cellId}`}>
           <Typography data-elemid={`cell-${cellId}`}>
             {capitalizeFirst(cellType)}
           </Typography>
@@ -319,7 +317,7 @@ export function NotebookEditor(props: {
           </IconButton>
         )}
         <div style={{ flexGrow: 1 }} />
-        <TooltipMsg elemId={`output-${cellId}`} dialogue={dialogue}>
+        <TooltipMsg elemId={`output-${cellId}`}>
           <Button
             data-elemid={`output-${cellId}`}
             startIcon={
@@ -338,6 +336,7 @@ export function NotebookEditor(props: {
     </div>
   );
 }
+
 const useStyles = makeStyles(() => ({
   cellHeader: {
     display: "flex",
