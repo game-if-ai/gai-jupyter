@@ -208,21 +208,34 @@ export function getCmiParams(notebookActivityId: string): LaunchParameters {
   const endpoint = searchParams.get("endpoint") || "";
   const fetch = searchParams.get("fetch") || "";
   const registration = searchParams.get("registration") || "";
+
   let launchParams: LaunchParameters = {
     activityId: activityId,
-    actor: {
-      ...JSON.parse(actor),
-      name: getUniqueUserId(),
-    },
+    actor: { objectType: "Agent", name: getUniqueUserId() },
     endpoint: endpoint,
     fetch: fetch,
     registration: registration,
   };
+  try {
+    launchParams.actor = {
+      ...launchParams.actor,
+      ...JSON.parse(actor),
+    };
+  } catch (err) {
+    console.error(err);
+  }
   if (Cmi5.isCmiAvailable) {
+    const cmi5LaunchParams = Cmi5.instance.getLaunchParameters();
     try {
       launchParams = {
         ...launchParams,
-        ...Cmi5.instance.getLaunchParameters(),
+        ...{
+          endpoint: cmi5LaunchParams.endpoint,
+          fetch: cmi5LaunchParams.fetch,
+          actor: cmi5LaunchParams.actor,
+          registration: cmi5LaunchParams.registration,
+          activityId: cmi5LaunchParams.activityId,
+        },
       };
     } catch (err) {
       console.error("failed to get cmi5 instance launch parameters");
