@@ -136,7 +136,7 @@ function App(): JSX.Element {
           ...s,
           result: {
             score: {
-              scaled: experimentScore,
+              scaled: experimentScore > 1 ? 1 : experimentScore,
             },
           },
         };

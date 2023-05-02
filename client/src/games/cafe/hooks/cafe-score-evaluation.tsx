@@ -180,7 +180,7 @@ export function evaluateCafeExperiment(curExperiment: CafeExperiment) {
 
   codeInfo.classifierModelUsed === "NAIVE_BAYES" && (finalScore += 0.3);
 
-  codeInfo.usingLemmatization && (finalScore += 0.15);
+  codeInfo.usingLemmatization && (finalScore += 0.1);
   codeInfo.usingStemming && (finalScore += 0.2);
 
   return finalScore;
