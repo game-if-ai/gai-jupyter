@@ -53,10 +53,7 @@ import { ShortcutKeyboard } from "./ShortcutKeyboard";
 import "react-toastify/dist/ReactToastify.css";
 import { AllExperimentTypes } from "../games/activity-types";
 import { useWithImproveCode } from "../hooks/use-with-improve-code";
-import {
-  extractSetupAndValidationCellOutputs,
-  hintClickedCmi5,
-} from "../utils";
+import { extractSetupAndValidationCellOutputs } from "../utils";
 
 export enum KernelConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -408,7 +405,7 @@ function NotebookComponent(props: {
               disabled={!hints.hintsAvailable || isSaving}
               onClick={() => {
                 hints.toastHint();
-                hintClickedCmi5(activity.id);
+                // hintClickedCmi5(activity.id);
               }}
             >
               <HelpOutlineOutlined />
