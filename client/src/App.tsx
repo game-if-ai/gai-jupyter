@@ -109,11 +109,7 @@ function App(): JSX.Element {
     if (Cmi5.isCmiAvailable) {
       Cmi5.instance.initialize();
     } else {
-      try {
-        Cmi5.instance.getLaunchParameters();
-      } catch (err) {
-        console.log("cmi5 not available");
-      }
+      console.log("cmi5 not available");
     }
   }, [activity]);
 
