@@ -5,11 +5,13 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import ReactDOM from "react-dom/client";
+import { Jupyter } from "@datalayer/jupyter-react";
+
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+import WithRedux from "./use-with-redux";
 
 import "./index.css";
-import { Jupyter } from "@datalayer/jupyter-react";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -44,7 +46,9 @@ root.render(
         : "60c1661cc408f978c309d04157af55c9588ff9557c9380e4fb50785750703da6"
     }
   >
-    <App />
+    <WithRedux>
+      <App />
+    </WithRedux>
   </Jupyter>
 );
 

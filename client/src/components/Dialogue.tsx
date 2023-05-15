@@ -10,7 +10,10 @@ import React, { useEffect, useState } from "react";
 import { IconButton, Tooltip, Typography } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { withStyles } from "tss-react/mui";
-import { DialogueMessage, UseWithDialogue } from "../hooks/use-with-dialogue";
+import {
+  DialogueMessage,
+  useWithDialogue,
+} from "../store/dialogue/useWithDialogue";
 import { useInterval } from "../hooks/use-interval";
 
 export const ColorTooltip = withStyles(Tooltip, {
@@ -21,7 +24,6 @@ export const ColorTooltip = withStyles(Tooltip, {
 
 export function TooltipMsg(props: {
   elemId: string;
-  dialogue: UseWithDialogue;
   children?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   placement?:
     | "bottom"
@@ -38,7 +40,7 @@ export function TooltipMsg(props: {
     | "top-start";
 }): JSX.Element {
   const { elemId } = props;
-  const { curMessage, nextMessage } = props.dialogue;
+  const { curMessage, nextMessage } = useWithDialogue();
   const [open, setOpen] = useState<boolean>(false);
   const [lastMessage, setLastMessage] = useState<DialogueMessage>();
   const [timer, setTimer] = useState<number>(0);

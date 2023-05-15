@@ -6,47 +6,32 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import React, { useEffect, useState } from "react";
+import { ContentsManager } from "@jupyterlab/services";
+import { CircularProgress } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import Cmi5 from "@xapi/cmi5";
 
-import { Activities, Activity, isGameActivity } from "./games";
 import ActivityPicker from "./components/ActivityPicker";
 import Notebook from "./components/Notebook";
 import SimulationPanel from "./components/SimulationPanel";
 import Summary from "./components/Summary";
-import { sessionStorageStore } from "./local-storage";
-import { ContentsManager } from "@jupyterlab/services";
-import { getUniqueUserId } from "./utils";
+import { Activities, isGameActivity } from "./games";
 import { TEMP_NOTEBOOK_DIR } from "./local-constants";
-import {
-  AllExperimentTypes,
-  GameExperimentTypes,
-} from "./games/activity-types";
-import { CircularProgress } from "@mui/material";
-
-enum STEP {
-  PICK_GAME,
-  NOTEBOOK,
-  SIMULATION, // for current experiment
-  SUMMARY, // for current experiment
-  EXPERIMENTS, // experiment history
-}
+import { sessionStorageStore } from "./local-storage";
+import { STEP } from "./store/state";
+import { useAppSelector } from "./store";
+import { useWithState } from "./store/state/useWithState";
+import { getUniqueUserId } from "./utils";
 
 function App(): JSX.Element {
   const classes = useStyles();
-  const [step, setStep] = useState<STEP>(STEP.PICK_GAME);
-  const [activity, setActivity] = useState<Activity>();
-  const [experiment, setExperiment] = useState<AllExperimentTypes>();
-  const [simulation, setSimulation] = useState<number>(0);
-  const [timesNotebookVisited, setTimesNotebookVisited] = useState(0);
   const [uniqueUserId, setUniqueUserId] = useState("");
   const [notebooksCreated, setNotebooksCreated] = useState(false);
 
-  useEffect(() => {
-    if (step === STEP.NOTEBOOK) {
-      setTimesNotebookVisited((prevValue) => prevValue + 1);
-    }
-  }, [step]);
+  const activity = useAppSelector((s) => s.state.activity);
+  const experiment = useAppSelector((s) => s.state.experiment);
+  const step = useAppSelector((s) => s.state.step);
+  const { loadActivity } = useWithState();
 
   useEffect(() => {
     const uniqueId = getUniqueUserId();
@@ -57,9 +42,7 @@ function App(): JSX.Element {
         `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
       );
     });
-
     Promise.all(removeOldFiles);
-
     cm.save(`/${TEMP_NOTEBOOK_DIR}/`, { type: "directory" }).then(() => {
       cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, { type: "directory" }).then(
         () => {
@@ -103,7 +86,7 @@ function App(): JSX.Element {
         loadActivity(activity);
       }
     }
-  }, []);
+  });
 
   useEffect(() => {
     if (Cmi5.isCmiAvailable) {
@@ -140,48 +123,14 @@ function App(): JSX.Element {
     });
   }
 
-  function loadActivity(activity: Activity): void {
-    setActivity(activity);
-    setStep(STEP.NOTEBOOK);
-  }
-
-  function viewSimulation(i: number): void {
-    if (!activity) {
-      return;
-    }
-    setSimulation(i);
-    setStep(STEP.SIMULATION);
-  }
-
-  function viewSummary(): void {
-    if (!activity) {
-      return;
-    }
-    setStep(STEP.SUMMARY);
-  }
-
-  function viewNotebook(): void {
-    setStep(STEP.NOTEBOOK);
-  }
-
   function getComponent(): JSX.Element {
     if (step === STEP.PICK_GAME) {
-      return <ActivityPicker loadActivity={loadActivity} />;
+      return <ActivityPicker />;
     } else if (step === STEP.NOTEBOOK) {
       if (!notebooksCreated) {
         return <CircularProgress />;
       }
-      return (
-        <Notebook
-          uniqueUserId={uniqueUserId}
-          activity={activity!}
-          curExperiment={experiment}
-          setExperiment={setExperiment}
-          viewSummary={viewSummary}
-          runSimulation={viewSimulation}
-          timesNotebookVisited={timesNotebookVisited}
-        />
-      );
+      return <Notebook uniqueUserId={uniqueUserId} />;
     } else if (step === STEP.SUMMARY) {
       if (!activity) {
         throw Error("No game available for summary");
@@ -189,32 +138,14 @@ function App(): JSX.Element {
       if (!experiment) {
         throw Error("No experiment available for summary");
       }
-      return (
-        <Summary
-          experiment={experiment}
-          isGameActivity={isGameActivity(activity)}
-          previousExperiments={activity.simulator.experiments}
-          runSimulation={viewSimulation}
-          goToNotebook={viewNotebook}
-          setExperiment={setExperiment}
-          onSubmit={sendCmi5Results}
-        />
-      );
+      return <Summary onSubmit={sendCmi5Results} />;
     } else if (
       step === STEP.SIMULATION &&
       activity &&
       experiment &&
       isGameActivity(activity)
     ) {
-      return (
-        <SimulationPanel
-          game={activity}
-          experiment={experiment as GameExperimentTypes}
-          simulation={simulation}
-          toNotebook={viewNotebook}
-          toSummary={viewSummary}
-        />
-      );
+      return <SimulationPanel />;
     }
     return <div />;
   }

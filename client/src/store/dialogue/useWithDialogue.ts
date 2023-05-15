@@ -5,7 +5,9 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { useState } from "react";
+import { useAppDispatch, useAppSelector } from "../";
+import { setCurMessage, setMessages } from ".";
+import { copyAndRemove } from "../../utils";
 
 export interface DialogueMessage {
   id: string;
@@ -29,43 +31,44 @@ export interface UseWithDialogue {
  * Jupyter-React has its own redux store that will override it
  */
 export function useWithDialogue(): UseWithDialogue {
-  const [messages, setMessages] = useState<DialogueMessage[]>([]);
-  const [curMessage, setCurMessage] = useState<DialogueMessage>();
+  const messages = useAppSelector((s) => s.dialogue.messages);
+  const curMessage = useAppSelector((s) => s.dialogue.curMessage);
+  const dispatch = useAppDispatch();
 
   function addMessage(msg: DialogueMessage): void {
     if (messages.length === 0 && !curMessage) {
-      setCurMessage(msg);
+      dispatch(setCurMessage(msg));
     } else {
-      setMessages([...messages, msg]);
+      dispatch(setMessages([...messages, msg]));
     }
   }
 
   function addMessages(msgs: DialogueMessage[]): void {
     if (messages.length === 0) {
       if (!curMessage) {
-        setCurMessage(msgs.shift());
+        dispatch(setCurMessage(msgs.shift()));
       }
-      setMessages([...msgs]);
+      dispatch(setMessages([...msgs]));
     } else {
-      setMessages([...messages, ...msgs]);
+      dispatch(setMessages([...messages, ...msgs]));
     }
   }
 
   function nextMessage(): void {
     if (messages.length === 0) {
       if (curMessage) {
-        setCurMessage(undefined);
+        dispatch(setCurMessage(undefined));
       }
     } else {
-      const msg = messages.shift();
-      setMessages([...messages]);
-      setCurMessage(msg);
+      const msg = messages[0];
+      dispatch(setMessages(copyAndRemove(messages, 0)));
+      dispatch(setCurMessage(msg));
     }
   }
 
   function clearMessages(): void {
-    setMessages([]);
-    setCurMessage(undefined);
+    dispatch(setMessages([]));
+    dispatch(setCurMessage(undefined));
   }
 
   return {

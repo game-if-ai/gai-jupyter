@@ -10,24 +10,28 @@ import {
   Typography,
 } from "@mui/material";
 import { Launch } from "@mui/icons-material";
+
 import {
   formatDateTime,
   round,
   sortExperimentsByF1Score,
 } from "../../../utils";
-import { UseWithDialogue } from "../../../hooks/use-with-dialogue";
 import { CafeExperiment } from "../simulator";
-import { AllExperimentTypes } from "games/activity-types";
+import { AllExperimentTypes } from "../../activity-types";
+import { useAppSelector } from "../../../store";
 
 export function CafePreviousExperimentsView(props: {
   classes: Record<string, any>;
-  dialogue: UseWithDialogue;
-  currentExperiment: CafeExperiment;
-  previousExperiments: CafeExperiment[];
   setExperiment: (e: AllExperimentTypes) => void;
 }) {
-  const { classes, previousExperiments, setExperiment, currentExperiment } =
-    props;
+  const activity = useAppSelector((s) => s.state.activity!);
+  const currentExperiment = useAppSelector(
+    (s) => s.state.experiment! as CafeExperiment
+  );
+  const previousExperiments = activity.simulator
+    .experiments as CafeExperiment[];
+
+  const { classes, setExperiment } = props;
   const experimentsSortedByF1score =
     sortExperimentsByF1Score(previousExperiments);
   const moreThanOnePreviousExperiment = experimentsSortedByF1score.length > 1;
