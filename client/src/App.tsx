@@ -79,14 +79,18 @@ function App(): JSX.Element {
     if (walkthroughParam) {
       sessionStorageStore("show_walkthrough", "true");
     }
+  }, []);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
     const activityParam = queryParams.get("activity");
     if (activityParam) {
       const activity = Activities.find((g) => g.id === activityParam);
-      if (activity) {
+      if (activity && step === STEP.PICK_GAME) {
         loadActivity(activity);
       }
     }
-  });
+  }, [loadActivity, step]);
 
   useEffect(() => {
     if (Cmi5.isCmiAvailable) {
