@@ -6,6 +6,10 @@ The full terms of this copyright and license should always be found in the root 
 */
 import { SubmitNotebookExperimentGQL } from "gql-types";
 import axios from "axios";
+import { AllSummaryTypes } from "games/activity-types";
+import { CafeSimulationsSummary } from "games/cafe/simulator";
+import { FruitSimulationsSummary } from "games/fruit-picker/simulator";
+import { NMTSimulationsSummary } from "games/neural_machine_translation/simulator";
 
 interface GraphQLResponse<T> {
   errors?: { message: string }[];
@@ -67,6 +71,51 @@ mutation submitFruitPickerNotebookExperiment(
 }
 `;
 
+function extractNotebookSummaryGQL(
+  data: SubmitNotebookExperimentGQL
+): AllSummaryTypes {
+  if (data.activityId === "cafe" || data.activityId === "fruitpicker") {
+    const dataSummary =
+      data.activityId === "cafe"
+        ? (data.summary as CafeSimulationsSummary)
+        : (data.summary as FruitSimulationsSummary);
+    return {
+      lowAccuracy: dataSummary.lowAccuracy,
+      highAccuracy: dataSummary.highAccuracy,
+      averageAccuracy: dataSummary.averageAccuracy,
+      averagePrecision: dataSummary.averagePrecision,
+      averageRecall: dataSummary.averageRecall,
+      averageF1Score: dataSummary.averageF1Score,
+      lowF1Score: dataSummary.lowF1Score,
+      highF1Score: dataSummary.highF1Score,
+    };
+  } else if (data.activityId === "neural_machine_translation") {
+    const dataSummary = data.summary as NMTSimulationsSummary;
+    return {
+      callsFitOnTexts: dataSummary.callsFitOnTexts,
+      callsTextsToSequences: dataSummary.callsTextsToSequences,
+      callsPadSequences: dataSummary.callsPadSequences,
+      callsPadSequencesWithPaddingPost:
+        dataSummary.callsPadSequencesWithPaddingPost,
+      callsPadSequencesTwice: dataSummary.callsPadSequencesTwice,
+      callsPadSequencesTwiceWithPaddingPost:
+        dataSummary.callsPadSequencesTwiceWithPaddingPost,
+      callsReshape: dataSummary.callsReshape,
+      callsReshapeOnXAndY: dataSummary.callsReshapeOnXAndY,
+      callsArgmax: dataSummary.callsArgmax,
+      callsJoin: dataSummary.callsJoin,
+      hasValidationOutput: dataSummary.hasValidationOutput,
+      dataIsNumpyArray: dataSummary.dataIsNumpyArray,
+      keywordZeroLookup: dataSummary.keywordZeroLookup,
+      preprocessedDataCorrectDimensions:
+        dataSummary.preprocessedDataCorrectDimensions,
+      outputCorrectlyFormatted: dataSummary.outputCorrectlyFormatted,
+    };
+  } else {
+    throw new Error("Activity types summary not handled for sending to GQL");
+  }
+}
+
 export async function submitNotebookExperimentGQL(
   data: SubmitNotebookExperimentGQL
 ): Promise<boolean> {
@@ -85,7 +134,7 @@ export async function submitNotebookExperimentGQL(
       cmi5LaunchParameters: data.cmi5LaunchParameters,
       activityId: data.activityId,
       notebookStateStringified: data.notebookState,
-      summary: data.summary,
+      summary: extractNotebookSummaryGQL(data),
       displayedHints: data.displayedHints,
     },
   });
