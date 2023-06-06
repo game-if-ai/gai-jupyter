@@ -1,7 +1,7 @@
 FROM cypress/base:18.16.0
 WORKDIR /app
 COPY package.json .
-COPY package-lock.json .
+COPY yarn.lock .
 COPY tsconfig.json .
 RUN yarn install
 COPY cypress ./cypress
