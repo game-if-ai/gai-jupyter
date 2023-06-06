@@ -5,5 +5,5 @@ COPY yarn.lock .
 COPY tsconfig.json .
 RUN yarn install
 COPY cypress ./cypress
-COPY cypress.json .
+COPY cypress.config.ts .
 ENTRYPOINT ["tail", "-f", "/dev/null"]
