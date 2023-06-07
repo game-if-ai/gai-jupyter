@@ -1,14 +1,18 @@
 version: '3.8'
 services:
-  gameifai-client:
-    container_name: gameifai-client
+  gameifai:
+    container_name: gameifai
     build:
       context: .
       dockerfile: ./docker/Dockerfile
+    environment:
+      - REACT_APP_JUPYTER_SERVER_HTTP_URL=https://jupyter-dev.gameifai.org/api/jupyter/
+      - REACT_APP_JUPYTER_SERVER_WS_URL=https://jupyter-dev.gameifai.org/api/jupyter/
+      - REACT_APP_JUPYTER_SERVER_TOKEN=${REACT_APP_JUPYTER_SERVER_TOKEN}
   cypress:
     container_name: cypress
     depends_on:
-      - gameifai-client
+      - gameifai
     build:
       context: cypress
     environment:
