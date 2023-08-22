@@ -111,6 +111,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const [curCell, setCurCell] = useState<string>("");
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [showResults, setShowResults] = useState<boolean>(false);
+  const [saveRun, setSaveRun] = useState<boolean>(false);
 
   const [kernel, setKernel] = useState<Kernel>();
   const [pastExperiments] = useState(activity!.simulator.experiments);
@@ -250,6 +251,22 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       scrollRef?.current?.scroll({ top: scrollPos });
     }
   }, [cells]);
+
+  function saveAndRun(): void {
+    if (isEdited) {
+      if (isSaving || notebookIsRunning) return;
+      setSaveRun(true);
+      saveNotebook();
+    } else {
+      simulate();
+    }
+  }
+  useEffect(() => {
+    if (!isSaving && !notebookIsRunning && saveRun) {
+      setSaveRun(false);
+      simulate();
+    }
+  }, [isSaving]);
 
   function toSimulation(): void {
     if (!notebook) {
@@ -421,7 +438,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
                 />
               ) : undefined}
               {isEdited ? (
-                <IconButton disabled={isSaving} onClick={saveNotebook}>
+                <IconButton disabled={isSaving} onClick={saveAndRun}>
                   <Save />
                 </IconButton>
               ) : (
@@ -432,7 +449,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
                     notebookIsRunning ||
                     kernelStatus !== KernelConnectionStatus.FINE
                   }
-                  onClick={simulate}
+                  onClick={saveAndRun}
                 >
                   <PlayArrow />
                 </IconButton>
