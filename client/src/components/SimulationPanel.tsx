@@ -248,8 +248,8 @@ const useStyles = makeStyles(() => ({
   },
   summary: {
     margin: "auto",
-    width: "min-content",
-    height: "min-content",
+    minWidth: 0,
+    minHeight: 0,
     maxWidth: "100%",
     maxHeight: "100%",
     textAlign: "center",
