@@ -14,6 +14,33 @@ import {
   DialogTitle,
 } from "@mui/material";
 
+export function Popup(props: {
+  open: boolean;
+  title?: string;
+  className?: string;
+  onClose: () => void;
+  actions?: JSX.Element;
+  children?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+}): JSX.Element {
+  return (
+    <Dialog
+      className={props.className}
+      onClose={props.onClose}
+      open={props.open}
+    >
+      {props.title ? (
+        <DialogTitle style={{ textAlign: "center" }}>{props.title}</DialogTitle>
+      ) : undefined}
+      <DialogContent>{props.children}</DialogContent>
+      {props.actions ? (
+        <DialogActions style={{ justifyContent: "center" }}>
+          {props.actions}
+        </DialogActions>
+      ) : undefined}
+    </Dialog>
+  );
+}
+
 export function ActionPopup(props: {
   open: boolean;
   title?: string;
@@ -22,20 +49,19 @@ export function ActionPopup(props: {
   onClose: () => void;
 }): JSX.Element {
   return (
-    <Dialog onClose={props.onClose} open={props.open}>
-      {props.title ? (
-        <DialogTitle style={{ textAlign: "center" }}>{props.title}</DialogTitle>
-      ) : undefined}
-      {props.text ? (
-        <DialogContent>
-          <DialogContentText>{props.text}</DialogContentText>
-        </DialogContent>
-      ) : undefined}
-      {props.children ? (
+    <Popup
+      open={props.open}
+      onClose={props.onClose}
+      title={props.title}
+      actions={
         <DialogActions style={{ justifyContent: "center" }}>
           {props.children}
         </DialogActions>
+      }
+    >
+      {props.text ? (
+        <DialogContentText>{props.text}</DialogContentText>
       ) : undefined}
-    </Dialog>
+    </Popup>
   );
 }
