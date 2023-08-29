@@ -37,15 +37,17 @@ function App(): JSX.Element {
     const uniqueId = getUniqueUserId();
     setUniqueUserId(uniqueId);
     const cm = new ContentsManager();
-    const removeOldFiles = Activities.map((activity) => {
-      return cm.delete(
-        `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
-      );
-    });
-    Promise.all(removeOldFiles);
-    cm.save(`/${TEMP_NOTEBOOK_DIR}/`, { type: "directory" }).then(() => {
-      cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, { type: "directory" }).then(
-        () => {
+    try {
+      const removeOldFiles = Activities.map((activity) => {
+        return cm.delete(
+          `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
+        );
+      });
+      Promise.all(removeOldFiles);
+      cm.save(`/${TEMP_NOTEBOOK_DIR}/`, { type: "directory" }).then(() => {
+        cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, {
+          type: "directory",
+        }).then(() => {
           const notebookCreationPromises = [
             // Create directories
             ...Activities.map(async (activity) => {
@@ -64,13 +66,14 @@ function App(): JSX.Element {
               );
             }),
           ];
-
           Promise.all(notebookCreationPromises).finally(() => {
             setNotebooksCreated(true);
           });
-        }
-      );
-    });
+        });
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }, []);
 
   useEffect(() => {
@@ -154,7 +157,11 @@ function App(): JSX.Element {
     return <div />;
   }
 
-  return <div className={classes.root}>{getComponent()}</div>;
+  return (
+    <div data-cy="root" data-test={step} className={classes.root}>
+      {getComponent()}
+    </div>
+  );
 }
 
 const useStyles = makeStyles(() => ({

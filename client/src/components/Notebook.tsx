@@ -383,7 +383,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   }
 
   return (
-    <div className={classes.root}>
+    <div data-cy="notebook-root" className={classes.root}>
       <AppBar position="fixed">
         <Toolbar>
           <Select

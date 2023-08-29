@@ -46,27 +46,29 @@ function ActivityPicker(): JSX.Element {
   }
 
   return (
-    <div>
+    <div data-cy="activity-picker-root">
       <div style={{ paddingTop: 20, paddingLeft: 20, paddingRight: 20 }}>
         <FormControl fullWidth>
           <InputLabel>Select Game</InputLabel>
           <Select
+            data-cy="select"
             value={activity?.id || ""}
             label="Select Game"
             onChange={(e) => selectGame(e.target.value)}
           >
             {Activities.map((g) => (
-              <MenuItem key={g.id} value={g.id}>
+              <MenuItem data-cy={`${g.id}`} key={g.id} value={g.id}>
                 {g.title}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
-        <Button disabled={!activity} onClick={confirm}>
+        <Button data-cy="next-btn" disabled={!activity} onClick={confirm}>
           Confirm
         </Button>
       </div>
       <div
+        data-cy="game-container"
         id="game-container"
         style={{ width, height: height - 125 }}
         ref={gameContainerRef}

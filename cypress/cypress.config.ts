@@ -5,13 +5,14 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import { defineConfig } from "cypress";
+import { addMatchImageSnapshotPlugin } from "@simonsmith/cypress-image-snapshot/plugin";
 
 export default defineConfig({
   e2e: {
     setupNodeEvents(on, config) {
-      // implement node event listeners here
+      addMatchImageSnapshotPlugin(on);
+      return config;
     },
-
     baseUrl: "http://localhost:3000",
     chromeWebSecurity: false,
     video: false,

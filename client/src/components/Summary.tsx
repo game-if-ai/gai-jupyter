@@ -140,7 +140,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
   }
 
   return (
-    <div>
+    <div data-cy="summary-root">
       {previousExperiments.length > 0 && Boolean(previousExperimentView()) ? (
         <Button
           onClick={() => setViewPreviousExperiments((prevValue) => !prevValue)}
