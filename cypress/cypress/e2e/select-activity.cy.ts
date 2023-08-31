@@ -10,7 +10,7 @@ describe("select activity page", () => {
     cy.visit("/");
   });
 
-  it("shows activity picker component", () => {
+  it("shows activity picker step", () => {
     cy.get("[data-cy=root]").should("have.attr", "data-test", "0");
     cy.get("[data-cy=activity-picker-root]").should("exist");
     cy.get("[data-cy=notebook-root]").should("not.exist");
@@ -65,7 +65,7 @@ describe("select activity page", () => {
     cy.get("[data-cy=next-btn]").should("not.be.disabled"); // enable button
   });
 
-  it("shows phaser game", () => {
+  it("loads and shows phaser game", () => {
     // translation
     cy.get("[data-cy=select]").click();
     cy.get("[data-cy=neural_machine_translation]").trigger("mouseover").click();
@@ -92,6 +92,9 @@ describe("select activity page", () => {
     cy.get("[data-cy=root]").should("have.attr", "data-test", "1");
     cy.get("[data-cy=notebook-root]").should("exist");
     cy.contains("Bought or Not!");
+    cy.contains(
+      "Please complete this notebook to build a sentiment classifier. You will receive hints on how to improve its performance as you go."
+    );
   });
 
   it("navigates to fruitpicker activity", () => {
@@ -101,6 +104,9 @@ describe("select activity page", () => {
     cy.get("[data-cy=root]").should("have.attr", "data-test", "1");
     cy.get("[data-cy=notebook-root]").should("exist");
     cy.contains("Fruit Picker");
+    cy.contains(
+      "You are trying to build a classifier to select fruit based on their physical traits."
+    );
   });
 
   it("navigates to translation activity", () => {
@@ -110,5 +116,8 @@ describe("select activity page", () => {
     cy.get("[data-cy=root]").should("have.attr", "data-test", "1");
     cy.get("[data-cy=notebook-root]").should("exist");
     cy.contains("Neural Machine Translation");
+    cy.contains(
+      "Please finish this notebook to complete the English to French translator. You will receive hints as you go."
+    );
   });
 });

@@ -13,13 +13,17 @@ node_modules/prettier:
 clean:
 	cd client && $(MAKE) clean
 
+.PHONY: format
+format:
+	npm run license:fix && npm run format
+
 .PHONY: develop
 develop:
 	cd client && $(MAKE) develop
 
-.PHONY: format
-format:
-	npm run license:fix && npm run format
+.PHONY: test
+test:
+	cd cypress && npm run cy:open
 
 .PHONY: test-format
 test-format: node_modules/prettier

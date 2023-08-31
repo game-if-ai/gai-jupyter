@@ -387,6 +387,8 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       <AppBar position="fixed">
         <Toolbar>
           <Select
+            data-cy="select"
+            data-test={curCell}
             value={curCell}
             onChange={(e) => {
               scrollTo(e.target.value);
@@ -397,18 +399,22 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
             {Object.keys(cells)
               .filter((cellKey) => !cells[cellKey].hiddenCell)
               .map((c, i) => (
-                <MenuItem key={i} value={c}>
+                <MenuItem data-cy="select-item" key={i} value={c}>
                   {cells[c].cell.getMetadata("gai_title")}
                 </MenuItem>
               ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
           {kernelStatusDisplay()}
-          <IconButton onClick={() => setShowDescription(true)}>
+          <IconButton
+            data-cy="info-btn"
+            onClick={() => setShowDescription(true)}
+          >
             <Info />
           </IconButton>
           <TooltipMsg elemId="hint">
             <IconButton
+              data-cy="hint-btn"
               disabled={!hints.hintsAvailable || isSaving}
               onClick={() => {
                 hints.toastHint();
@@ -438,11 +444,16 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
                 />
               ) : undefined}
               {isEdited ? (
-                <IconButton disabled={isSaving} onClick={saveAndRun}>
+                <IconButton
+                  data-cy="save-btn"
+                  disabled={isSaving}
+                  onClick={saveAndRun}
+                >
                   <Save />
                 </IconButton>
               ) : (
                 <IconButton
+                  data-cy="run-btn"
                   disabled={
                     hasError ||
                     isSaving ||
@@ -460,6 +471,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       </AppBar>
       <Toolbar />
       <ShortcutKeyboard />
+
       {Object.entries(cells).length === 0 || !notebookInitialized ? (
         <span
           style={{
@@ -500,6 +512,17 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           uid={NOTEBOOK_UID}
         />
       </div>
+
+      <ActionPopup
+        open={showDescription}
+        onClose={() => setShowDescription(false)}
+        title={activity!.title}
+        text={activity!.description}
+      >
+        <Button data-cy="okay-btn" onClick={() => setShowDescription(false)}>
+          Okay
+        </Button>
+      </ActionPopup>
       <ActionPopup
         open={showResults && !hasError}
         onClose={() => setShowResults(false)}
@@ -508,22 +531,17 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       >
         {isGameActivity(activity!) ? (
           <TooltipMsg elemId="view-sim" placement="bottom">
-            <Button onClick={toSimulation}>View Simulation</Button>
+            <Button data-cy="view-sim-btn" onClick={toSimulation}>
+              View Simulation
+            </Button>
           </TooltipMsg>
         ) : undefined}
         <TooltipMsg elemId="view-summary" placement="bottom">
-          <Button onClick={() => toStep(STEP.SUMMARY)}>View Summary</Button>
+          <Button data-cy="view-sum-btn" onClick={() => toStep(STEP.SUMMARY)}>
+            View Summary
+          </Button>
         </TooltipMsg>
       </ActionPopup>
-      <ActionPopup
-        open={showDescription}
-        onClose={() => setShowDescription(false)}
-        title={activity!.title}
-        text={activity!.description}
-      >
-        <Button onClick={() => setShowDescription(false)}>Okay</Button>
-      </ActionPopup>
-      <ToastContainer {...defaultToastOptions} />
       <Popover
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}
@@ -545,6 +563,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           </MenuItem>
         ))}
       </Popover>
+      <ToastContainer {...defaultToastOptions} />
     </div>
   );
 }

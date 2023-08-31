@@ -266,6 +266,7 @@ export function NotebookEditor(props: {
 
   return (
     <div
+      data-cy="cell"
       id={`cell-${cellId}`}
       style={{
         backgroundColor: isDisabled ? "#E3E3E3" : "#FFFFFF",
@@ -277,6 +278,7 @@ export function NotebookEditor(props: {
         ) : (
           <div>
             <IconButton
+              data-cy="undo-btn"
               disabled={!editor || undoDepth(editor.state) === 0}
               onClick={() =>
                 undo({
@@ -288,6 +290,7 @@ export function NotebookEditor(props: {
               <Undo />
             </IconButton>
             <IconButton
+              data-cy="redo-btn"
               disabled={!editor || redoDepth(editor.state) === 0}
               onClick={() =>
                 redo({
@@ -307,6 +310,7 @@ export function NotebookEditor(props: {
         </TooltipMsg>
         {isDisabled ? undefined : (
           <IconButton
+            data-cy="hint-btn"
             disabled={!hints.hintsAvailable || isSaving}
             onClick={() => {
               hints.toastHint();
@@ -319,6 +323,8 @@ export function NotebookEditor(props: {
         <div style={{ flexGrow: 1 }} />
         <TooltipMsg elemId={`output-${cellId}`}>
           <Button
+            data-cy="output-btn"
+            data-test={showOutput || hasError}
             data-elemid={`output-${cellId}`}
             startIcon={
               showOutput || hasError ? <Visibility /> : <VisibilityOff />
@@ -330,7 +336,12 @@ export function NotebookEditor(props: {
         </TooltipMsg>
       </div>
       <div id={`code-input-${cellId}`} />
-      <Collapse in={showOutput || hasError} timeout={500} unmountOnExit>
+      <Collapse
+        data-cy="output"
+        in={showOutput || hasError}
+        timeout={500}
+        unmountOnExit
+      >
         {outputElement}
       </Collapse>
     </div>
