@@ -118,7 +118,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [didScroll, setDidScroll] = useState<boolean>(false);
-  const [scrollPos, setScrollPos] = useState<number>(0);
   const kernelManager: KernelManager = useJupyter()
     .kernelManager as KernelManager;
 
@@ -246,12 +245,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
   }, [showDescription, sawTutorial, messages, curMessage, cells]);
 
-  useEffect(() => {
-    if (curCell && !Object.keys(cells).includes(curCell)) {
-      scrollRef?.current?.scroll({ top: scrollPos });
-    }
-  }, [cells]);
-
   function saveAndRun(): void {
     if (isEdited) {
       if (isSaving || notebookIsRunning) return;
@@ -309,6 +302,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   }
 
   function scrollTo(cell: string): void {
+    setCurCell(cell);
     const element = document.getElementById(`cell-${cell}`);
     if (!element || !scrollRef.current) {
       return;
@@ -320,9 +314,39 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     });
   }
 
-  function onScroll(e: React.UIEvent<HTMLDivElement, UIEvent>): void {
+  function onScroll(_e: React.UIEvent<HTMLDivElement, UIEvent>): void {
     if (!scrollRef.current) return;
-    setScrollPos(scrollRef.current.scrollTop);
+    // check which cell is most visible and set it as the current cell in dropdown
+    let visibleCell;
+    let visibleCellPercent = 0;
+    const scrollTop = scrollRef.current.offsetTop + scrollRef.current.scrollTop;
+    const scrollBot = scrollTop + scrollRef.current.offsetHeight;
+    for (const cellId of Object.keys(cells).filter(
+      (cellKey) => !cells[cellKey].hiddenCell
+    )) {
+      const cellEle = document.getElementById(`cell-${cellId}`);
+      if (cellEle) {
+        // Calculate percentage of the element that's been seen
+        const cellTop = cellEle.offsetTop;
+        const cellHeight = cellEle.offsetHeight;
+        const cellBot = cellTop + cellHeight;
+        const percentage = Math.max(
+          0,
+          ((cellHeight -
+            Math.max(0, scrollTop - cellTop) -
+            Math.max(0, cellBot - scrollBot)) /
+            cellHeight) *
+            100
+        );
+        if (!visibleCell || percentage > visibleCellPercent) {
+          visibleCell = cellId;
+          visibleCellPercent = percentage;
+        }
+      }
+    }
+    if (visibleCell && visibleCell !== curCell) {
+      setCurCell(visibleCell);
+    }
   }
 
   function kernelStatusDisplay(): JSX.Element {
@@ -382,6 +406,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
   }
 
+  const visibleCells = Object.entries(cells).filter((v) => !v[1].hiddenCell);
   return (
     <div data-cy="notebook-root" className={classes.root}>
       <AppBar position="fixed">
@@ -390,10 +415,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
             data-cy="select"
             data-test={curCell}
             value={curCell}
-            onChange={(e) => {
-              scrollTo(e.target.value);
-              setCurCell(e.target.value);
-            }}
+            onChange={(e) => scrollTo(e.target.value)}
             style={{ color: "white", maxWidth: "50%" }}
           >
             {Object.keys(cells)
@@ -490,17 +512,22 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         </span>
       ) : (
         <div className={classes.cells} ref={scrollRef} onScroll={onScroll}>
-          {Object.entries(cells)
-            .filter((v) => !v[1].hiddenCell)
-            .map((v) => (
-              <NotebookEditor
-                key={v[0]}
-                isSaving={isSaving}
-                cellState={v[1]}
-                editCode={editCode}
-                hints={hints}
-              />
-            ))}
+          {visibleCells.map((v, i) => (
+            <NotebookEditor
+              key={v[0]}
+              isSaving={isSaving}
+              cellState={v[1]}
+              hints={hints}
+              editCode={editCode}
+              curCell={curCell}
+              onChangeCell={(direction: number) => {
+                const newCell = visibleCells[i + direction];
+                if (newCell) {
+                  scrollTo(newCell[0]);
+                }
+              }}
+            />
+          ))}
         </div>
       )}
       <div style={{ display: "none" }}>

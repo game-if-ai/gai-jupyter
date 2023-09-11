@@ -74,10 +74,12 @@ const customErrorMessages: CustomErrorMessage[] = [
 ];
 
 export function NotebookEditor(props: {
+  curCell: string;
   cellState: CellState;
   hints: UseWithImproveCode;
   isSaving: boolean;
   editCode: (cell: string, code: string) => void;
+  onChangeCell: (direction: number) => void;
 }): JSX.Element {
   const classes = useStyles();
   const { cellState, hints, isSaving } = props;
@@ -115,6 +117,35 @@ export function NotebookEditor(props: {
     const extensions = [
       python(), // python language
       keymap.of([indentWithTab]), // enable TAB key
+      // navigate between cells with up/down arrow
+      keymap.of([
+        {
+          key: "ArrowDown",
+          run(target) {
+            const lineNum = target.state.doc.lineAt(
+              target.state.selection.main.head
+            ).number;
+            if (lineNum === target.state.doc.lines) {
+              props.onChangeCell(1);
+            }
+            return false;
+          },
+        },
+      ]),
+      keymap.of([
+        {
+          key: "ArrowUp",
+          run(target) {
+            const lineNum = target.state.doc.lineAt(
+              target.state.selection.main.head
+            ).number;
+            if (lineNum === 1) {
+              props.onChangeCell(-1);
+            }
+            return false;
+          },
+        },
+      ]),
       indentUnit.of("    "), // use 4 spaces for indents
       EditorState.readOnly.of(isDisabled), // disable editing
       EditorView.focusChangeEffect.of((_, focusing) => {
@@ -153,6 +184,14 @@ export function NotebookEditor(props: {
       })
     );
   }, [cell]);
+
+  useEffect(() => {
+    if (!editor || props.curCell !== cellId) {
+      return;
+    }
+    editor.focus();
+    editor.dispatch({ selection: { anchor: 0 } });
+  }, [props.curCell]);
 
   useEffect(() => {
     if (isDisabled) {
