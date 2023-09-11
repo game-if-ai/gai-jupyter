@@ -16,8 +16,9 @@ import {
 import { Fruits } from "./types";
 import { GameParams } from "..";
 import {
-  addBackgroundImage,
+  addBackground,
   addText,
+  Anchor,
   scaleImage,
   scaleText,
 } from "../phaser-helpers";
@@ -45,6 +46,7 @@ export default class MainGame extends Phaser.Scene {
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
 
+  bg?: Phaser.GameObjects.Image;
   images: Phaser.GameObjects.Image[];
   text: Phaser.GameObjects.Text[];
 
@@ -80,27 +82,32 @@ export default class MainGame extends Phaser.Scene {
     });
     this.config = data;
     // create scene
-    this.images.push(addBackgroundImage(this, "background"));
+    const bg = addBackground(this, "background");
     this.timerText = addText(this, `${GAME_TIME}:00`, {
-      x: 5,
-      width: 0.4,
+      bg,
+      yAnchor: Anchor.start,
+      xAnchor: Anchor.start,
+      widthRel: 0.5,
       maxFontSize: 48,
     });
     this.matchText = addText(this, "Catch the fruits!", {
-      xRel: 0.5,
-      yRel: 1,
-      width: 1,
+      bg,
+      yAnchor: Anchor.end,
+      widthRel: 1,
       maxFontSize: 78,
     });
+    this.bg = bg;
+    this.images.push(bg);
     this.text.push(this.timerText);
     this.text.push(this.matchText);
     if (!this.config.playManually) {
       this.accuracyText = addText(this, "Accuracy: 100%", {
-        x: -5,
+        bg,
+        yAnchor: Anchor.start,
+        xAnchor: Anchor.end,
         xRel: 1,
-        width: 0.4,
-        height: 0.1,
-        maxFontSize: 32,
+        widthRel: 0.5,
+        maxFontSize: 48,
       });
       this.text.push(this.accuracyText);
     }
@@ -171,13 +178,13 @@ export default class MainGame extends Phaser.Scene {
   }
 
   spawnFruit() {
-    if (!this.config || !this.config.simulation) {
+    if (!this.config || !this.config.simulation || !this.bg) {
       return;
     }
     const simulation = this.config.simulation;
     const fruit = simulation.spawns[this.fruitIdx];
     const fruitObj = this.physics.add.sprite(
-      this.cameras.main.width * fruit.xPos,
+      this.bg.displayWidth * fruit.xPos,
       0,
       fruit.fruit.name
     );

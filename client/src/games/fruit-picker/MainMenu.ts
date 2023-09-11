@@ -7,9 +7,10 @@ The full terms of this copyright and license should always be found in the root 
 
 import Phaser from "phaser";
 import {
-  addBackgroundImage,
+  addBackground,
   addImage,
   addText,
+  Anchor,
   scaleImage,
   scaleText,
 } from "../phaser-helpers";
@@ -38,34 +39,35 @@ export default class MainMenu extends Phaser.Scene {
     window.addEventListener("resize", () => {
       this.resize();
     });
-    const background = addBackgroundImage(this, "background");
-    const logo = addImage(this, "logo").setY(-200);
-    const logo2 = addImage(this, "logo2").setY(-200).setAlpha(0);
-    this.images.push(background);
+    const bg = addBackground(this, "background");
+    const logo = addImage(this, "logo", undefined, { bg, y: -200 });
+    const logo2 = addImage(this, "logo2", undefined, { bg, y: -200 }).setAlpha(
+      0
+    );
+    this.images.push(bg);
     this.images.push(logo);
     this.images.push(logo2);
     this.text.push(
       addText(this, "Catch the fruits!", {
-        xRel: 0.5,
-        width: 0.9,
+        bg,
+        widthRel: 0.9,
         maxFontSize: 78,
       })
     );
     this.text.push(
       addText(this, "Background Image by brgfx on Freepik", {
-        xRel: 0.5,
-        yRel: 1,
+        bg,
+        yAnchor: Anchor.end,
       })
     );
-
     this.tweens.add({
-      targets: background,
+      targets: bg,
       alpha: { from: 0, to: 1 },
       duration: 1000,
     });
     this.tweens.add({
       targets: [logo, logo2],
-      y: this.cameras.main.height * 0.7,
+      y: bg.displayHeight * 0.7,
       ease: "bounce.out",
       duration: 1200,
     });

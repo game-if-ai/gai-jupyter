@@ -22,8 +22,6 @@ import { ImproveCodeHint } from "hooks/use-with-improve-code";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
-export const ITEM_TIME = 5; // time each item stays in seconds
-export const CLASSIFIER_DELAY = 2500; // delay in ms for classifier at 0 confidence
 export const ITEMS = ["egg", "dumpling", "riceball", "sushi", "flan"];
 export const CUSTOMERS = ["brown", "panda", "polar", "redpanda", "pink"];
 export type CafeExperiment = Experiment<

@@ -18,7 +18,8 @@ export const NeuralMachineTranslation: Activity = {
   id: "neural_machine_translation",
   title: "Neural Machine Translation",
   activityType: "NOTEBOOK_ONLY",
-  description:
+  gameDescription: "",
+  notebookDescription:
     "Please finish this notebook to complete the English to French translator. You will receive hints as you go.",
   simulator: new NMTSimulator(),
   improveCodeHints: [

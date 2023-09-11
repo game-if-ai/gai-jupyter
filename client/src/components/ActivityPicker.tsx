@@ -12,6 +12,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Typography,
 } from "@mui/material";
 import { Activities, Activity, isGameActivity } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
@@ -66,11 +67,14 @@ function ActivityPicker(): JSX.Element {
         <Button data-cy="next-btn" disabled={!activity} onClick={confirm}>
           Confirm
         </Button>
+        <Typography data-cy="description">
+          {activity?.gameDescription}
+        </Typography>
       </div>
       <div
         data-cy="game-container"
         id="game-container"
-        style={{ width, height: height - 125 }}
+        style={{ width, height: height - 200 }}
         ref={gameContainerRef}
       />
     </div>

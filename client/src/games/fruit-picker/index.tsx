@@ -30,7 +30,9 @@ export const FruitPicker: Game = {
   id: "fruitpicker",
   title: "Fruit Picker",
   activityType: "GAME",
-  description:
+  gameDescription:
+    "PAL the robot is gathering fruit for their picky human overlords, and they need your help! Train PAL's AI by building a classifier to select fruit based on their physical traits.",
+  notebookDescription:
     "You are trying to build a classifier to select fruit based on their physical traits.",
   config: GameConfig,
   simulator: new FruitSimulator(),

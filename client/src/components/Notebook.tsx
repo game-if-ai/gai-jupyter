@@ -517,7 +517,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         open={showDescription}
         onClose={() => setShowDescription(false)}
         title={activity!.title}
-        text={activity!.description}
+        text={activity!.notebookDescription}
       >
         <Button data-cy="okay-btn" onClick={() => setShowDescription(false)}>
           Okay

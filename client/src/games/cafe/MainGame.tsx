@@ -7,16 +7,23 @@ The full terms of this copyright and license should always be found in the root 
 
 import Phaser from "phaser";
 import {
-  ITEM_TIME,
-  GAME_TIME,
   SPAWN_TIME,
-  CLASSIFIER_DELAY,
+  GAME_TIME,
   CafeSimulationOutput,
   CafeSimulationsSummary,
 } from "./simulator";
 import { GameParams } from "..";
-import { addImage, addSprite, addText, scaleText } from "../phaser-helpers";
+import {
+  addBackground,
+  addImage,
+  addSprite,
+  addText,
+  Anchor,
+  scaleImage,
+  scaleText,
+} from "../phaser-helpers";
 import { CafeCodeInfo } from "./hooks/use-with-cafe-code-examine";
+import { waitMs, randomInt } from "../../utils";
 
 export type CafeGameParams = GameParams<
   CafeSimulationOutput,
@@ -28,47 +35,72 @@ export default class MainGame extends Phaser.Scene {
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
-  numCorrect: number;
   config?: CafeGameParams;
   eventSystem?: Phaser.Events.EventEmitter;
-
-  items: Phaser.GameObjects.Sprite[];
-  itemIdx: number;
-  timerText?: Phaser.GameObjects.Text;
-  accuracyText?: Phaser.GameObjects.Text;
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
 
-  trash?: Phaser.GameObjects.Sprite;
-  bear?: Phaser.GameObjects.Image;
-  sparkle?: Phaser.GameObjects.Image;
-  cross?: Phaser.GameObjects.Image;
-  speechBubble?: Phaser.GameObjects.Image;
-  bgBot?: Phaser.GameObjects.Image;
-  offset: number;
-  text?: Phaser.GameObjects.Text;
+  truePositive: number;
+  trueNegative: number;
+  falsePositive: number;
+  falseNegative: number;
+
+  bg?: Phaser.GameObjects.Image;
+  screen?: Phaser.GameObjects.Image;
+  screenText?: Phaser.GameObjects.Text;
+  pal?: Phaser.GameObjects.Sprite;
+  trash: Phaser.GameObjects.Sprite[];
+  trashText: Phaser.GameObjects.Text[];
+  scoreText?: Phaser.GameObjects.Text;
+  items: Phaser.GameObjects.Sprite[];
+  itemIdx: number;
 
   constructor() {
     super("MainGame");
     this.speed = 1;
     this.isPaused = false;
     this.isMuted = false;
-    this.numCorrect = 0;
+    this.truePositive = 0;
+    this.trueNegative = 0;
+    this.falsePositive = 0;
+    this.falseNegative = 0;
     this.items = [];
     this.itemIdx = 0;
-    this.offset = 0;
+    this.trash = [];
+    this.trashText = [];
   }
 
   preload() {
+    this.load.setPath("assets");
+    this.load.spritesheet("pal", "pal_spritesheet.png", {
+      frameWidth: 250,
+      frameHeight: 250,
+    });
+    this.load.image(
+      "window",
+      "wordui/inner_panels/blue/premade_panels/blue_long_horizontal.png"
+    );
+    this.load.image(
+      "buttonYes",
+      "wordui/buttons/long_buttons/green_button_complete.png"
+    );
+    this.load.image(
+      "buttonNo",
+      "wordui/buttons/long_buttons/red_button_complete.png"
+    );
     this.load.setPath("assets/cafe");
-    this.load.image("background", "background.png");
-    this.load.image("sparkle", "sparkle.png");
-    this.load.image("cross", "cross.png");
-    this.load.setPath("assets/cafe/sprites");
-    this.load.atlas("bg_kitchen", "bg_kitchen.png", "bg_kitchen.json");
-    this.load.atlas("char_bears", "char_bears.png", "char_bears.json");
-    this.load.atlas("char_speech", "char_speech.png", "char_speech.json");
-    this.load.atlas("food", "food.png", "food.json");
+    for (let i = 1; i <= 2; i++) {
+      this.load.image(`background${i}`, `background${i}.jpg`);
+    }
+    for (let i = 1; i <= 4; i++) {
+      this.load.image(`bin${i}`, `bin${i}.png`);
+    }
+    for (let i = 1; i <= 4; i++) {
+      this.load.image(`zap${i}`, `zap${i}.png`);
+    }
+    for (let i = 1; i <= 10; i++) {
+      this.load.image(`box${i}`, `box${i}.png`);
+    }
     this.load.setPath("assets/cafe/sounds");
     this.load.audio("match", ["match.ogg", "match.mp3"]);
     this.load.audio("wrong", ["wrong.mp3"]);
@@ -79,64 +111,131 @@ export default class MainGame extends Phaser.Scene {
     this.eventSystem = data.eventSystem;
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
-    // create scene
-    this.cameras.main.setBackgroundColor("#4f4135");
-    const bgTop = addImage(this, "background", undefined, { widthScale: 1 });
-    this.bear = addImage(this, "char_bears", "brown", {
-      height: bgTop.displayHeight / 3,
+    // add background
+    this.cameras.main.setBackgroundColor("#2d3052");
+    this.bg = addBackground(this, "background1");
+    const isMobile =
+      this.cameras.main.displayHeight / 2 >= this.bg.displayHeight;
+    if (isMobile) {
+      const bgTop = addImage(this, "background2", undefined, {
+        bg: this.bg,
+        yAnchor: Anchor.start,
+        width: this.bg.displayWidth,
+      });
+      bgTop.setY(bgTop.y - bgTop.displayHeight);
+    }
+    // add screen
+    this.screen = addImage(
+      this,
+      "window",
+      undefined,
+      isMobile
+        ? {
+            bg: this.bg,
+            yAnchor: Anchor.end,
+            height:
+              (this.cameras.main.displayHeight - this.bg.displayHeight) / 2,
+          }
+        : {
+            bg: this.bg,
+            xAnchor: Anchor.end,
+            yAnchor: Anchor.start,
+            heightRel: 0.5,
+            xRel: -0.01,
+            yRel: 0.01,
+          }
+    );
+    if (isMobile) {
+      if (this.screen.displayWidth > this.bg.displayWidth) {
+        scaleImage(this, this.screen, {
+          bg: this.bg,
+          yAnchor: Anchor.end,
+          width: this.bg.displayWidth,
+        });
+      }
+      this.screen.setY(this.screen.displayHeight / 2);
+    }
+    this.screenText = addText(this, "Bought or Not?", {
+      bg: this.screen,
+      widthRel: 0.9,
+      maxHeight: this.screen.displayHeight * 0.9,
     });
-    this.bear.setY(this.bear.y - (bgTop.displayHeight / 8 + 5));
-    this.speechBubble = addImage(this, "char_speech", "...", {
-      height: bgTop.displayHeight / 4,
+    // add pal
+    this.anims.create({
+      key: "good",
+      frames: this.anims.generateFrameNumbers("pal", {
+        frames: [...Array(12).keys()].map((v) => v + 12 + 7),
+      }),
+      frameRate: 20,
+      repeat: 0,
     });
-    this.speechBubble.setX(this.speechBubble.x - this.bear.displayWidth / 2);
-    this.speechBubble.setY(this.speechBubble.y - this.bear.displayHeight);
-    this.bgBot = addImage(this, "bg_kitchen", "bottom", {
-      width: bgTop.displayWidth,
-      y: bgTop.displayHeight / 2,
+    this.anims.create({
+      key: "bad",
+      frames: this.anims.generateFrameNumbers("pal", {
+        frames: [...Array(18).keys()].map(
+          (v) => v + 12 + 7 + 12 + 24 + 24 + 14
+        ),
+      }),
+      frameRate: 20,
+      repeat: 0,
     });
-    this.trash = addSprite(this, "bg_kitchen", "trash", {
-      height: this.bgBot.displayHeight / 2,
-      x: bgTop.displayWidth / 2,
-      y: bgTop.displayHeight / 2,
-    });
-    this.trash.state = "trash";
-    // add effects
-    this.sparkle = addImage(this, "sparkle", undefined, {
-      height: bgTop.displayHeight / 3,
-    });
-    this.sparkle.setAlpha(0);
-    this.cross = addImage(this, "cross", undefined, {
-      height: bgTop.displayHeight / 3,
-    });
-    this.cross.setAlpha(0);
-    // add text
-    this.timerText = addText(this, `Time: ${GAME_TIME}:00`, {
-      x: 5,
-      width: 0.5,
-      maxFontSize: 32,
-    });
-    if (!this.config.playManually) {
-      this.accuracyText = addText(this, "Accuracy: 0", {
-        x: -5,
-        xRel: 1,
-        width: 0.5,
+    this.pal = addSprite(
+      this,
+      "pal",
+      undefined,
+      isMobile
+        ? {
+            bg: this.bg,
+            yAnchor: Anchor.start,
+            xAnchor: Anchor.center,
+            height: this.bg.displayHeight,
+          }
+        : {
+            bg: this.bg,
+            heightRel: 0.5,
+            yAnchor: Anchor.start,
+          }
+    );
+    if (!isMobile) {
+      this.pal.setX(this.bg.x - this.pal.displayWidth);
+    }
+    // add trash bins
+    const matrix = ["TP", "FP", "TN", "FN"];
+    let binX = this.bg.displayWidth * (isMobile ? 0.1 : 0.15);
+    for (let i = 0; i < 4; i++) {
+      const trash = addSprite(this, `bin${i + 1}`, undefined, {
+        bg: this.bg,
+        xAnchor: Anchor.start,
+        yAnchor: Anchor.end,
+        widthRel: isMobile ? 0.2 : 0.1,
+        x: binX,
+        y: isMobile ? this.screen.displayHeight : this.bg.displayHeight * -0.15,
+      });
+      binX += trash.displayWidth + 5;
+      addText(this, matrix[i], {
+        bg: trash,
+        yAnchor: Anchor.center,
+        widthRel: 0.3,
         maxFontSize: 32,
       });
+      const trashText = addText(this, "0", {
+        bg: trash,
+        yAnchor: Anchor.start,
+        y: -5,
+        widthRel: 1,
+        maxFontSize: 32,
+      });
+      this.trash.push(trash);
+      this.trashText.push(trashText);
     }
-    const yTextOffset =
-      (this.cameras.main.displayHeight - bgTop.displayHeight) / 2 +
-      bgTop.displayHeight / 2 +
-      this.bgBot.displayHeight / 2;
-    const textX = (this.cameras.main.displayWidth - bgTop.displayWidth) / 2;
-    const maxTextWidth = this.trash.x - this.trash.displayWidth / 2 - textX;
-    this.text = addText(this, " ", {
-      x: textX,
-      y: yTextOffset,
-      yRel: 0,
-      maxWidth: maxTextWidth,
+    // add text
+    this.scoreText = addText(this, `Time: 120:00 | Accuracy: 100%`, {
+      bg: this.screen,
+      xAnchor: Anchor.center,
+      yAnchor: Anchor.start,
+      heightRel: 0.05,
+      maxFontSize: 32,
     });
-    this.text.state = "text";
     // start
     if (this.eventSystem) {
       this.eventSystem.on("pause", this.pause, this);
@@ -148,27 +247,43 @@ export default class MainGame extends Phaser.Scene {
 
   start() {
     if (this.config?.playManually) {
+      const isMobile =
+        this.cameras.main.displayHeight / 2 >= this.bg!.displayHeight;
       this.config.simulation = this.config.simulator.play();
-      this.trash?.setInteractive();
-      this.text?.setInteractive();
-      this.input.on("gameobjectdown", this.selectItem, this);
+      const buttonYes = addImage(this, "buttonYes", undefined, {
+        bg: isMobile ? this.bg : this.screen,
+        widthRel: 0.3,
+        yAnchor: Anchor.end,
+        xAnchor: Anchor.start,
+      });
+      buttonYes.setY(buttonYes.y + buttonYes.displayHeight);
+      addText(this, "Yes", {
+        bg: buttonYes,
+        heightRel: 0.5,
+      });
+      buttonYes.setInteractive();
+      buttonYes.on("pointerdown", () => this.selectItem(), this);
+      const buttonNo = addImage(this, "buttonNo", undefined, {
+        bg: isMobile ? this.bg : this.screen,
+        widthRel: 0.3,
+        yAnchor: Anchor.end,
+        xAnchor: Anchor.end,
+      });
+      buttonNo.setY(buttonNo.y + buttonNo.displayHeight);
+      addText(this, "No", {
+        bg: buttonNo,
+        heightRel: 0.5,
+      });
+      buttonNo.setInteractive();
+      buttonNo.on("pointerdown", () => this.trashItem(), this);
     }
-    this.numCorrect = 0;
+    this.truePositive = 0;
+    this.trueNegative = 0;
+    this.falsePositive = 0;
+    this.falseNegative = 0;
     this.items = [];
     this.itemIdx = 0;
-    this.bear?.setTexture("char_bears", this.config?.simulation?.customer);
     // spawn and timer events
-    let a2 = 1;
-    this.time.addEvent({
-      delay: 500,
-      timeScale: this.speed,
-      loop: true,
-      callback: () => {
-        this.speechBubble!.y = this.speechBubble!.y + 2 * a2;
-        a2 *= -1;
-      },
-      callbackScope: this,
-    });
     this.timerEvent = this.time.addEvent({
       delay: GAME_TIME * 1000,
       timeScale: this.speed,
@@ -189,8 +304,11 @@ export default class MainGame extends Phaser.Scene {
     if (!this.timerEvent) {
       return;
     }
+    const acc = Math.round(
+      ((this.truePositive + this.trueNegative) / (this.itemIdx + 1)) * 100
+    );
     if (this.timerEvent.getProgress() === 1) {
-      scaleText(this, this.timerText!, "Time: 00:00");
+      scaleText(this, this.scoreText!, `Time: 00:00 | Accuracy: ${acc}%`);
       return;
     }
     const remaining = this.timerEvent.getRemainingSeconds().toPrecision(4);
@@ -198,52 +316,55 @@ export default class MainGame extends Phaser.Scene {
     const ms = remaining.substr(pos + 1, 2);
     let seconds = remaining.substring(0, pos);
     seconds = Phaser.Utils.String.Pad(seconds, 2, "0", 1);
-    scaleText(this, this.timerText!, `Time: ${seconds}:${ms}`);
+    scaleText(
+      this,
+      this.scoreText!,
+      `Time: ${seconds}:${ms} | Accuracy: ${acc}%`
+    );
+    if (this.trashText.length > 0) {
+      scaleText(this, this.trashText[0], `${this.truePositive}`);
+      scaleText(this, this.trashText[1], `${this.falsePositive}`);
+      scaleText(this, this.trashText[2], `${this.trueNegative}`);
+      scaleText(this, this.trashText[3], `${this.falseNegative}`);
+    }
     this.items = this.items.filter((f) => f.state !== "deleted");
   }
 
   spawn() {
-    if (!this.config || !this.config.simulation) {
+    if (!this.config || !this.config.simulation || !this.bg) {
       return;
     }
     const simulation = this.config.simulation;
     const spawn = simulation.spawns[this.itemIdx];
-    const item = addSprite(this, "food", spawn.item, {
-      height: this.bgBot!.displayHeight / 1.5,
+    const item = addSprite(this, `box${randomInt(10) + 1}`, undefined, {
+      bg: this.bg,
+      xAnchor: Anchor.start,
+      yAnchor: Anchor.end,
+      y: this.bg.displayHeight * -0.05,
+      heightRel: 0.2,
     });
-    const x = (this.cameras.main.displayWidth - this.bgBot!.displayWidth) / 2;
-    item.setX(x + item.displayWidth / 2);
     item.setData("review", spawn.review.review);
     item.setData("rating", spawn.review.rating);
     item.setData("idx", this.itemIdx);
-    if (this.config.playManually) {
-      item.setInteractive();
-    } else {
-      const response = spawn.classifierOutput;
-      if (response) {
-        if (response.classifierLabel === response.realLabel) {
-          this.numCorrect++;
-          const acc = Math.round((this.numCorrect / (this.itemIdx + 1)) * 100);
-          scaleText(this, this.accuracyText!, `Accuracy: ${acc}%`);
-        }
-        this.time.addEvent({
-          delay: CLASSIFIER_DELAY - response.confidence * CLASSIFIER_DELAY,
-          timeScale: this.speed,
-          callback: () => {
-            if (response.classifierLabel === 1) {
-              this.selectItem(undefined, item);
-            } else {
-              this.trashItem();
-            }
-          },
-          callbackScope: this,
-        });
-      }
+    const response = spawn.classifierOutput;
+    if (response) {
+      this.time.addEvent({
+        delay: SPAWN_TIME - response.confidence * SPAWN_TIME,
+        timeScale: this.speed,
+        callback: () => {
+          if (response.classifierLabel === 1) {
+            this.selectItem();
+          } else {
+            this.trashItem();
+          }
+        },
+        callbackScope: this,
+      });
     }
     this.tweens.add({
       targets: item,
-      x: this.bgBot?.displayWidth,
-      duration: (ITEM_TIME * 1000) / this.speed,
+      x: this.bg.displayWidth * 0.95,
+      duration: SPAWN_TIME / this.speed,
       onComplete: () => {
         if (item.state !== "deleted") {
           this.deleteItem(item);
@@ -251,64 +372,80 @@ export default class MainGame extends Phaser.Scene {
       },
     });
     if (this.items.length === 0) {
-      scaleText(this, this.text!, spawn.review.review);
+      scaleText(this, this.screenText!, spawn.review.review);
     }
     this.items.push(item);
     this.itemIdx++;
   }
 
-  selectItem(
-    _pointer: Phaser.Input.Pointer | undefined,
-    item: Phaser.GameObjects.Sprite
-  ) {
-    if (!this?.cameras?.main) return;
-    if (item.state === "trash") {
-      this.trashItem();
-      return;
-    }
-    if (item.state === "text") {
-      const i = this.items.find((i) => i.state !== "deleted");
-      if (!i) {
-        return;
-      }
-      item = i;
-    }
+  selectItem() {
+    const item = this.items.find((i) => i.state !== "deleted");
+    if (!item) return;
     if (item.data.list["rating"] === 1) {
-      this.goodResponse(item, this.bear!);
+      this.truePositive++;
+      this.goodResponse(item, this.trash[0]);
     } else {
-      this.badResponse(item, this.bear!);
+      this.falsePositive++;
+      this.badResponse(item, this.trash[1]);
     }
   }
 
   trashItem() {
     const item = this.items.find((i) => i.state !== "deleted");
-    if (item) {
-      if (item.data.list["rating"] === 0) {
-        this.goodResponse(item, this.trash!);
-      } else {
-        this.badResponse(item, this.trash!);
-      }
+    if (!item) return;
+    if (item.data.list["rating"] === 0) {
+      this.trueNegative++;
+      this.goodResponse(item, this.trash[2]);
+    } else {
+      this.falseNegative++;
+      this.badResponse(item, this.trash[3]);
     }
+  }
+
+  deleteItem(item: Phaser.GameObjects.Sprite) {
+    item.state = "deleted";
+    item.destroy();
   }
 
   goodResponse(
     item: Phaser.GameObjects.Sprite,
     destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite
   ) {
-    // character nods and shows heart text
-    this.speechBubble?.setTexture("char_speech", "good");
+    this.sound.play("match");
+    this.pal?.play("good");
+    this.moveItem(item, destination);
+  }
+
+  badResponse(
+    item: Phaser.GameObjects.Sprite,
+    destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite
+  ) {
+    this.sound.play("wrong");
+    this.pal?.play("bad");
+    this.moveItem(item, destination);
+  }
+
+  moveItem(
+    item: Phaser.GameObjects.Sprite,
+    destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite
+  ) {
+    // item gets zapped
+    const zap = addSprite(this, "zap1", undefined, {
+      bg: item,
+      heightRel: 1,
+    });
+    zap.setY(zap.y - zap.displayHeight * 0.5);
+    let zapFrame = 1;
     this.time.addEvent({
       delay: 100,
+      repeat: 4,
       timeScale: this.speed,
-      repeat: 3,
       callback: () => {
-        if (this.bear!.frame.name.endsWith("2")) {
-          this.bear!.setTexture(
-            "char_bears",
-            this.bear!.frame.name.slice(0, -1)
-          );
+        if (zapFrame > 4) {
+          zap.destroy();
         } else {
-          this.bear!.setTexture("char_bears", `${this.bear!.frame.name}2`);
+          zap.setTexture(`${zap.texture.key.slice(0, -1)}${zapFrame}`);
+          zapFrame++;
         }
       },
       callbackScope: this,
@@ -316,98 +453,27 @@ export default class MainGame extends Phaser.Scene {
     // item flys to destination
     this.tweens.add({
       targets: item,
-      scale: 1.4,
-      angle: "-=30",
-      yoyo: true,
-      ease: "sine.inout",
-      duration: 100 / this.speed,
-    });
-    this.tweens.add({
-      targets: item,
       x: destination.x,
       y: destination.y,
+      delay: 50 / this.speed,
       duration: 300 / this.speed,
       ease: "sine.inout",
       onComplete: () => {
-        this.speechBubble?.setTexture("char_speech", "...");
         this.deleteItem(item);
+        this.tweens.add({
+          targets: destination,
+          scale: 1.4,
+          angle: "-=30",
+          yoyo: true,
+          ease: "sine.inout",
+          duration: 100 / this.speed,
+        });
       },
     });
-    // shows sparkle
-    this.sparkle?.setPosition(destination.x, destination.y);
-    this.tweens.add({
-      targets: this.sparkle,
-      alpha: 1,
-      yoyo: true,
-      duration: 200 / this.speed,
-      ease: "sine.inout",
-    });
-    this.sound.play("match");
-  }
-
-  badResponse(
-    item: Phaser.GameObjects.Sprite,
-    destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite
-  ) {
-    // character shakes head and shows X text
-    this.speechBubble?.setTexture("char_speech", "bad");
-    let a1 = false;
-    this.time.addEvent({
-      delay: 100,
-      timeScale: this.speed,
-      repeat: 3,
-      callback: () => {
-        a1 = !a1;
-        this.bear!.flipX = a1;
-      },
-      callbackScope: this,
-    });
-    // item flys to destination
-    this.tweens.add({
-      targets: item,
-      alpha: 0,
-      yoyo: true,
-      repeat: 2,
-      duration: 100 / this.speed,
-      ease: "sine.inout",
-    });
-    this.tweens.add({
-      targets: item,
-      x: destination.x,
-      y: destination.y,
-      duration: 300 / this.speed,
-      ease: "sine.inout",
-      onComplete: () => {
-        this.speechBubble?.setTexture("char_speech", "...");
-        this.deleteItem(item);
-      },
-    });
-    // shows crossed out
-    this.cross?.setPosition(destination.x, destination.y);
-    this.tweens.add({
-      targets: this.cross,
-      alpha: 1,
-      yoyo: true,
-      repeat: 1,
-      duration: 100 / this.speed,
-      ease: "sine.inout",
-    });
-    this.sound.play("wrong");
-  }
-
-  deleteItem(item: Phaser.GameObjects.Sprite) {
-    item.state = "deleted";
-    item.destroy();
-    scaleText(
-      this,
-      this.text!,
-      this.items.find((i) => i.state !== "deleted")?.data.list["review"] || ""
-    );
   }
 
   gameOver() {
     this.spawnEvent?.remove();
-    this.input.off("gameobjectdown", this.selectItem, this);
     this.eventSystem?.emit("gameOver");
   }
 

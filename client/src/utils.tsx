@@ -20,6 +20,12 @@ import { submitNotebookExperimentGQL } from "./api";
 import { Activity, ActivityID } from "./games";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
 
+export function waitMs(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
   return [...a.slice(0, i), item, ...a.slice(i + 1)];
 }
@@ -45,6 +51,10 @@ export function randomInt(max: number, min: number = 0): number {
 export function average(arr: number[]) {
   const total = arr.reduce((acc, c) => acc + c, 0);
   return total / arr.length;
+}
+
+export function round(n: number): string {
+  return `${Math.round(n * 100)}%`;
 }
 
 export function capitalizeFirst(word: string): string {
@@ -249,10 +259,6 @@ export function getUniqueUserId(): string {
   const effectiveUniqueId = uniqueIdFromLocalStorage || newUuid();
   localStorageStore(UNIQUE_USER_ID_LS, effectiveUniqueId);
   return effectiveUniqueId;
-}
-
-export function round(n: number): string {
-  return `${Math.round(n * 100)}%`;
 }
 
 export function extractAllUserInputCode(notebookContent: INotebookContent) {

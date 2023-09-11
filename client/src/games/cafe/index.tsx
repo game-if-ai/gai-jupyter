@@ -35,7 +35,9 @@ export const Cafe: Game = {
   id: "cafe",
   title: "Bought or Not!",
   activityType: "GAME",
-  description:
+  gameDescription:
+    "PAL the robot is sorting products based on customer feedback, and they need your help! Based on the review, should the product be Bought or Not? Train PAL's AI by completing a notebook to build a sentiment classifier.",
+  notebookDescription:
     "Please complete this notebook to build a sentiment classifier. You will receive hints on how to improve its performance as you go.",
   config: GameConfig,
   autocompletion: [

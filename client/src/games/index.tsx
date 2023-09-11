@@ -32,7 +32,8 @@ export interface Activity {
   id: ActivityID;
   title: string;
   activityType: ActivityType;
-  description: string;
+  gameDescription: string;
+  notebookDescription: string;
   autocompletion?: Completion[];
   simulator: AllSimulatorTypes;
   codeExamine: (
