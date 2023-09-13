@@ -33,12 +33,13 @@ import {
 } from "@codemirror/commands";
 import { keymap } from "@codemirror/view";
 
-import { CellState } from "../hooks/use-with-notebook";
+import { pythonLibs } from "../python-autocomplete-libs";
 import { capitalizeFirst } from "../utils";
-import { useWithDialogue } from "../store/dialogue/useWithDialogue";
-import { UseWithImproveCode } from "../hooks/use-with-improve-code";
 import { useAppSelector } from "../store";
+import { CellState } from "../store/notebook";
+import { useWithDialogue } from "../store/dialogue/useWithDialogue";
 import { useWithShortcutKeys } from "../store/keyboard/useWithKeyboard";
+import { UseWithImproveCode } from "../hooks/use-with-improve-code";
 import { TooltipMsg } from "./Dialogue";
 import { Output } from "./Output";
 
@@ -103,7 +104,7 @@ export function NotebookEditor(props: {
     if (!word || (word.from === word.to && !context.explicit)) return null;
     return {
       from: word.from,
-      options: activity.autocompletion,
+      options: [...(activity.autocompletion || []), ...pythonLibs],
     };
   }
 
@@ -153,8 +154,8 @@ export function NotebookEditor(props: {
         if (focusing) selectCell(cell);
         return StateEffect.define(undefined).of(null);
       }),
-      lintCompartment.of(linter(() => [])),
       autocompletion({ optionClass: () => "autocompleteOption" }),
+      lintCompartment.of(linter(() => [])),
       isDisabled ? minimalSetup : basicSetup,
     ];
     if (!isDisabled) {

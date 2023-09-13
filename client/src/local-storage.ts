@@ -6,19 +6,29 @@ The full terms of this copyright and license should always be found in the root 
 */
 export const ACCESS_TOKEN_KEY = "accessToken";
 export const ACTIVE_MENTOR_KEY = "activeMentor";
+export const EXPERIMENT_HISTORY = "@experimentHistory";
 
-export function localStorageGet(key: string): string | null {
+export function localStorageGet(key: string): unknown | null {
   if (typeof window === "undefined") {
     return "";
   }
-  return localStorage.getItem(key);
+  const item = localStorage.getItem(key);
+  if (!item) {
+    return null;
+  }
+  try {
+    return JSON.parse(item);
+  } catch (err) {
+    return item;
+  }
 }
 
-export function localStorageStore(key: string, value: string): void {
+export function localStorageStore(key: string, value: unknown): void {
   if (typeof window === "undefined") {
     return;
   }
-  localStorage.setItem(key, value);
+  const val = typeof value === "string" ? value : JSON.stringify(value);
+  localStorage.setItem(key, val);
 }
 
 export function localStorageClear(key: string): void {

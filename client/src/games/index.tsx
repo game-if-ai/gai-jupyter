@@ -36,12 +36,12 @@ export interface Activity {
   notebookDescription: string;
   autocompletion?: Completion[];
   simulator: AllSimulatorTypes;
+  improveCodeHints: ImproveCodeHint[];
   codeExamine: (
     userCode: Record<string, string[]>,
     validationCellOutput: any,
     numCodeRuns: number
   ) => LoadedCodeInfo;
-  improveCodeHints: ImproveCodeHint[];
   extractValidationCellOutput?: (cell: ICellModel) => any;
 }
 

@@ -12,13 +12,13 @@ import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
 import Cmi5, { LaunchParameters } from "@xapi/cmi5";
 import { GaiCellTypes, UNIQUE_USER_ID_LS } from "./local-constants";
-import { UserInputCellsCode } from "./hooks/use-with-notebook";
 import { localStorageGet, localStorageStore } from "./local-storage";
 import { AllExperimentTypes, GameExperimentTypes } from "games/activity-types";
 import { EditorView } from "codemirror";
 import { submitNotebookExperimentGQL } from "./api";
 import { Activity, ActivityID } from "./games";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
+import { UserInputCellsCode } from "store/notebook";
 
 export function waitMs(ms: number) {
   return new Promise((resolve) => {
@@ -255,7 +255,7 @@ export function getCmiParams(notebookActivityId: string): LaunchParameters {
 }
 
 export function getUniqueUserId(): string {
-  const uniqueIdFromLocalStorage = localStorageGet(UNIQUE_USER_ID_LS);
+  const uniqueIdFromLocalStorage = localStorageGet(UNIQUE_USER_ID_LS) as string;
   const effectiveUniqueId = uniqueIdFromLocalStorage || newUuid();
   localStorageStore(UNIQUE_USER_ID_LS, effectiveUniqueId);
   return effectiveUniqueId;

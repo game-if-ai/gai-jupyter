@@ -8,11 +8,13 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 
 import state from "./state";
+import notebook from "./notebook";
 import keyboard from "./keyboard";
 import dialogue from "./dialogue";
 
 const combinedReducer = combineReducers({
   state,
+  notebook,
   keyboard,
   dialogue,
 });
@@ -23,6 +25,7 @@ const rootReducer = (state: any, action: any) => {
     // clear out all dialogue when we change screens
     state = {
       state: state.state,
+      notebook: state.notebook,
       keyboard: state.keyboard,
       // dialogue: state.dialogue,
     };
