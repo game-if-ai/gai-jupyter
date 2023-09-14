@@ -23,7 +23,7 @@ import {
   scaleText,
 } from "../phaser-helpers";
 import { CafeCodeInfo } from "./hooks/use-with-cafe-code-examine";
-import { waitMs, randomInt } from "../../utils";
+import { randomInt } from "../../utils";
 
 export type CafeGameParams = GameParams<
   CafeSimulationOutput,

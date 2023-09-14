@@ -5,15 +5,8 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { INotebookState } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
-import {
-  INotebookContent,
-  IOutput,
-  MultilineString,
-  isError,
-  IError,
-} from "@jupyterlab/nbformat";
+import { IOutput, MultilineString, IError } from "@jupyterlab/nbformat";
 import { AllExperimentTypes } from "../../games/activity-types";
 import { EXPERIMENT_HISTORY, localStorageGet } from "../../local-storage";
 

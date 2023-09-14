@@ -106,6 +106,39 @@ describe("notebook", () => {
       });
   });
 
+  it("updates current cell in dropdown when scrolling manually", () => {
+    cy.get("[data-cy=select]").contains("Model");
+    cy.get("[data-cy=cells]").scrollTo("bottom");
+    cy.get("[data-cy=select]").contains("Validation");
+    cy.get("[data-cy=cells]").scrollTo("top");
+    cy.get("[data-cy=select]").contains("Setup");
+  });
+
+  it("scrolls between cells when using up/down arrow", () => {
+    cy.get("[data-cy=select]").contains("Model");
+    cy.get("[data-cy=cell]")
+      .eq(1)
+      .within(($em) => {
+        cy.get(".cm-line").eq(28).trigger("mouseover").click();
+        cy.get(".cm-line").eq(28).type("{downArrow}");
+      });
+    cy.get("[data-cy=select]").contains("Validation");
+    cy.get("[data-cy=cell]")
+      .eq(2)
+      .within(($em) => {
+        cy.get(".cm-line").eq(0).trigger("mouseover").click();
+        cy.get(".cm-line").eq(0).type("{upArrow}");
+      });
+    cy.get("[data-cy=select]").contains("Model");
+    cy.get("[data-cy=cell]")
+      .eq(1)
+      .within(($em) => {
+        cy.get(".cm-line").eq(0).trigger("mouseover").click();
+        cy.get(".cm-line").eq(0).type("{upArrow}");
+      });
+    cy.get("[data-cy=select]").contains("Setup");
+  });
+
   it("opens description", () => {
     cy.get("[data-cy=info-btn]").click();
     cy.contains("Bought or Not!");
@@ -281,7 +314,7 @@ describe("notebook", () => {
         cy.get(".cm-line").eq(0).type("t");
         cy.get(".cm-line")
           .eq(0)
-          .contains("from sklearn.dummy import DummyClassifiert");
+          .contains("tfrom sklearn.dummy import DummyClassifier");
         cy.get("[data-cy=undo-btn]").should("be.enabled");
         cy.get("[data-cy=redo-btn]").should("be.disabled");
       });
@@ -298,7 +331,7 @@ describe("notebook", () => {
         cy.get(".cm-line").eq(0).type("t");
         cy.get(".cm-line")
           .eq(0)
-          .contains("from sklearn.dummy import DummyClassifiert");
+          .contains("tfrom sklearn.dummy import DummyClassifier");
         cy.get("[data-cy=undo-btn]").should("be.enabled");
         cy.get("[data-cy=redo-btn]").should("be.disabled");
         // undo changes
@@ -312,7 +345,7 @@ describe("notebook", () => {
         cy.get("[data-cy=redo-btn]").click();
         cy.get(".cm-line")
           .eq(0)
-          .contains("from sklearn.dummy import DummyClassifiert");
+          .contains("tfrom sklearn.dummy import DummyClassifier");
         cy.get("[data-cy=undo-btn]").should("be.enabled");
         cy.get("[data-cy=redo-btn]").should("be.disabled");
       });
@@ -320,12 +353,12 @@ describe("notebook", () => {
 
   it("saves changes and views error", () => {
     Cypress.config("defaultCommandTimeout", 10000);
+    cy.wait(1000);
     cy.get("[data-cy=cell]")
       .eq(1)
       .within(($em) => {
-        cy.get(".cm-line").eq(0).clear();
-        cy.get(".cm-line").eq(0).type("t");
-        cy.get(".cm-line").eq(0).contains("t");
+        cy.get(".cm-line").eq(2).type("t", { delay: 500 });
+        cy.get(".cm-line").eq(2).contains("t");
       });
     // saves and runs code
     cy.wait(1000);
@@ -333,6 +366,7 @@ describe("notebook", () => {
     cy.get("[data-cy=run-btn]").should("exist");
     cy.get("[data-cy=run-btn]").should("be.disabled");
     // shows error output
+    cy.wait(2500);
     cy.contains(
       "Your code contains a naming error. You may be trying to use an undeclared variable or function."
     );
@@ -341,6 +375,7 @@ describe("notebook", () => {
 
   it("saves changes and views output", () => {
     Cypress.config("defaultCommandTimeout", 10000);
+    cy.wait(1000);
     cy.get("[data-cy=cell]")
       .eq(1)
       .within(($em) => {
@@ -350,7 +385,6 @@ describe("notebook", () => {
     cy.wait(1000);
     cy.get("[data-cy=save-btn]").click();
     cy.get("[data-cy=run-btn]").should("exist");
-    cy.get("[data-cy=run-btn]").should("be.enabled");
     // show result popup (code ran correctly)
     cy.contains("See results");
     cy.contains("Would you like to view your results?");
@@ -386,7 +420,64 @@ describe("notebook", () => {
     cy.get("[data-cy=simulation-panel-root]").should("not.exist");
   });
 
-  // todo: autocomplete
+  it("gives autocomplete options", () => {
+    cy.get("[data-cy=select]").contains("Model");
+    cy.get("[data-cy=cell]")
+      .eq(1)
+      .within(($em) => {
+        cy.get(".cm-line").eq(2).type("sk", { delay: 500 });
+        cy.get(".cm-line").eq(2).contains("sk");
+        cy.get(".autocompleteOption")
+          .eq(0)
+          .contains("from sklearn.cluster import DBSCAN");
+        cy.get(".autocompleteOption").eq(0).click();
+        cy.get(".cm-line").eq(2).contains("from sklearn.cluster import DBSCAN");
+      });
+  });
 
-  // todo: hints
+  it("gives hints on code changes", () => {
+    cy.get("[data-cy=select]").contains("Model");
+    cy.get("[data-cy=cell]")
+      .eq(1)
+      .within(($em) => {
+        cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+      });
+    cy.contains(
+      "You are currently using a dummy classifier model, try a real one! (Naive Bayes, Logistic Regression, etc.)"
+    );
+    cy.get("[data-cy=cell]")
+      .eq(1)
+      .within(($em) => {
+        cy.get(".cm-line").eq(0).type("{shift}{upArrow}{del}", { delay: 500 });
+        cy.get(".cm-line").eq(0).type("sk", { delay: 500 });
+        cy.get(".autocompleteOption")
+          .eq(1)
+          .contains("from sklearn.naive_bayes import MultinomialNB");
+        cy.get(".autocompleteOption").eq(1).click();
+        cy.get(".cm-line").eq(24).type("{shift}{upArrow}{del}", { delay: 500 });
+        cy.get(".cm-line").eq(24).type("mu", { delay: 500 });
+        cy.get(".autocompleteOption")
+          .eq(1)
+          .contains("classifier = MultinomialNB()");
+        cy.get(".autocompleteOption").eq(1).click();
+        cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+      });
+    cy.contains("Consider preprocessing your data with stemming!");
+    cy.get("[data-cy=cell]")
+      .eq(1)
+      .within(($em) => {
+        cy.get(".cm-line").eq(2).type("nl", { delay: 500 });
+        cy.get(".autocompleteOption")
+          .eq(1)
+          .contains("from nltk.stem import WordNetLemmatizer");
+        cy.get(".autocompleteOption").eq(1).click();
+        cy.get(".cm-line").eq(10).type("wo", { delay: 500 });
+        cy.get(".autocompleteOption")
+          .eq(1)
+          .contains("lemmatizer = WordNetLemmatizer()");
+        cy.get(".autocompleteOption").eq(1).click();
+        cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+      });
+    cy.contains("Consider giving the Naive Bayes model a try!");
+  });
 });

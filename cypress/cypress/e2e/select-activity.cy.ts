@@ -7,10 +7,11 @@ The full terms of this copyright and license should always be found in the root 
 describe("select activity page", () => {
   beforeEach(() => {
     cy.viewport(1280, 720);
-    cy.visit("/");
+    cy.wait(500);
   });
 
   it("shows activity picker step", () => {
+    cy.visit("/");
     cy.get("[data-cy=root]").should("have.attr", "data-test", "0");
     cy.get("[data-cy=activity-picker-root]").should("exist");
     cy.get("[data-cy=notebook-root]").should("not.exist");
@@ -37,6 +38,7 @@ describe("select activity page", () => {
   });
 
   it("picks a game activity from dropdown", () => {
+    cy.visit("/");
     // shows options
     cy.get("[data-cy=select]").click();
     cy.get("[data-cy=neural_machine_translation]").should("exist");
@@ -66,6 +68,7 @@ describe("select activity page", () => {
   });
 
   it("loads and shows phaser game", () => {
+    cy.visit("/");
     // translation
     cy.get("[data-cy=select]").click();
     cy.get("[data-cy=neural_machine_translation]").trigger("mouseover").click();
@@ -76,19 +79,27 @@ describe("select activity page", () => {
     // cafe
     cy.get("[data-cy=select]").click();
     cy.get("[data-cy=cafe]").trigger("mouseover").click();
-    cy.wait(1000);
+    cy.contains(
+      "PAL the robot is sorting products based on customer feedback, and they need your help! Based on the review, should the product be Bought or Not? Train PAL's AI by completing a notebook to build a sentiment classifier."
+    );
+    cy.wait(2500);
     cy.get("[data-cy=game-container]").matchImageSnapshot(`cafe`);
     // fruitpicker
     cy.get("[data-cy=select]").click();
     cy.get("[data-cy=fruitpicker]").trigger("mouseover").click();
+    cy.contains(
+      "PAL the robot is gathering fruit for their picky human overlords, and they need your help! Train PAL's AI by building a classifier to select fruit based on their physical traits."
+    );
     cy.wait(2500);
     cy.get("[data-cy=game-container]").matchImageSnapshot(`fruitpicker`);
   });
 
   it("navigates to cafe activity", () => {
+    cy.visit("/");
     cy.get("[data-cy=select]").click();
     cy.get("[data-cy=cafe]").trigger("mouseover").click();
     cy.get("[data-cy=next-btn]").click();
+    cy.wait(500);
     cy.get("[data-cy=root]").should("have.attr", "data-test", "1");
     cy.get("[data-cy=notebook-root]").should("exist");
     cy.contains("Bought or Not!");
@@ -98,9 +109,11 @@ describe("select activity page", () => {
   });
 
   it("navigates to fruitpicker activity", () => {
+    cy.visit("/");
     cy.get("[data-cy=select]").click();
     cy.get("[data-cy=fruitpicker]").trigger("mouseover").click();
     cy.get("[data-cy=next-btn]").click();
+    cy.wait(500);
     cy.get("[data-cy=root]").should("have.attr", "data-test", "1");
     cy.get("[data-cy=notebook-root]").should("exist");
     cy.contains("Fruit Picker");
@@ -110,9 +123,11 @@ describe("select activity page", () => {
   });
 
   it("navigates to translation activity", () => {
+    cy.visit("/");
     cy.get("[data-cy=select]").click();
     cy.get("[data-cy=neural_machine_translation]").trigger("mouseover").click();
     cy.get("[data-cy=next-btn]").click();
+    cy.wait(500);
     cy.get("[data-cy=root]").should("have.attr", "data-test", "1");
     cy.get("[data-cy=notebook-root]").should("exist");
     cy.contains("Neural Machine Translation");

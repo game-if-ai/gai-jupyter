@@ -511,7 +511,12 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           <CircularProgress />{" "}
         </span>
       ) : (
-        <div className={classes.cells} ref={scrollRef} onScroll={onScroll}>
+        <div
+          data-cy="cells"
+          className={classes.cells}
+          ref={scrollRef}
+          onScroll={onScroll}
+        >
           {visibleCells.map((v, i) => (
             <NotebookEditor
               key={v[0]}
