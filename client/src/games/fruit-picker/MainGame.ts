@@ -8,10 +8,9 @@ The full terms of this copyright and license should always be found in the root 
 import Phaser from "phaser";
 import {
   CLASSIFIER_DELAY,
+  FruitSimulationOutput,
   GAME_TIME,
   SPAWN_TIME,
-  FruitSimulationOutput,
-  FruitSimulationsSummary,
 } from "./simulator";
 import { Fruits } from "./types";
 import { GameParams } from "..";
@@ -22,20 +21,13 @@ import {
   scaleImage,
   scaleText,
 } from "../phaser-helpers";
-import { FruitPickerCodeInfo } from "./hooks/use-with-fruit-picker-code-examine";
-
-export type FruitGameParams = GameParams<
-  FruitSimulationOutput,
-  FruitSimulationsSummary,
-  FruitPickerCodeInfo
->;
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
   numCorrect: number;
-  config?: FruitGameParams;
+  config?: GameParams;
   eventSystem?: Phaser.Events.EventEmitter;
 
   fruit: Phaser.GameObjects.Sprite[];
@@ -76,7 +68,7 @@ export default class MainGame extends Phaser.Scene {
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: FruitGameParams) {
+  create(data: GameParams) {
     window.addEventListener("resize", () => {
       this.resize();
     });
@@ -146,10 +138,11 @@ export default class MainGame extends Phaser.Scene {
       callback: this.spawnFruit,
       callbackScope: this,
     });
+    const simulation = this.config?.simulation as FruitSimulationOutput;
     scaleText(
       this,
       this.matchText!,
-      `Catch the ${this.config?.simulation?.matchLabel} fruits!`
+      `Catch the ${simulation?.matchLabel} fruits!`
     );
   }
 
@@ -181,7 +174,7 @@ export default class MainGame extends Phaser.Scene {
     if (!this.config || !this.config.simulation || !this.bg) {
       return;
     }
-    const simulation = this.config.simulation;
+    const simulation = this.config.simulation as FruitSimulationOutput;
     const fruit = simulation.spawns[this.fruitIdx];
     const fruitObj = this.physics.add.sprite(
       this.bg.displayWidth * fruit.xPos,
@@ -226,10 +219,8 @@ export default class MainGame extends Phaser.Scene {
       return;
     }
     fruit.state = "deleting";
-    if (
-      fruit.data.list[this.config.simulation.label] ===
-      this.config.simulation.matchLabel
-    ) {
+    const simulation = this.config.simulation as FruitSimulationOutput;
+    if (fruit.data.list[simulation.label] === simulation.matchLabel) {
       this.tweens.add({
         targets: fruit,
         scale: 1.4,

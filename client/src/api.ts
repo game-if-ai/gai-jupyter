@@ -4,19 +4,32 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { SubmitNotebookExperimentGQL } from "gql-types";
+import { LaunchParameters } from "@xapi/cmi5";
 import axios from "axios";
-import { AllSummaryTypes } from "games/activity-types";
 import { CafeSimulationsSummary } from "games/cafe/simulator";
 import { FruitSimulationsSummary } from "games/fruit-picker/simulator";
 import { NMTSimulationsSummary } from "games/neural_machine_translation/simulator";
+import { ActivityID, SimulationSummary } from "store/simulator";
+
+const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_ENDPOINT;
+
+interface DisplayedHint {
+  message: string;
+  conditionDescription: string;
+}
+
+interface SubmitNotebookExperimentGQL {
+  cmi5LaunchParameters: LaunchParameters;
+  activityId: ActivityID;
+  notebookState: string;
+  summary: SimulationSummary;
+  displayedHints: DisplayedHint[];
+}
 
 interface GraphQLResponse<T> {
   errors?: { message: string }[];
   data?: T;
 }
-
-export const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_ENDPOINT;
 
 const nmtNotebookMutation = `
 mutation submitNmtNotebookExperiment(
@@ -73,7 +86,7 @@ mutation submitFruitPickerNotebookExperiment(
 
 function extractNotebookSummaryGQL(
   data: SubmitNotebookExperimentGQL
-): AllSummaryTypes {
+): SimulationSummary {
   if (data.activityId === "cafe" || data.activityId === "fruitpicker") {
     const dataSummary =
       data.activityId === "cafe"

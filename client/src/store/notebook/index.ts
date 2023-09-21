@@ -7,8 +7,8 @@ The full terms of this copyright and license should always be found in the root 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput, MultilineString, IError } from "@jupyterlab/nbformat";
-import { AllExperimentTypes } from "../../games/activity-types";
 import { EXPERIMENT_HISTORY, localStorageGet } from "../../local-storage";
+import { Experiment } from "store/simulator";
 
 export interface CellState {
   cell: ICellModel;
@@ -31,7 +31,7 @@ interface State {
   userInputCellsCode: UserInputCellsCode;
   setupCellOutput: number[];
   validationCellOutput: any[];
-  experiment?: AllExperimentTypes;
+  experiment?: Experiment;
 }
 
 export interface NotebookState {

@@ -5,7 +5,9 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { CafeExperiment } from "../simulator";
+import { Experiment } from "store/simulator";
+import { CafeSimulationsSummary } from "../simulator";
+import { CafeCodeInfo } from "./use-with-cafe-code-examine";
 
 type Metric = "F1SCORE" | "ACCURACY" | "PRECISION" | "RECALL";
 
@@ -107,23 +109,24 @@ function getHighestWeightedMetric(metricWeights: MetricWeights): Metric {
 }
 
 function getHighestWeightedMetricAndValue(
-  curExperiment: CafeExperiment,
+  curExperiment: Experiment,
   metricWeights: MetricWeights
 ): [Metric, number] {
+  const summary = curExperiment.summary as CafeSimulationsSummary;
   const highestWeightedMetric: Metric = getHighestWeightedMetric(metricWeights);
   let highestWeightedMetricValue = -1;
   switch (highestWeightedMetric) {
     case "F1SCORE":
-      highestWeightedMetricValue = curExperiment.summary.averageF1Score;
+      highestWeightedMetricValue = summary.averageF1Score;
       break;
     case "ACCURACY":
-      highestWeightedMetricValue = curExperiment.summary.averageAccuracy;
+      highestWeightedMetricValue = summary.averageAccuracy;
       break;
     case "PRECISION":
-      highestWeightedMetricValue = curExperiment.summary.averagePrecision;
+      highestWeightedMetricValue = summary.averagePrecision;
       break;
     case "RECALL":
-      highestWeightedMetricValue = curExperiment.summary.averageRecall;
+      highestWeightedMetricValue = summary.averageRecall;
       break;
   }
   if (highestWeightedMetricValue === -1) {
@@ -145,10 +148,9 @@ function getMetricCutoffScore(metric: Metric, metricValue: number): number {
   return score;
 }
 
-export function evaluateCafeExperiment(curExperiment: CafeExperiment) {
+export function evaluateCafeExperiment(curExperiment: Experiment) {
   let finalScore = 0;
-  const { codeInfo } = curExperiment;
-
+  const codeInfo = curExperiment.codeInfo as CafeCodeInfo;
   const evaluationMetricWeights: MetricWeights = {
     F1SCORE: 0.5,
     ACCURACY: 0.5,

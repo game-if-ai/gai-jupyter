@@ -9,7 +9,7 @@ import Phaser from "phaser";
 import { CafeSimulator } from "./simulator";
 import MainMenu from "./MainMenu";
 import MainGame from "./MainGame";
-import { Summary } from "./Summary";
+import { Summary } from "./components/summary";
 import { Game } from "..";
 import {
   CafeCodeInfo,
@@ -218,7 +218,6 @@ export const Cafe: Game = {
       },
     },
   ],
-  simulator: new CafeSimulator(),
   summaryPanel: Summary,
   codeExamine: useWithCafeCodeExamine,
 };

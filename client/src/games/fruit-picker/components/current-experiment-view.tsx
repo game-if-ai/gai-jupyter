@@ -15,9 +15,9 @@ import {
 import { Launch } from "@mui/icons-material";
 import { TooltipMsg } from "../../../components/Dialogue";
 import { formatDateTime, round } from "../../../utils";
-import { FruitPickerExperiment } from "../simulator";
 import { useAppSelector } from "../../../store";
 import { useWithState } from "../../../store/state/useWithState";
+import { FruitSimulationOutput, FruitSimulationsSummary } from "../simulator";
 
 interface CurExperimentAvgDisplay {
   metricName: string;
@@ -29,17 +29,11 @@ export function FruitPickerCurrentExperimentView(props: {
   onSubmit: () => void;
 }) {
   const classes = props.classes;
-  const experiment = useAppSelector(
-    (s) => s.state.experiment! as FruitPickerExperiment
-  );
   const { loadSimulation, toNotebook } = useWithState();
-  const {
-    summary,
-    simulations,
-    time: dateOfExperiment,
-    trainInstances,
-    testInstances,
-  } = experiment;
+  const experiment = useAppSelector((s) => s.state.experiment!);
+  const summary = experiment.summary as FruitSimulationsSummary;
+  const simulations = experiment.simulations as FruitSimulationOutput[];
+  const { time: dateOfExperiment, trainInstances, testInstances } = experiment;
 
   function curExperimentAverageDisplays(): CurExperimentAvgDisplay[] {
     return [

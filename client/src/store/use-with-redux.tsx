@@ -7,16 +7,20 @@ The full terms of this copyright and license should always be found in the root 
 import React, { useContext, useEffect } from "react";
 import { ReactReduxContext } from "react-redux";
 
-import { useAppSelector } from "./store";
-import stateReducer from "./store/state";
-import keyboardReducer from "./store/keyboard";
-import dialogueReducer from "./store/dialogue";
-import { injectAsyncReducer } from "./store/reducers";
+import { useAppSelector } from ".";
+import stateReducer from "./state";
+import notebookReducer from "./notebook";
+import simulatorReducer from "./simulator";
+import keyboardReducer from "./keyboard";
+import dialogueReducer from "./dialogue";
+import { injectAsyncReducer } from "./reducers";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function WithRedux(props: { children: any }): JSX.Element {
   const { store } = useContext(ReactReduxContext);
   const state = useAppSelector((s) => s.state);
+  const notebook = useAppSelector((s) => s.notebook);
+  const simulator = useAppSelector((s) => s.simulator);
   const keyboard = useAppSelector((s) => s.keyboard);
   const dialogue = useAppSelector((s) => s.dialogue);
 
@@ -26,11 +30,14 @@ function WithRedux(props: { children: any }): JSX.Element {
    */
   useEffect(() => {
     injectAsyncReducer(store, "state", stateReducer);
+    injectAsyncReducer(store, "notebook", notebookReducer);
+    injectAsyncReducer(store, "simulator", simulatorReducer);
     injectAsyncReducer(store, "keyboard", keyboardReducer);
     injectAsyncReducer(store, "dialogue", dialogueReducer);
   });
 
-  if (!state || !keyboard || !dialogue) return <div />;
+  if (!state || !notebook || !simulator || !keyboard || !dialogue)
+    return <div />;
   return props.children;
 }
 

@@ -14,7 +14,6 @@ import {
   DialogueMessage,
   useWithDialogue,
 } from "../store/dialogue/useWithDialogue";
-import { AllExperimentTypes } from "../games/activity-types";
 import { CafeCurrentExperimentView } from "../games/cafe/components/current-experiment-view";
 import { CafePreviousExperimentsView } from "../games/cafe/components/previous-experiment-view";
 import { FruitPickerCurrentExperimentView } from "../games/fruit-picker/components/current-experiment-view";
@@ -22,19 +21,22 @@ import { FruitPickerPreviousExperimentsView } from "../games/fruit-picker/compon
 import { NMTCurrentExperimentView } from "../games/neural_machine_translation/components/current-experiment-view";
 import { useWithState } from "../store/state/useWithState";
 import { useAppSelector } from "../store";
+import { Experiment } from "store/simulator";
 
 function Summary(props: { onSubmit: () => void }): JSX.Element {
   const { loadExperiment } = useWithState();
   const activity = useAppSelector((s) => s.state.activity!);
   const experiment = useAppSelector((s) => s.state.experiment!);
+  const previousExperiments = useAppSelector(
+    (s) => s.simulator.experiments[activity.id]
+  );
   const summary = experiment.summary;
-  const previousExperiments = activity.simulator.experiments;
 
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
   const { addMessages } = useWithDialogue();
 
-  function _setExperiment(experiment: AllExperimentTypes) {
+  function _setExperiment(experiment: Experiment) {
     loadExperiment(experiment);
     setViewPreviousExperiments(false);
   }

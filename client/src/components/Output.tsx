@@ -6,8 +6,8 @@ The full terms of this copyright and license should always be found in the root 
 */
 import { IOutput, isError, isStream } from "@jupyterlab/nbformat";
 import { JsonView, defaultStyles } from "react-json-view-lite";
-import "react-json-view-lite/dist/index.css";
 import { splitListOfStringsBy } from "../utils";
+import "react-json-view-lite/dist/index.css";
 
 export function Output(props: { outputs: IOutput[] }): JSX.Element {
   const { outputs } = props;

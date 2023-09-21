@@ -15,8 +15,8 @@ import {
   scaleImage,
 } from "../phaser-helpers";
 import { randomInt } from "../../utils";
-import { CafeGameParams } from "./MainGame";
 import { SPAWN_TIME } from "./simulator";
+import { GameParams } from "games";
 
 export default class MainMenu extends Phaser.Scene {
   bg?: Phaser.GameObjects.Image;
@@ -65,7 +65,7 @@ export default class MainMenu extends Phaser.Scene {
     this.load.audio("wrong", ["wrong.mp3"]);
   }
 
-  create(data: CafeGameParams) {
+  create(data: GameParams) {
     // add background
     this.cameras.main.setBackgroundColor("#2d3052");
     this.bg = addBackground(this, "background1");

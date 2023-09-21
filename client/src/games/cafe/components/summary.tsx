@@ -12,11 +12,11 @@ import {
   TableCell,
   TableBody,
 } from "@mui/material";
-import { CafeSimulationOutput } from "./simulator";
-import { SIMULATION_TYPES } from "games/activity-types";
-import { round } from "../../utils";
+import { CafeSimulationOutput } from "../simulator";
+import { round } from "../../../utils";
+import { SimulationOutput } from "store/simulator";
 
-export function Summary(props: { simulation: SIMULATION_TYPES }): JSX.Element {
+export function Summary(props: { simulation: SimulationOutput }): JSX.Element {
   const simulation = props.simulation as CafeSimulationOutput;
 
   return (

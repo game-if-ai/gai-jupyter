@@ -6,6 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 export const ACCESS_TOKEN_KEY = "accessToken";
 export const ACTIVE_MENTOR_KEY = "activeMentor";
+export const UNIQUE_USER_ID_LS = "uniqueUserId";
 export const EXPERIMENT_HISTORY = "@experimentHistory";
 
 export function localStorageGet(key: string): unknown | null {

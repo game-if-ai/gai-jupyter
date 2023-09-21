@@ -14,10 +14,11 @@ import {
   Select,
   Typography,
 } from "@mui/material";
-import { Activities, Activity, isGameActivity } from "../games";
+import { Activities, isGameActivity } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
 import { useWithState } from "../store/state/useWithState";
+import { Activity } from "../store/simulator";
 
 function ActivityPicker(): JSX.Element {
   const [activity, setActivity] = useState<Activity>();

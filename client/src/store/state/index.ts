@@ -4,9 +4,15 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+
+import { newUuid } from "@datalayer/jupyter-react";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Activity } from "../../games";
-import { AllExperimentTypes } from "../../games/activity-types";
+import { Activity, Experiment } from "store/simulator";
+import {
+  localStorageGet,
+  localStorageStore,
+  UNIQUE_USER_ID_LS,
+} from "../../local-storage";
 
 export enum STEP {
   PICK_GAME,
@@ -17,20 +23,31 @@ export enum STEP {
 }
 
 export interface State {
+  uniqueUserId: string;
   step: STEP;
   activity: Activity | undefined;
-  experiment: AllExperimentTypes | undefined;
+  experiment: Experiment | undefined;
   simulation: number;
   timesNotebookVisited: number;
 }
 
 const initialState: State = {
+  uniqueUserId: getUniqueUserId(),
   step: STEP.PICK_GAME,
   activity: undefined,
   experiment: undefined,
   simulation: 0,
   timesNotebookVisited: 0,
 };
+
+function getUniqueUserId(): string {
+  let uniqueUserId = localStorageGet(UNIQUE_USER_ID_LS) as string;
+  if (!uniqueUserId) {
+    uniqueUserId = newUuid();
+    localStorageStore(UNIQUE_USER_ID_LS, uniqueUserId);
+  }
+  return uniqueUserId;
+}
 
 export const stateSlice = createSlice({
   name: "state",
@@ -45,7 +62,7 @@ export const stateSlice = createSlice({
     setActivity: (state: any, action: PayloadAction<Activity>) => {
       state.activity = action.payload;
     },
-    setExperiment: (state: any, action: PayloadAction<AllExperimentTypes>) => {
+    setExperiment: (state: any, action: PayloadAction<Experiment>) => {
       state.experiment = action.payload;
     },
     setSimulation: (state: any, action: PayloadAction<number>) => {

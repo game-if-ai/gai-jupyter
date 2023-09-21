@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { ICellModel } from "@jupyterlab/cells";
 
-import { useAppDispatch, useAppSelector } from "../";
+import { useAppDispatch } from "../";
 import { setKey, setOpen } from ".";
 
 export interface ShortcutKey {

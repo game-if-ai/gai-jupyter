@@ -11,9 +11,9 @@ import {
 } from "@mui/material";
 import { TooltipMsg } from "../../../components/Dialogue";
 import { formatDateTime } from "../../../utils";
-import { NMTExperiment } from "../simulator";
 import { useAppSelector } from "../../../store";
 import { useWithState } from "../../../store/state/useWithState";
+import { NMTCodeInfo } from "../hooks/use-with-nn-code-examine";
 
 interface CurExperimentAvgDisplay {
   metricName: string;
@@ -24,9 +24,8 @@ export function NMTCurrentExperimentView(props: {
   classes: Record<string, any>;
   onSubmit: () => void;
 }) {
-  const experiment = useAppSelector(
-    (s) => s.state.experiment! as NMTExperiment
-  );
+  const experiment = useAppSelector((s) => s.state.experiment!);
+  const codeInfo = experiment.codeInfo as NMTCodeInfo;
   const { time: dateOfExperiment } = experiment;
   const { toNotebook } = useWithState();
 
@@ -34,31 +33,31 @@ export function NMTCurrentExperimentView(props: {
     return [
       {
         metricName: "Utilizes the tokenizers fit_on_texts function",
-        metricValue: experiment.codeInfo.callsFitOnTexts,
+        metricValue: codeInfo.callsFitOnTexts,
       },
       {
         metricName: "Utilizes the tokenizers texts_to_sequences function",
-        metricValue: experiment.codeInfo.callsTextsToSequences,
+        metricValue: codeInfo.callsTextsToSequences,
       },
       {
         metricName: "Properly pads data",
         metricValue:
-          experiment.codeInfo.callsPadSequences &&
-          experiment.codeInfo.callsPadSequencesWithPaddingPost &&
-          experiment.codeInfo.callsPadSequencesTwice &&
-          experiment.codeInfo.callsPadSequencesTwiceWithPaddingPost,
+          codeInfo.callsPadSequences &&
+          codeInfo.callsPadSequencesWithPaddingPost &&
+          codeInfo.callsPadSequencesTwice &&
+          codeInfo.callsPadSequencesTwiceWithPaddingPost,
       },
       {
         metricName: "Reshapes data to proper dimensions",
-        metricValue: experiment.codeInfo.preprocessedDataCorrectDimensions,
+        metricValue: codeInfo.preprocessedDataCorrectDimensions,
       },
       {
         metricName: "Utilizes Argmax",
-        metricValue: experiment.codeInfo.callsArgmax,
+        metricValue: codeInfo.callsArgmax,
       },
       {
         metricName: "Output is translated to french words using Neural Network",
-        metricValue: experiment.codeInfo.outputCorrectlyFormatted,
+        metricValue: codeInfo.outputCorrectlyFormatted,
       },
     ];
   }
@@ -101,7 +100,7 @@ export function NMTCurrentExperimentView(props: {
       </TableContainer>
       <Typography variant="h5">Summary</Typography>
       <Typography>
-        {experiment.codeInfo.outputCorrectlyFormatted
+        {codeInfo.outputCorrectlyFormatted
           ? "Great job! You were able to preprocess and postprocess that data fed into a neural network."
           : "Oh no, your translated output does not look quite correct. Please review the experiment goals."}
       </Typography>

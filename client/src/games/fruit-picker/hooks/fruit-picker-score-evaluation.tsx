@@ -5,7 +5,9 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { FruitPickerExperiment } from "../simulator";
+import { Experiment } from "store/simulator";
+import { FruitSimulationsSummary } from "../simulator";
+import { FruitPickerCodeInfo } from "./use-with-fruit-picker-code-examine";
 
 type Metric = "F1SCORE" | "ACCURACY" | "PRECISION" | "RECALL";
 
@@ -107,23 +109,24 @@ function getHighestWeightedMetric(metricWeights: MetricWeights): Metric {
 }
 
 function getHighestWeightedMetricAndValue(
-  curExperiment: FruitPickerExperiment,
+  curExperiment: Experiment,
   metricWeights: MetricWeights
 ): [Metric, number] {
+  const summary = curExperiment.summary as FruitSimulationsSummary;
   const highestWeightedMetric: Metric = getHighestWeightedMetric(metricWeights);
   let highestWeightedMetricValue = -1;
   switch (highestWeightedMetric) {
     case "F1SCORE":
-      highestWeightedMetricValue = curExperiment.summary.averageF1Score;
+      highestWeightedMetricValue = summary.averageF1Score;
       break;
     case "ACCURACY":
-      highestWeightedMetricValue = curExperiment.summary.averageAccuracy;
+      highestWeightedMetricValue = summary.averageAccuracy;
       break;
     case "PRECISION":
-      highestWeightedMetricValue = curExperiment.summary.averagePrecision;
+      highestWeightedMetricValue = summary.averagePrecision;
       break;
     case "RECALL":
-      highestWeightedMetricValue = curExperiment.summary.averageRecall;
+      highestWeightedMetricValue = summary.averageRecall;
       break;
   }
   if (highestWeightedMetricValue === -1) {
@@ -145,9 +148,7 @@ function getMetricCutoffScore(metric: Metric, metricValue: number): number {
   return score;
 }
 
-export function evaluateFruitPickerExperiment(
-  curExperiment: FruitPickerExperiment
-) {
+export function evaluateFruitPickerExperiment(curExperiment: Experiment) {
   let finalScore = 0;
 
   const evaluationMetricWeights: MetricWeights = {
@@ -171,7 +172,7 @@ export function evaluateFruitPickerExperiment(
   }
 
   // Score +0-0.35 for % of key elements in code that are contained (patterns of importance: should all be contained hints)
-  const { codeInfo } = curExperiment;
+  const codeInfo = curExperiment.codeInfo as FruitPickerCodeInfo;
   const pointsPerKeyElement = 0.07; // 0.07 * 5 = .35
   codeInfo.classifierModelUsed === "NAIVE_BAYES" &&
     (finalScore += pointsPerKeyElement / 2); //less points for naives bay, not best classifier

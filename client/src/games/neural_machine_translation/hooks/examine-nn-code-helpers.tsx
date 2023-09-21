@@ -1,8 +1,8 @@
-import { NMTCodeInfo } from "./use-with-nn-code-examine";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput, isError, isStream } from "@jupyterlab/nbformat";
-import { splitListOfStringsBy } from "../../../utils";
 import { PartialJSONObject } from "@lumino/coreutils";
+import { NMTCodeInfo } from "./use-with-nn-code-examine";
+import { splitListOfStringsBy } from "../../../utils";
 
 export function getAllNMTCodeInfo(
   userCode: string[],

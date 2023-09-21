@@ -6,12 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import {
-  SPAWN_TIME,
-  GAME_TIME,
-  CafeSimulationOutput,
-  CafeSimulationsSummary,
-} from "./simulator";
+import { SPAWN_TIME, GAME_TIME, CafeSimulationOutput } from "./simulator";
 import { GameParams } from "..";
 import {
   addBackground,
@@ -22,20 +17,13 @@ import {
   scaleImage,
   scaleText,
 } from "../phaser-helpers";
-import { CafeCodeInfo } from "./hooks/use-with-cafe-code-examine";
 import { randomInt } from "../../utils";
-
-export type CafeGameParams = GameParams<
-  CafeSimulationOutput,
-  CafeSimulationsSummary,
-  CafeCodeInfo
->;
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
-  config?: CafeGameParams;
+  config?: GameParams;
   eventSystem?: Phaser.Events.EventEmitter;
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
@@ -106,7 +94,7 @@ export default class MainGame extends Phaser.Scene {
     this.load.audio("wrong", ["wrong.mp3"]);
   }
 
-  create(data: CafeGameParams) {
+  create(data: GameParams) {
     this.config = data;
     this.eventSystem = data.eventSystem;
     this.mute(data.isMuted);
@@ -334,7 +322,7 @@ export default class MainGame extends Phaser.Scene {
     if (!this.config || !this.config.simulation || !this.bg) {
       return;
     }
-    const simulation = this.config.simulation;
+    const simulation = this.config.simulation as CafeSimulationOutput;
     const spawn = simulation.spawns[this.itemIdx];
     const item = addSprite(this, `box${randomInt(10) + 1}`, undefined, {
       bg: this.bg,

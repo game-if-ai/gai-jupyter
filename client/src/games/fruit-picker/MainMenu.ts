@@ -5,6 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
+import { GameParams } from "games";
 import Phaser from "phaser";
 import {
   addBackground,
@@ -14,7 +15,6 @@ import {
   scaleImage,
   scaleText,
 } from "../phaser-helpers";
-import { FruitGameParams } from "./MainGame";
 
 export default class MainMenu extends Phaser.Scene {
   images: Phaser.GameObjects.Image[];
@@ -35,7 +35,7 @@ export default class MainMenu extends Phaser.Scene {
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: FruitGameParams) {
+  create(data: GameParams) {
     window.addEventListener("resize", () => {
       this.resize();
     });

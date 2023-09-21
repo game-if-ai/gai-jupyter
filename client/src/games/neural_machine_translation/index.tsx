@@ -5,14 +5,13 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { apply } from "../../utils";
-import { Activity } from "..";
+import { Activity } from "store/simulator";
 import { extractNMTCellOutput } from "./hooks/examine-nn-code-helpers";
 import {
   NMTCodeInfo,
   useWithNMTCodeExamine,
 } from "./hooks/use-with-nn-code-examine";
-import { NMTSimulator } from "./simulator";
+import { apply } from "../../utils";
 
 export const NeuralMachineTranslation: Activity = {
   id: "neural_machine_translation",
@@ -21,7 +20,6 @@ export const NeuralMachineTranslation: Activity = {
   gameDescription: "",
   notebookDescription:
     "Please finish this notebook to complete the English to French translator. You will receive hints as you go.",
-  simulator: new NMTSimulator(),
   improveCodeHints: [
     {
       message:

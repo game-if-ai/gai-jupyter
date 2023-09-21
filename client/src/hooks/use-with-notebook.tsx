@@ -6,7 +6,6 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import { useEffect, useState } from "react";
 import { selectNotebook, selectNotebookModel } from "@datalayer/jupyter-react";
 import { INotebookModel } from "@jupyterlab/notebook";
 import { CellList } from "@jupyterlab/notebook/lib/celllist";
@@ -18,6 +17,7 @@ import {
   isError,
   IError,
 } from "@jupyterlab/nbformat";
+import { useEffect, useState } from "react";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import {
@@ -26,9 +26,8 @@ import {
   extractCellCode,
   formatCellCode,
 } from "../utils";
-import { AllExperimentTypes } from "games/activity-types";
-import { Activity } from "../games";
 import { KernelConnectionStatus } from "../components/Notebook";
+import { Activity, Experiment } from "store/simulator";
 
 export interface CellState {
   cell: ICellModel;
@@ -45,7 +44,7 @@ export type UserInputCellsCode = Record<string, string[]>;
 
 export function useWithNotebook(props: {
   curActivity: Activity;
-  curExperiment?: AllExperimentTypes;
+  curExperiment?: Experiment;
   kernelStatus: KernelConnectionStatus;
 }) {
   const { curActivity, curExperiment, kernelStatus } = props;
@@ -237,7 +236,7 @@ export function useWithNotebook(props: {
     });
   }
 
-  function resetCode(experiment?: AllExperimentTypes): void {
+  function resetCode(experiment?: Experiment): void {
     if (!notebook?.adapter) {
       return;
     }

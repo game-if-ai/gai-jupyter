@@ -15,10 +15,10 @@ import {
 import { Launch } from "@mui/icons-material";
 
 import { TooltipMsg } from "../../../components/Dialogue";
-import { CafeExperiment } from "../simulator";
 import { useAppSelector } from "../../../store";
 import { useWithState } from "../../../store/state/useWithState";
 import { formatDateTime, round } from "../../../utils";
+import { CafeSimulationOutput, CafeSimulationsSummary } from "../simulator";
 
 interface CurExperimentAvgDisplay {
   metricName: string;
@@ -30,17 +30,11 @@ export function CafeCurrentExperimentView(props: {
   onSubmit: () => void;
 }) {
   const classes = props.classes;
-  const experiment = useAppSelector(
-    (s) => s.state.experiment! as CafeExperiment
-  );
   const { loadSimulation, toNotebook } = useWithState();
-  const {
-    summary,
-    simulations,
-    time: dateOfExperiment,
-    trainInstances,
-    testInstances,
-  } = experiment;
+  const experiment = useAppSelector((s) => s.state.experiment!);
+  const summary = experiment.summary as CafeSimulationsSummary;
+  const simulations = experiment.simulations as CafeSimulationOutput[];
+  const { time: dateOfExperiment, trainInstances, testInstances } = experiment;
 
   function curExperimentAverageDisplays(): CurExperimentAvgDisplay[] {
     return [

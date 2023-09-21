@@ -9,7 +9,7 @@ import { Jupyter } from "@datalayer/jupyter-react";
 
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import WithRedux from "./use-with-redux";
+import WithRedux from "./store/use-with-redux";
 
 import "./index.css";
 

@@ -12,10 +12,7 @@ import {
   selectNotebook,
   useJupyter,
 } from "@datalayer/jupyter-react";
-
 import { KernelManager } from "@jupyterlab/services";
-import React, { useEffect, useRef, useState } from "react";
-import { ToastContainer, ToastContainerProps } from "react-toastify";
 import {
   AppBar,
   Button,
@@ -34,6 +31,8 @@ import {
   Save,
   HelpOutlineOutlined,
 } from "@mui/icons-material";
+import React, { useEffect, useRef, useState } from "react";
+import { ToastContainer, ToastContainerProps } from "react-toastify";
 
 import { isGameActivity } from "../games";
 import { useWithNotebook } from "../hooks/use-with-notebook";
@@ -48,13 +47,14 @@ import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
 import { ShortcutKeyboard } from "./ShortcutKeyboard";
-
-import "react-toastify/dist/ReactToastify.css";
 import { useWithImproveCode } from "../hooks/use-with-improve-code";
 import { extractSetupAndValidationCellOutputs } from "../utils";
 import { STEP } from "../store/state";
 import { useAppSelector } from "../store";
 import { useWithState } from "../store/state/useWithState";
+import { useWithSimulator } from "../store/simulator/useWithSimulator";
+
+import "react-toastify/dist/ReactToastify.css";
 
 export enum KernelConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -64,15 +64,18 @@ export enum KernelConnectionStatus {
 
 function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const { uniqueUserId } = props;
-  const { loadSimulation, loadExperiment, toStep } = useWithState();
+  const activity = useAppSelector((s) => s.state.activity!);
   const experiment = useAppSelector((s) => s.state.experiment);
-  const activity = useAppSelector((s) => s.state.activity);
   const timesNotebookVisited = useAppSelector(
     (s) => s.state.timesNotebookVisited
   );
   const isKeyboardOpen = useAppSelector((s) => s.keyboard.isOpen);
+  const pastExperiments = useAppSelector(
+    (s) => s.simulator.experiments[activity.id]
+  );
 
   const classes = useStyles();
+  const { loadSimulation, loadExperiment, toStep } = useWithState();
   const { messages, curMessage, addMessages } = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const [kernelStatus, setKernelStatus] = useState(
@@ -112,12 +115,11 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [showResults, setShowResults] = useState<boolean>(false);
   const [saveRun, setSaveRun] = useState<boolean>(false);
-
   const [kernel, setKernel] = useState<Kernel>();
-  const [pastExperiments] = useState(activity!.simulator.experiments);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [didScroll, setDidScroll] = useState<boolean>(false);
+  const simulator = useWithSimulator();
   const kernelManager: KernelManager = useJupyter()
     .kernelManager as KernelManager;
 
@@ -245,6 +247,13 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
   }, [showDescription, sawTutorial, messages, curMessage, cells]);
 
+  useEffect(() => {
+    if (!isSaving && !notebookIsRunning && saveRun) {
+      setSaveRun(false);
+      simulate();
+    }
+  }, [isSaving]);
+
   function saveAndRun(): void {
     if (isEdited) {
       if (isSaving || notebookIsRunning) return;
@@ -254,22 +263,15 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       simulate();
     }
   }
-  useEffect(() => {
-    if (!isSaving && !notebookIsRunning && saveRun) {
-      setSaveRun(false);
-      simulate();
-    }
-  }, [isSaving]);
 
   function toSimulation(): void {
     if (!notebook) {
       return;
     }
-    activity!.simulator.simulate(
+    simulator.simulate(
       setupCellOutput,
       validationCellOutput,
       notebook,
-      activity!.id,
       hints.getDisplayedHints()
     );
     loadSimulation(0);
@@ -285,11 +287,10 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       }
       const [setupCellOutput, validationCellOutput] =
         extractSetupAndValidationCellOutputs(ranNotebook, activity!);
-      const experiment = activity!.simulator.simulate(
+      const experiment = simulator.simulate(
         setupCellOutput,
         validationCellOutput,
         ranNotebook,
-        activity!.id,
         hints.getDisplayedHints()
       );
       loadExperiment(experiment);

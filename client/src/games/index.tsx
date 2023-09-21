@@ -5,67 +5,32 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { Completion } from "@codemirror/autocomplete";
-import { Simulator } from "./simulator";
 import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
-import { ICellModel } from "@jupyterlab/cells";
-
 import NeuralMachineTranslation from "./neural_machine_translation";
-import {
-  AllSimulatorTypes,
-  CodeInfoTypes,
-  SIMULATION_TYPES,
-} from "./activity-types";
-import { ImproveCodeHint } from "../hooks/use-with-improve-code";
+import { Activity, SimulationOutput, Simulator } from "store/simulator";
 
-export type ActivityID = "fruitpicker" | "cafe" | "neural_machine_translation";
-export type ActivityType = "GAME" | "NOTEBOOK_ONLY";
-type LoadStatus = "LOADING" | "LOADED";
-
-interface LoadedCodeInfo {
-  codeInfo: CodeInfoTypes;
-  loadStatus: LoadStatus;
-}
-
-export interface Activity {
-  id: ActivityID;
-  title: string;
-  activityType: ActivityType;
-  gameDescription: string;
-  notebookDescription: string;
-  autocompletion?: Completion[];
-  simulator: AllSimulatorTypes;
-  improveCodeHints: ImproveCodeHint[];
-  codeExamine: (
-    userCode: Record<string, string[]>,
-    validationCellOutput: any,
-    numCodeRuns: number
-  ) => LoadedCodeInfo;
-  extractValidationCellOutput?: (cell: ICellModel) => any;
+export interface GameParams {
+  playManually: boolean;
+  isMuted: boolean;
+  speed: number;
+  eventSystem: Phaser.Events.EventEmitter;
+  simulator: Simulator;
+  simulation?: SimulationOutput;
 }
 
 export interface Game extends Activity {
   activityType: "GAME";
   config: Phaser.Types.Core.GameConfig;
-  summaryPanel: (props: { simulation: SIMULATION_TYPES }) => JSX.Element;
+  summaryPanel: (props: { simulation: SimulationOutput }) => JSX.Element;
 }
 
 export function isGameActivity(object: Activity): object is Game {
   return object.activityType === "GAME";
 }
 
-export interface GameParams<Simulation, SimulationsSummary, CodeInfo> {
-  playManually: boolean;
-  isMuted: boolean;
-  speed: number;
-  eventSystem: Phaser.Events.EventEmitter;
-  simulator: Simulator<Simulation, SimulationsSummary, CodeInfo>;
-  simulation?: Simulation;
-}
-
 export const Activities: Activity[] = [
-  NeuralMachineTranslation,
-  FruitPicker,
   Cafe,
+  FruitPicker,
+  NeuralMachineTranslation,
 ];

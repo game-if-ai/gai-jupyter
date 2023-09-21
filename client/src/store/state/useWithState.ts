@@ -5,24 +5,28 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
+import { Activity, Experiment } from "store/simulator";
 import { setActivity, setExperiment, setSimulation, setStep, STEP } from ".";
-import { useAppDispatch } from "../";
-import { Activity } from "../../games";
-import { AllExperimentTypes } from "../../games/activity-types";
+import { useAppDispatch, useAppSelector } from "../";
 
 interface UseWithState {
   toStep: (step: number) => void;
   toNotebook: () => void;
   loadActivity: (activity: Activity) => void;
   loadSimulation: (simulation: number) => void;
-  loadExperiment: (experiment: AllExperimentTypes) => void;
+  loadExperiment: (experiment: Experiment) => void;
 }
 
 export function useWithState(): UseWithState {
   const dispatch = useAppDispatch();
+  const experiments = useAppSelector((s) => s.simulator.experiments);
 
   function loadActivity(activity: Activity) {
     dispatch(setActivity(activity));
+    const aExperiments = experiments[activity.id];
+    if (aExperiments.length > 0) {
+      dispatch(setExperiment(aExperiments[aExperiments.length - 1]));
+    }
     dispatch(setStep(STEP.NOTEBOOK));
   }
 
@@ -31,7 +35,7 @@ export function useWithState(): UseWithState {
     dispatch(setStep(STEP.SIMULATION));
   }
 
-  function loadExperiment(experiment: AllExperimentTypes) {
+  function loadExperiment(experiment: Experiment) {
     dispatch(setExperiment(experiment));
   }
 

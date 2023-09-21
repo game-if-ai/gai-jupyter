@@ -16,22 +16,20 @@ import {
   round,
   sortExperimentsByF1Score,
 } from "../../../utils";
-import { CafeExperiment } from "../simulator";
-import { AllExperimentTypes } from "../../activity-types";
 import { useAppSelector } from "../../../store";
+import { CafeSimulationsSummary } from "../simulator";
+import { Experiment } from "store/simulator";
 
 export function CafePreviousExperimentsView(props: {
   classes: Record<string, any>;
-  setExperiment: (e: AllExperimentTypes) => void;
+  setExperiment: (e: Experiment) => void;
 }) {
-  const activity = useAppSelector((s) => s.state.activity!);
-  const currentExperiment = useAppSelector(
-    (s) => s.state.experiment! as CafeExperiment
-  );
-  const previousExperiments = activity.simulator
-    .experiments as CafeExperiment[];
-
   const { classes, setExperiment } = props;
+  const activity = useAppSelector((s) => s.state.activity!);
+  const currentExperiment = useAppSelector((s) => s.state.experiment!);
+  const previousExperiments = useAppSelector(
+    (s) => s.simulator.experiments[activity.id]
+  );
   const experimentsSortedByF1score =
     sortExperimentsByF1Score(previousExperiments);
   const moreThanOnePreviousExperiment = experimentsSortedByF1score.length > 1;
@@ -41,6 +39,7 @@ export function CafePreviousExperimentsView(props: {
   const worstRunId = moreThanOnePreviousExperiment
     ? experimentsSortedByF1score[0].id
     : "";
+
   return (
     <div>
       <Typography variant="h3">Previous Experiments</Typography>
@@ -78,7 +77,10 @@ export function CafePreviousExperimentsView(props: {
                 previousExperiment.id === currentExperiment.id;
               const isBestExperiment = bestRunId === previousExperiment.id;
               const isWorstExperiment = worstRunId === previousExperiment.id;
-              const { summary, time: dateOfExperiment } = previousExperiment;
+              const summary =
+                previousExperiment.summary as CafeSimulationsSummary;
+              const dateOfExperiment = previousExperiment.time;
+
               return (
                 <TableRow
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}

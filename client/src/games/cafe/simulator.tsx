@@ -5,30 +5,20 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { Experiment, Simulator } from "../simulator";
-import { Review, Reviews } from "./types";
-import {
-  average,
-  extractAllUserInputCode,
-  randomInt,
-  storeNotebookExperimentInGql,
-} from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
-import { ActivityID } from "games";
+import { Review, Reviews } from "./types";
+import { average, extractAllUserInputCode, randomInt } from "../../utils";
 import { getAllCafeCodeInfo } from "./hooks/examine-cafe-code-helpers";
 import { CafeCodeInfo } from "./hooks/use-with-cafe-code-examine";
 import { evaluateCafeExperiment } from "./hooks/cafe-score-evaluation";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
+import { Experiment, Simulator } from "../../store/simulator";
+import { initSimulate } from "../../store/simulator/useWithSimulator";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
 export const ITEMS = ["egg", "dumpling", "riceball", "sushi", "flan"];
 export const CUSTOMERS = ["brown", "panda", "polar", "redpanda", "pink"];
-export type CafeExperiment = Experiment<
-  CafeSimulationOutput,
-  CafeSimulationsSummary,
-  CafeCodeInfo
->;
 
 export interface CafeSimulationOutput {
   accuracy: number;
@@ -63,35 +53,12 @@ export interface ItemSpawn {
   classifierOutput?: ClassifierOutput;
 }
 
-export class CafeSimulator extends Simulator<
-  CafeSimulationOutput,
-  CafeSimulationsSummary,
-  CafeCodeInfo
-> {
-  scoreExperiment(experiment: CafeExperiment): number {
+export function CafeSimulator(): Simulator {
+  function scoreExperiment(experiment: Experiment): number {
     return evaluateCafeExperiment(experiment);
   }
 
-  play(): CafeSimulationOutput {
-    const numItemsSpawned = (GAME_TIME * 1000) / SPAWN_TIME;
-    const reviews = [...Reviews]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, numItemsSpawned);
-    const spawns: ItemSpawn[] = reviews.map((s) => ({
-      item: ITEMS[randomInt(ITEMS.length)],
-      review: s,
-    }));
-    return {
-      customer: CUSTOMERS[randomInt(CUSTOMERS.length)],
-      spawns: spawns,
-      accuracy: 0,
-      precision: 0,
-      recall: 0,
-      f1Score: 0,
-    };
-  }
-
-  updateSummary(
+  function updateSummary(
     simulations: CafeSimulationOutput[],
     summary: CafeSimulationsSummary
   ): CafeSimulationsSummary {
@@ -110,21 +77,32 @@ export class CafeSimulator extends Simulator<
     return summary;
   }
 
-  simulate(
+  function play(): CafeSimulationOutput {
+    const numItemsSpawned = (GAME_TIME * 1000) / SPAWN_TIME;
+    const reviews = [...Reviews]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, numItemsSpawned);
+    const spawns: ItemSpawn[] = reviews.map((s) => ({
+      item: ITEMS[randomInt(ITEMS.length)],
+      review: s,
+    }));
+    return {
+      customer: CUSTOMERS[randomInt(CUSTOMERS.length)],
+      spawns: spawns,
+      accuracy: 0,
+      precision: 0,
+      recall: 0,
+      f1Score: 0,
+    };
+  }
+
+  function simulate(
     inputs: number[],
     outputs: ClassifierOutput[][],
     notebook: INotebookState,
-    activityId: ActivityID,
     displayedHints: ImproveCodeHint[]
-  ): CafeExperiment {
-    const experiment = super.simulate(
-      inputs,
-      outputs,
-      notebook,
-      activityId,
-      displayedHints
-    );
-
+  ): Experiment {
+    const experiment = initSimulate(inputs, notebook, "cafe", displayedHints);
     if (experiment.notebookContent) {
       const codeInfo: CafeCodeInfo = getAllCafeCodeInfo(
         extractAllUserInputCode(experiment.notebookContent)
@@ -132,7 +110,7 @@ export class CafeSimulator extends Simulator<
       experiment.codeInfo = codeInfo;
     }
     for (let run = 0; run < outputs.length; run++) {
-      const sim = this.play();
+      const sim = play();
       const simClassifierOutput = outputs[run];
       for (let i = 0; i < sim.spawns.length; i++) {
         const classifierOutput = simClassifierOutput[i];
@@ -161,17 +139,16 @@ export class CafeSimulator extends Simulator<
       sim.accuracy = sim.accuracy / sim.spawns.length;
       experiment.simulations.push(sim);
     }
-    experiment.summary = this.updateSummary(
-      experiment.simulations,
-      experiment.summary
+    experiment.summary = updateSummary(
+      experiment.simulations as CafeSimulationOutput[],
+      experiment.summary as CafeSimulationsSummary
     );
-    experiment.evaluationScore = this.scoreExperiment(experiment);
-
-    if (experiment.simulations.length > 0) {
-      this.experiments.push(experiment);
-    }
-
-    storeNotebookExperimentInGql(experiment);
+    experiment.evaluationScore = scoreExperiment(experiment);
     return experiment;
   }
+
+  return {
+    play,
+    simulate,
+  };
 }
