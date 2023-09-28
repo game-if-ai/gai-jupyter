@@ -27,7 +27,8 @@ import {
   formatCellCode,
 } from "../utils";
 import { KernelConnectionStatus } from "../components/Notebook";
-import { Activity, Experiment } from "store/simulator";
+import { useAppDispatch } from "../store";
+import { Activity, Experiment, updateLocalNotebook } from "../store/simulator";
 
 export interface CellState {
   cell: ICellModel;
@@ -53,6 +54,7 @@ export function useWithNotebook(props: {
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
   const [curExperimentLoaded, setCurExperimentLoaded] = useState(false);
 
+  const dispatch = useAppDispatch();
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
   const [validationCellOutput, setValidationCellOutput] = useState<any[]>([]);
   const [cells, setCells] = useState<CellsStates>({});
@@ -236,7 +238,21 @@ export function useWithNotebook(props: {
     });
   }
 
-  function resetCode(experiment?: Experiment): void {
+  function saveLocalChanges(): void {
+    // save local changes temporarily
+    if (notebook?.model) {
+      const nbc = notebook.model.toJSON() as INotebookContent;
+      for (const [i, cell] of Object.values(cells).entries()) {
+        nbc.cells[i].source = cell.code;
+      }
+      dispatch(updateLocalNotebook({ id: curActivity.id, notebook: nbc }));
+    }
+  }
+
+  function resetCode(
+    experiment?: Experiment,
+    localNotebook?: INotebookContent
+  ): void {
     if (!notebook?.adapter) {
       return;
     }
@@ -248,6 +264,10 @@ export function useWithNotebook(props: {
       setNotebookConnected(false);
     } else if (curExperiment?.notebookContent) {
       notebook.adapter.setNotebookModel(curExperiment.notebookContent);
+      setIsEdited(true);
+      setNotebookConnected(false);
+    } else if (localNotebook) {
+      notebook.adapter.setNotebookModel(localNotebook);
       setIsEdited(true);
       setNotebookConnected(false);
     }
@@ -284,6 +304,7 @@ export function useWithNotebook(props: {
     notebookRunCount,
     notebookInitialRunComplete: notebookRunCount > 0,
     saveNotebook,
+    saveLocalChanges,
     runNotebook,
     editCode,
     resetCode,

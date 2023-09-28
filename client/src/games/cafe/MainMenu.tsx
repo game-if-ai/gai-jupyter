@@ -60,7 +60,7 @@ export default class MainMenu extends Phaser.Scene {
     for (let i = 1; i <= 10; i++) {
       this.load.image(`box${i}`, `box${i}.png`);
     }
-    this.load.setPath("assets/cafe/sounds");
+    this.load.setPath("assets/sounds");
     this.load.audio("match", ["match.ogg", "match.mp3"]);
     this.load.audio("wrong", ["wrong.mp3"]);
   }

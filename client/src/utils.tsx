@@ -15,7 +15,7 @@ import { EditorView } from "codemirror";
 import { GaiCellTypes } from "./local-constants";
 import { submitNotebookExperimentGQL } from "./api";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
-import { UserInputCellsCode } from "store/notebook";
+import { UserInputCellsCode } from "hooks/use-with-notebook";
 import { Activity, ActivityID, Experiment } from "store/simulator";
 
 export function waitMs(ms: number) {

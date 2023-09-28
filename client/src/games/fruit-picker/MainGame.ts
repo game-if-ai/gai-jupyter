@@ -58,11 +58,10 @@ export default class MainGame extends Phaser.Scene {
     this.load.setPath("assets/fruit-picker");
     this.load.image("background", "background.png");
     this.load.image("logo", "logo.png");
-    this.load.setPath("assets/fruit-picker/fruit");
     for (const f of Fruits) {
-      this.load.image(f.name, `${f.sprite}.png`);
+      this.load.image(f.name, `fruit/${f.sprite}.png`);
     }
-    this.load.setPath("assets/fruit-picker/sounds");
+    this.load.setPath("asset/sounds");
     this.load.audio("music", ["music.ogg", "music.mp3"]);
     this.load.audio("countdown", ["countdown.ogg", "countdown.mp3"]);
     this.load.audio("match", ["match.ogg", "match.mp3"]);

@@ -7,7 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 
 import { Activity, Experiment } from "store/simulator";
 import { setActivity, setExperiment, setSimulation, setStep, STEP } from ".";
-import { useAppDispatch, useAppSelector } from "../";
+import { useAppDispatch } from "../";
 
 interface UseWithState {
   toStep: (step: number) => void;
@@ -19,15 +19,9 @@ interface UseWithState {
 
 export function useWithState(): UseWithState {
   const dispatch = useAppDispatch();
-  const experiments = useAppSelector((s) => s.simulator.experiments);
 
   function loadActivity(activity: Activity) {
     dispatch(setActivity(activity));
-    const aExperiments = experiments[activity.id];
-    if (aExperiments.length > 0) {
-      dispatch(setExperiment(aExperiments[aExperiments.length - 1]));
-    }
-    dispatch(setStep(STEP.NOTEBOOK));
   }
 
   function loadSimulation(simulation: number) {

@@ -5,7 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import {
   Button,
   FormControl,
@@ -17,23 +17,23 @@ import {
 import { Activities, isGameActivity } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
+import { useAppSelector } from "../store";
 import { useWithState } from "../store/state/useWithState";
-import { Activity } from "../store/simulator";
 
 function ActivityPicker(): JSX.Element {
-  const [activity, setActivity] = useState<Activity>();
+  const activity = useAppSelector((s) => s.state.activity);
   const { width, height } = useWithWindowSize();
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
   const { loadPhaserGame, destroyPhaserGame } =
     useWithPhaserGame(gameContainerRef);
-  const { loadActivity } = useWithState();
+  const { loadActivity, toNotebook } = useWithState();
 
   function selectGame(id: string): void {
     const activity = Activities.find((g) => g.id === id);
     if (!activity) {
       return;
     }
-    setActivity(activity);
+    loadActivity(activity);
     if (isGameActivity(activity)) {
       loadPhaserGame(activity);
     }
@@ -44,7 +44,7 @@ function ActivityPicker(): JSX.Element {
       return;
     }
     destroyPhaserGame();
-    loadActivity(activity);
+    toNotebook();
   }
 
   return (

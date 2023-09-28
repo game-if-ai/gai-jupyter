@@ -6,7 +6,6 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { CafeSimulator } from "./simulator";
 import MainMenu from "./MainMenu";
 import MainGame from "./MainGame";
 import { Summary } from "./components/summary";

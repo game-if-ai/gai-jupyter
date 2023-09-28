@@ -31,7 +31,7 @@ export default class MainMenu extends Phaser.Scene {
     this.load.image("background", "background.jpg");
     this.load.image("logo", "logo.png");
     this.load.image("logo2", "logo2.png");
-    this.load.setPath("assets/fruit-picker/sounds");
+    this.load.setPath("asset/sounds");
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 

@@ -50,9 +50,10 @@ import { ShortcutKeyboard } from "./ShortcutKeyboard";
 import { useWithImproveCode } from "../hooks/use-with-improve-code";
 import { extractSetupAndValidationCellOutputs } from "../utils";
 import { STEP } from "../store/state";
-import { useAppSelector } from "../store";
+import { useAppDispatch, useAppSelector } from "../store";
 import { useWithState } from "../store/state/useWithState";
 import { useWithSimulator } from "../store/simulator/useWithSimulator";
+import { updateLocalNotebook } from "../store/simulator";
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -64,10 +65,11 @@ export enum KernelConnectionStatus {
 
 function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const { uniqueUserId } = props;
+  const dispatch = useAppDispatch();
   const activity = useAppSelector((s) => s.state.activity!);
   const experiment = useAppSelector((s) => s.state.experiment);
-  const timesNotebookVisited = useAppSelector(
-    (s) => s.state.timesNotebookVisited
+  const localNotebook = useAppSelector(
+    (s) => s.simulator.localNotebooks[activity.id]
   );
   const isKeyboardOpen = useAppSelector((s) => s.keyboard.isOpen);
   const pastExperiments = useAppSelector(
@@ -83,7 +85,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   );
   const {
     cells,
-    setupCellOutput,
     validationCellOutput,
     userInputCellsCode,
     hasError,
@@ -95,6 +96,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     editCode,
     resetCode,
     saveNotebook,
+    saveLocalChanges,
     runNotebook,
   } = useWithNotebook({
     curActivity: activity!,
@@ -104,7 +106,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
     validationCellOutput: validationCellOutput,
-    timesNotebookVisited,
     activeActivity: activity!,
     notebookIsRunning: notebookIsRunning,
     notebookRunCount,
@@ -114,6 +115,9 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const [curCell, setCurCell] = useState<string>("");
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [showResults, setShowResults] = useState<boolean>(false);
+  const [showLocalChanges, setShowLocalChanges] = useState<boolean>(
+    Boolean(localNotebook && !experiment)
+  );
   const [saveRun, setSaveRun] = useState<boolean>(false);
   const [kernel, setKernel] = useState<Kernel>();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -268,12 +272,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     if (!notebook) {
       return;
     }
-    simulator.simulate(
-      setupCellOutput,
-      validationCellOutput,
-      notebook,
-      hints.getDisplayedHints()
-    );
     loadSimulation(0);
   }
 
@@ -293,6 +291,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         ranNotebook,
         hints.getDisplayedHints()
       );
+      dispatch(updateLocalNotebook({ id: activity.id, notebook: undefined }));
       loadExperiment(experiment);
       setShowResults(true);
     });
@@ -525,6 +524,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
               cellState={v[1]}
               hints={hints}
               editCode={editCode}
+              saveLocalChanges={saveLocalChanges}
               curCell={curCell}
               onChangeCell={(direction: number) => {
                 const newCell = visibleCells[i + direction];
@@ -574,6 +574,34 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
             View Summary
           </Button>
         </TooltipMsg>
+      </ActionPopup>
+      <ActionPopup
+        open={showLocalChanges}
+        onClose={() => {}}
+        title="Found unsaved changes"
+        text="You have unsaved local changes from a previous time. Would you like to load them?"
+      >
+        <Button
+          onClick={() => {
+            setShowLocalChanges(false);
+            dispatch(
+              updateLocalNotebook({ id: activity.id, notebook: undefined })
+            );
+          }}
+        >
+          No, start fresh
+        </Button>
+        <Button
+          onClick={() => {
+            resetCode(undefined, localNotebook);
+            setShowLocalChanges(false);
+            dispatch(
+              updateLocalNotebook({ id: activity.id, notebook: undefined })
+            );
+          }}
+        >
+          Yes, load previous
+        </Button>
       </ActionPopup>
       <Popover
         open={Boolean(anchorEl)}

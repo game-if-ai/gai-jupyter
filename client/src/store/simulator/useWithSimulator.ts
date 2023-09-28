@@ -15,6 +15,7 @@ import { useAppDispatch, useAppSelector } from "../";
 import { CafeSimulator } from "../../games/cafe/simulator";
 import { FruitSimulator } from "../../games/fruit-picker/simulator";
 import { NMTSimulator } from "../../games/neural_machine_translation/simulator";
+import { PlaneSimulator } from "../../games/planes/simulator";
 import { storeNotebookExperimentInGql } from "../../utils";
 
 export function initSimulate(
@@ -49,6 +50,7 @@ export function useWithSimulator() {
   const cafeSimulator = CafeSimulator();
   const fruitSimulator = FruitSimulator();
   const nmtSimulator = NMTSimulator();
+  const planeSimulator = PlaneSimulator();
 
   function play(): SimulationOutput {
     switch (activity.id) {
@@ -58,6 +60,8 @@ export function useWithSimulator() {
         return fruitSimulator.play();
       case "neural_machine_translation":
         return nmtSimulator.play();
+      case "planes":
+        return planeSimulator.play();
       default:
         return {};
     }
@@ -94,6 +98,14 @@ export function useWithSimulator() {
         break;
       case "neural_machine_translation":
         experiment = nmtSimulator.simulate(
+          inputs,
+          outputs,
+          notebook,
+          displayedHints
+        );
+        break;
+      case "planes":
+        experiment = planeSimulator.simulate(
           inputs,
           outputs,
           notebook,

@@ -8,6 +8,7 @@ export const ACCESS_TOKEN_KEY = "accessToken";
 export const ACTIVE_MENTOR_KEY = "activeMentor";
 export const UNIQUE_USER_ID_LS = "uniqueUserId";
 export const EXPERIMENT_HISTORY = "@experimentHistory";
+export const NOTEBOOK_HISTORY = "@notebookHistory";
 
 export function localStorageGet(key: string): unknown | null {
   if (typeof window === "undefined") {

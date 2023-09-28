@@ -9,7 +9,7 @@ import { ReactReduxContext } from "react-redux";
 
 import { useAppSelector } from ".";
 import stateReducer from "./state";
-import notebookReducer from "./notebook";
+// import notebookReducer from "./notebook";
 import simulatorReducer from "./simulator";
 import keyboardReducer from "./keyboard";
 import dialogueReducer from "./dialogue";
@@ -19,7 +19,7 @@ import { injectAsyncReducer } from "./reducers";
 function WithRedux(props: { children: any }): JSX.Element {
   const { store } = useContext(ReactReduxContext);
   const state = useAppSelector((s) => s.state);
-  const notebook = useAppSelector((s) => s.notebook);
+  // const notebook = useAppSelector((s) => s.notebook);
   const simulator = useAppSelector((s) => s.simulator);
   const keyboard = useAppSelector((s) => s.keyboard);
   const dialogue = useAppSelector((s) => s.dialogue);
@@ -30,14 +30,13 @@ function WithRedux(props: { children: any }): JSX.Element {
    */
   useEffect(() => {
     injectAsyncReducer(store, "state", stateReducer);
-    injectAsyncReducer(store, "notebook", notebookReducer);
+    // injectAsyncReducer(store, "notebook", notebookReducer);
     injectAsyncReducer(store, "simulator", simulatorReducer);
     injectAsyncReducer(store, "keyboard", keyboardReducer);
     injectAsyncReducer(store, "dialogue", dialogueReducer);
   });
 
-  if (!state || !notebook || !simulator || !keyboard || !dialogue)
-    return <div />;
+  if (!state || !simulator || !keyboard || !dialogue) return <div />;
   return props.children;
 }
 

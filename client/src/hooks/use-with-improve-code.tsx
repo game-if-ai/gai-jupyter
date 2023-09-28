@@ -6,6 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useAppSelector } from "../store";
 import { Activity, CodeInfo } from "store/simulator";
 
 type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
@@ -26,19 +27,20 @@ export interface UseWithImproveCode {
 export function useWithImproveCode(props: {
   userCode: Record<string, string[]>;
   validationCellOutput: any[];
-  timesNotebookVisited: number;
   activeActivity: Activity;
   notebookIsRunning: boolean;
   notebookRunCount: number;
 }): UseWithImproveCode {
   const {
-    timesNotebookVisited,
     activeActivity,
     notebookIsRunning,
     userCode,
     validationCellOutput,
     notebookRunCount,
   } = props;
+  const timesNotebookVisited = useAppSelector(
+    (s) => s.state.timesNotebookVisited
+  );
   const [hintDisplayed, setHintDisplayed] = useState(false);
   const [activeHintIndex, setActiveHintIndex] = useState(-1);
   const [activeToasts, setActiveToasts] = useState<ImproveCodeHint[]>([]);

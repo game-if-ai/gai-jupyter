@@ -36,10 +36,10 @@ import { keymap } from "@codemirror/view";
 import { pythonLibs } from "../python-autocomplete-libs";
 import { capitalizeFirst } from "../utils";
 import { useAppSelector } from "../store";
-import { CellState } from "../store/notebook";
 import { useWithDialogue } from "../store/dialogue/useWithDialogue";
 import { useWithShortcutKeys } from "../store/keyboard/useWithKeyboard";
 import { UseWithImproveCode } from "../hooks/use-with-improve-code";
+import { CellState } from "../hooks/use-with-notebook";
 import { TooltipMsg } from "./Dialogue";
 import { Output } from "./Output";
 
@@ -80,6 +80,7 @@ export function NotebookEditor(props: {
   hints: UseWithImproveCode;
   isSaving: boolean;
   editCode: (cell: string, code: string) => void;
+  saveLocalChanges: () => void;
   onChangeCell: (direction: number) => void;
 }): JSX.Element {
   const classes = useStyles();
@@ -175,15 +176,18 @@ export function NotebookEditor(props: {
         })
       );
     }
-    setEditor(
-      new EditorView({
-        state: EditorState.create({
-          doc: cell.toJSON().source as string,
-          extensions,
-        }),
-        parent: doc,
-      })
-    );
+    const ed = new EditorView({
+      state: EditorState.create({
+        doc: cell.toJSON().source as string,
+        extensions,
+      }),
+      parent: doc,
+    });
+    ed.dom.addEventListener("input", async (e) => {
+      e.stopPropagation();
+      props.saveLocalChanges();
+    });
+    setEditor(ed);
   }, [cell]);
 
   useEffect(() => {

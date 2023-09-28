@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+/* eslint-disable */
 
 import React, { useEffect, useState } from "react";
 import { ContentsManager } from "@jupyterlab/services";
@@ -28,7 +29,7 @@ function App(): JSX.Element {
   const { activity, experiment, step, uniqueUserId } = useAppSelector(
     (s) => s.state
   );
-  const { loadActivity } = useWithState();
+  const { loadActivity, toNotebook } = useWithState();
 
   useEffect(() => {
     const cm = new ContentsManager();
@@ -86,6 +87,7 @@ function App(): JSX.Element {
       const activity = Activities.find((g) => g.id === activityParam);
       if (activity && step === STEP.PICK_GAME) {
         loadActivity(activity);
+        toNotebook();
       }
     }
   }, [loadActivity, step]);

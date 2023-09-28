@@ -31,6 +31,24 @@ interface GraphQLResponse<T> {
   data?: T;
 }
 
+const planeNotebookMutation = `
+mutation submitPlaneNotebookExperiment(
+  $cmi5LaunchParameters: Cmi5LaunchParametersType,
+  $activityId: String,
+  $notebookStateStringified: String
+  $summary: PlaneSummaryInputType
+  $displayedHints: [DisplayedHintsInputType]
+){
+  submitPlaneNotebookExperiment(
+    cmi5LaunchParameters: $cmi5LaunchParameters,
+    activityId: $activityId,
+    notebookStateStringified: $notebookStateStringified,
+    summary: $summary,
+    displayedHints: $displayedHints
+  )
+}
+`;
+
 const nmtNotebookMutation = `
 mutation submitNmtNotebookExperiment(
   $cmi5LaunchParameters: Cmi5LaunchParametersType,
@@ -140,7 +158,9 @@ export async function submitNotebookExperimentGQL(
       ? cafeNotebookMutation
       : data.activityId === "fruitpicker"
       ? fruitPickerMutation
-      : nmtNotebookMutation;
+      : data.activityId === "neural_machine_translation"
+      ? nmtNotebookMutation
+      : planeNotebookMutation;
   const gqlRes = await axios.post<GraphQLResponse<boolean>>(GRAPHQL_ENDPOINT, {
     query: mutationQuery,
     variables: {

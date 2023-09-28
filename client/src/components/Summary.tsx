@@ -19,6 +19,8 @@ import { CafePreviousExperimentsView } from "../games/cafe/components/previous-e
 import { FruitPickerCurrentExperimentView } from "../games/fruit-picker/components/current-experiment-view";
 import { FruitPickerPreviousExperimentsView } from "../games/fruit-picker/components/previous-experiment-view";
 import { NMTCurrentExperimentView } from "../games/neural_machine_translation/components/current-experiment-view";
+import { PlaneCurrentExperimentView } from "../games/planes/components/current-experiment-view";
+import { PlanePreviousExperimentsView } from "../games/planes/components/previous-experiment-view";
 import { useWithState } from "../store/state/useWithState";
 import { useAppSelector } from "../store";
 import { Experiment } from "store/simulator";
@@ -113,6 +115,13 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
             onSubmit={props.onSubmit}
           />
         );
+      case "planes":
+        return (
+          <PlaneCurrentExperimentView
+            classes={classes}
+            onSubmit={props.onSubmit}
+          />
+        );
       default:
         return <div />;
     }
@@ -136,6 +145,13 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
         );
       case "neural_machine_translation":
         return undefined;
+      case "planes":
+        return (
+          <PlanePreviousExperimentsView
+            classes={classes}
+            setExperiment={_setExperiment}
+          />
+        );
       default:
         return undefined;
     }
