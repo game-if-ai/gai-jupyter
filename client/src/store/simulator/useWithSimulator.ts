@@ -54,13 +54,13 @@ export function useWithSimulator() {
 
   function play(): SimulationOutput {
     switch (activity.id) {
-      case "cafe":
+      case ActivityID.cafe:
         return cafeSimulator.play();
-      case "fruitpicker":
+      case ActivityID.fruit:
         return fruitSimulator.play();
-      case "neural_machine_translation":
+      case ActivityID.nmt:
         return nmtSimulator.play();
-      case "planes":
+      case ActivityID.planes:
         return planeSimulator.play();
       default:
         return {};
@@ -80,7 +80,7 @@ export function useWithSimulator() {
       displayedHints
     );
     switch (activity.id) {
-      case "cafe":
+      case ActivityID.cafe:
         experiment = cafeSimulator.simulate(
           inputs,
           outputs,
@@ -88,7 +88,7 @@ export function useWithSimulator() {
           displayedHints
         );
         break;
-      case "fruitpicker":
+      case ActivityID.fruit:
         experiment = fruitSimulator.simulate(
           inputs,
           outputs,
@@ -96,7 +96,7 @@ export function useWithSimulator() {
           displayedHints
         );
         break;
-      case "neural_machine_translation":
+      case ActivityID.nmt:
         experiment = nmtSimulator.simulate(
           inputs,
           outputs,
@@ -104,7 +104,7 @@ export function useWithSimulator() {
           displayedHints
         );
         break;
-      case "planes":
+      case ActivityID.planes:
         experiment = planeSimulator.simulate(
           inputs,
           outputs,

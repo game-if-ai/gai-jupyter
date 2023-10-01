@@ -15,6 +15,7 @@ import {
   useWithPlaneCodeExamine,
 } from "./hooks/use-with-plane-code-examine";
 import { apply } from "../../utils";
+import { ActivityID } from "../../store/simulator";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -31,7 +32,7 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
 };
 
 export const Planes: Game = {
-  id: "planes",
+  id: ActivityID.planes,
   title: "Cars, Planes, and Trains",
   activityType: "GAME",
   gameDescription:

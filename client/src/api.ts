@@ -4,12 +4,14 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { LaunchParameters } from "@xapi/cmi5";
 import axios from "axios";
-import { CafeSimulationsSummary } from "games/cafe/simulator";
-import { FruitSimulationsSummary } from "games/fruit-picker/simulator";
+import { LaunchParameters } from "@xapi/cmi5";
 import { NMTSimulationsSummary } from "games/neural_machine_translation/simulator";
-import { ActivityID, SimulationSummary } from "store/simulator";
+import {
+  ActivityID,
+  GameSimulationsSummary,
+  SimulationSummary,
+} from "store/simulator";
 
 const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_ENDPOINT;
 
@@ -105,22 +107,9 @@ mutation submitFruitPickerNotebookExperiment(
 function extractNotebookSummaryGQL(
   data: SubmitNotebookExperimentGQL
 ): SimulationSummary {
-  if (data.activityId === "cafe" || data.activityId === "fruitpicker") {
-    const dataSummary =
-      data.activityId === "cafe"
-        ? (data.summary as CafeSimulationsSummary)
-        : (data.summary as FruitSimulationsSummary);
-    return {
-      lowAccuracy: dataSummary.lowAccuracy,
-      highAccuracy: dataSummary.highAccuracy,
-      averageAccuracy: dataSummary.averageAccuracy,
-      averagePrecision: dataSummary.averagePrecision,
-      averageRecall: dataSummary.averageRecall,
-      averageF1Score: dataSummary.averageF1Score,
-      lowF1Score: dataSummary.lowF1Score,
-      highF1Score: dataSummary.highF1Score,
-    };
-  } else if (data.activityId === "neural_machine_translation") {
+  if (!(data.activityId in ActivityID)) {
+    throw new Error("Activity types summary not handled for sending to GQL");
+  } else if (data.activityId === ActivityID.nmt) {
     const dataSummary = data.summary as NMTSimulationsSummary;
     return {
       callsFitOnTexts: dataSummary.callsFitOnTexts,
@@ -143,7 +132,17 @@ function extractNotebookSummaryGQL(
       outputCorrectlyFormatted: dataSummary.outputCorrectlyFormatted,
     };
   } else {
-    throw new Error("Activity types summary not handled for sending to GQL");
+    const dataSummary = data.summary as GameSimulationsSummary;
+    return {
+      lowAccuracy: dataSummary.lowAccuracy,
+      highAccuracy: dataSummary.highAccuracy,
+      averageAccuracy: dataSummary.averageAccuracy,
+      averagePrecision: dataSummary.averagePrecision,
+      averageRecall: dataSummary.averageRecall,
+      averageF1Score: dataSummary.averageF1Score,
+      lowF1Score: dataSummary.lowF1Score,
+      highF1Score: dataSummary.highF1Score,
+    };
   }
 }
 
@@ -153,14 +152,25 @@ export async function submitNotebookExperimentGQL(
   if (!GRAPHQL_ENDPOINT) {
     return false;
   }
-  const mutationQuery =
-    data.activityId === "cafe"
-      ? cafeNotebookMutation
-      : data.activityId === "fruitpicker"
-      ? fruitPickerMutation
-      : data.activityId === "neural_machine_translation"
-      ? nmtNotebookMutation
-      : planeNotebookMutation;
+  let mutationQuery;
+  switch (data.activityId) {
+    case ActivityID.cafe:
+      mutationQuery = cafeNotebookMutation;
+      break;
+    case ActivityID.fruit:
+      mutationQuery = fruitPickerMutation;
+      break;
+    case ActivityID.nmt:
+      mutationQuery = nmtNotebookMutation;
+      break;
+    case ActivityID.planes:
+      mutationQuery = planeNotebookMutation;
+      break;
+    default:
+      throw new Error(
+        "this notebook activity is not supported yet, add it to this function"
+      );
+  }
   const gqlRes = await axios.post<GraphQLResponse<boolean>>(GRAPHQL_ENDPOINT, {
     query: mutationQuery,
     variables: {

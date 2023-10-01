@@ -10,7 +10,7 @@ import { getAllNMTCodeInfo } from "./hooks/examine-nn-code-helpers";
 import { extractAllUserInputCode } from "../../utils";
 import { evaluteNMTExperiment } from "./hooks/nmt-score-evaluation";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
-import { Experiment, Simulator } from "../../store/simulator";
+import { ActivityID, Experiment, Simulator } from "../../store/simulator";
 import { initSimulate } from "../../store/simulator/useWithSimulator";
 
 export interface NMTSimulationOutput {}
@@ -37,7 +37,7 @@ export function NMTSimulator(): Simulator {
     const experiment = initSimulate(
       inputs,
       notebook,
-      "neural_machine_translation",
+      ActivityID.nmt,
       displayedHints
     );
     if (experiment.notebookContent) {

@@ -10,7 +10,12 @@ import { Fruit, Fruits, FruitTrait } from "./types";
 import { average, random, randomInt } from "../../utils";
 import { evaluateFruitPickerExperiment } from "./hooks/fruit-picker-score-evaluation";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
-import { Experiment, Simulator } from "../../store/simulator";
+import {
+  ActivityID,
+  Experiment,
+  GameSimulationsSummary,
+  Simulator,
+} from "../../store/simulator";
 import { initSimulate } from "../../store/simulator/useWithSimulator";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
@@ -32,16 +37,7 @@ export interface FruitSimulationOutput {
   spawns: FruitSpawn[];
 }
 
-export interface FruitSimulationsSummary {
-  lowAccuracy: number;
-  highAccuracy: number;
-  averageAccuracy: number;
-  averagePrecision: number;
-  averageRecall: number;
-  averageF1Score: number;
-  lowF1Score: number;
-  highF1Score: number;
-}
+export interface FruitSimulationsSummary extends GameSimulationsSummary {}
 
 export interface FruitClassifierOutput {
   fruit: Fruit;
@@ -113,7 +109,7 @@ export function FruitSimulator(): Simulator {
     const experiment = initSimulate(
       inputs,
       notebook,
-      "fruitpicker",
+      ActivityID.fruit,
       displayedHints
     );
     for (let run = 0; run < outputs.length; run++) {

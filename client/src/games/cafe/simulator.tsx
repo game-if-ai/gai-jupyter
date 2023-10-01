@@ -12,7 +12,12 @@ import { getAllCafeCodeInfo } from "./hooks/examine-cafe-code-helpers";
 import { CafeCodeInfo } from "./hooks/use-with-cafe-code-examine";
 import { evaluateCafeExperiment } from "./hooks/cafe-score-evaluation";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
-import { Experiment, Simulator } from "../../store/simulator";
+import {
+  ActivityID,
+  Experiment,
+  GameSimulationsSummary,
+  Simulator,
+} from "../../store/simulator";
 import { initSimulate } from "../../store/simulator/useWithSimulator";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
@@ -29,16 +34,7 @@ export interface CafeSimulationOutput {
   spawns: ItemSpawn[];
 }
 
-export interface CafeSimulationsSummary {
-  lowAccuracy: number;
-  highAccuracy: number;
-  averageAccuracy: number;
-  averagePrecision: number;
-  averageRecall: number;
-  averageF1Score: number;
-  lowF1Score: number;
-  highF1Score: number;
-}
+export interface CafeSimulationsSummary extends GameSimulationsSummary {}
 
 export interface ClassifierOutput {
   inputText: string; // review text
@@ -102,7 +98,12 @@ export function CafeSimulator(): Simulator {
     notebook: INotebookState,
     displayedHints: ImproveCodeHint[]
   ): Experiment {
-    const experiment = initSimulate(inputs, notebook, "cafe", displayedHints);
+    const experiment = initSimulate(
+      inputs,
+      notebook,
+      ActivityID.cafe,
+      displayedHints
+    );
     if (experiment.notebookContent) {
       const codeInfo: CafeCodeInfo = getAllCafeCodeInfo(
         extractAllUserInputCode(experiment.notebookContent)

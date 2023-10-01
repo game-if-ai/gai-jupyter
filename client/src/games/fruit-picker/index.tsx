@@ -10,6 +10,7 @@ import MainGame from "./MainGame";
 import { Summary } from "./components/summary";
 import { Game } from "..";
 import { useWithFruitPickerCodeExamine } from "./hooks/use-with-fruit-picker-code-examine";
+import { ActivityID } from "../../store/simulator";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -26,7 +27,7 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
 };
 
 export const FruitPicker: Game = {
-  id: "fruitpicker",
+  id: ActivityID.fruit,
   title: "Fruit Picker",
   activityType: "GAME",
   gameDescription:

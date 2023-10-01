@@ -12,7 +12,12 @@ import { getAllPlaneCodeInfo } from "./hooks/examine-plane-code-helpers";
 import { PlaneCodeInfo } from "./hooks/use-with-plane-code-examine";
 import { evaluatePlaneExperiment } from "./hooks/plane-score-evaluation";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
-import { Experiment, Simulator } from "../../store/simulator";
+import {
+  ActivityID,
+  Experiment,
+  GameSimulationsSummary,
+  Simulator,
+} from "../../store/simulator";
 import { initSimulate } from "../../store/simulator/useWithSimulator";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
@@ -27,16 +32,7 @@ export interface PlaneSimulationOutput {
   spawns: Spawn[];
 }
 
-export interface PlaneSimulationsSummary {
-  lowAccuracy: number;
-  highAccuracy: number;
-  averageAccuracy: number;
-  averagePrecision: number;
-  averageRecall: number;
-  averageF1Score: number;
-  lowF1Score: number;
-  highF1Score: number;
-}
+export interface PlaneSimulationsSummary extends GameSimulationsSummary {}
 
 export interface ClassifierOutput {
   inputText: string;
@@ -99,7 +95,12 @@ export function PlaneSimulator(): Simulator {
     notebook: INotebookState,
     displayedHints: ImproveCodeHint[]
   ): Experiment {
-    const experiment = initSimulate(inputs, notebook, "planes", displayedHints);
+    const experiment = initSimulate(
+      inputs,
+      notebook,
+      ActivityID.planes,
+      displayedHints
+    );
     if (experiment.notebookContent) {
       const codeInfo: PlaneCodeInfo = getAllPlaneCodeInfo(
         extractAllUserInputCode(experiment.notebookContent)

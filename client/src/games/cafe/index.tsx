@@ -15,6 +15,7 @@ import {
   useWithCafeCodeExamine,
 } from "./hooks/use-with-cafe-code-examine";
 import { apply } from "../../utils";
+import { ActivityID } from "../../store/simulator";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -31,7 +32,7 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
 };
 
 export const Cafe: Game = {
-  id: "cafe",
+  id: ActivityID.cafe,
   title: "Bought or Not!",
   activityType: "GAME",
   gameDescription:

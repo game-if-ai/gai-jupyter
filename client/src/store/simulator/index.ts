@@ -73,11 +73,23 @@ interface LoadedCodeInfo {
   loadStatus: LoadStatus;
 }
 
-export type ActivityID =
-  | "cafe"
-  | "fruitpicker"
-  | "neural_machine_translation"
-  | "planes";
+export enum ActivityID {
+  cafe = "cafe",
+  fruit = "fruitpicker",
+  nmt = "neural_machine_translation",
+  planes = "planes",
+}
+
+export interface GameSimulationsSummary {
+  lowAccuracy: number;
+  highAccuracy: number;
+  averageAccuracy: number;
+  averagePrecision: number;
+  averageRecall: number;
+  averageF1Score: number;
+  lowF1Score: number;
+  highF1Score: number;
+}
 
 export type ActivityType = "GAME" | "NOTEBOOK_ONLY";
 
