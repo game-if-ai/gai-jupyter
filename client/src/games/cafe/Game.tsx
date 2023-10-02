@@ -19,7 +19,7 @@ import {
 } from "../phaser-helpers";
 import { randomInt } from "../../utils";
 
-export default class MainGame extends Phaser.Scene {
+export default class Game extends Phaser.Scene {
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
@@ -44,7 +44,7 @@ export default class MainGame extends Phaser.Scene {
   itemIdx: number;
 
   constructor() {
-    super("MainGame");
+    super("Game");
     this.speed = 1;
     this.isPaused = false;
     this.isMuted = false;
@@ -67,6 +67,10 @@ export default class MainGame extends Phaser.Scene {
     this.load.image(
       "window",
       "wordui/inner_panels/blue/premade_panels/blue_long_horizontal.png"
+    );
+    this.load.image(
+      "button",
+      "wordui/buttons/long_buttons/blue_button_complete.png"
     );
     this.load.image(
       "buttonYes",
@@ -99,11 +103,18 @@ export default class MainGame extends Phaser.Scene {
     this.eventSystem = data.eventSystem;
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
+    this.createScene();
+    if (!this.config.playManually) {
+      this.start();
+    }
+  }
+
+  createScene(): void {
     // add background
-    this.cameras.main.setBackgroundColor("#2d3052");
+    const camera = this.cameras.main;
+    camera.setBackgroundColor("#2d3052");
     this.bg = addBackground(this, "background1");
-    const isMobile =
-      this.cameras.main.displayHeight / 2 >= this.bg.displayHeight;
+    const isMobile = camera.displayHeight / 2 >= this.bg.displayHeight;
     if (isMobile) {
       const bgTop = addImage(this, "background2", undefined, {
         bg: this.bg,
@@ -224,16 +235,39 @@ export default class MainGame extends Phaser.Scene {
       heightRel: 0.05,
       maxFontSize: 32,
     });
-    // start
+    // add buttons
+    if (this.config?.playManually) {
+      const startButton = addImage(this, "button", undefined, {
+        bg: isMobile ? this.bg : this.screen,
+        yAnchor: Anchor.end,
+        widthRel: 0.3,
+      });
+      startButton.setY(startButton.y + startButton.displayHeight);
+      const startText = addText(this, "Start!", {
+        bg: startButton,
+        heightRel: 0.5,
+      });
+      // add events
+      startButton.setInteractive();
+      startButton.on(
+        "pointerdown",
+        () => {
+          this.sound.play("match");
+          this.start();
+          startText.destroy();
+          startButton.destroy();
+        },
+        this
+      );
+    }
+  }
+
+  start() {
     if (this.eventSystem) {
       this.eventSystem.on("pause", this.pause, this);
       this.eventSystem.on("mute", this.mute, this);
       this.eventSystem.on("changeSpeed", this.changeSpeed, this);
     }
-    this.start();
-  }
-
-  start() {
     if (this.config?.playManually) {
       const isMobile =
         this.cameras.main.displayHeight / 2 >= this.bg!.displayHeight;

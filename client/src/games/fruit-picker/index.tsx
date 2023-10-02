@@ -5,8 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import Phaser from "phaser";
-import MainMenu from "./MainMenu";
-import MainGame from "./MainGame";
+import FruitGame from "./Game";
 import { Summary } from "./components/summary";
 import { Game } from "..";
 import { useWithFruitPickerCodeExamine } from "./hooks/use-with-fruit-picker-code-examine";
@@ -23,7 +22,7 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
       gravity: { y: 150 },
     },
   },
-  scene: [MainMenu, MainGame],
+  scene: [FruitGame],
 };
 
 export const FruitPicker: Game = {

@@ -6,8 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import MainMenu from "./MainMenu";
-import MainGame from "./MainGame";
+import PlaneGame from "./Game";
 import { Summary } from "./components/summary";
 import { Game } from "..";
 import {
@@ -28,7 +27,7 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
       gravity: { y: 150 },
     },
   },
-  scene: [MainMenu, MainGame],
+  scene: [PlaneGame],
 };
 
 export const Planes: Game = {

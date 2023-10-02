@@ -45,7 +45,7 @@ export function initSimulate(
 
 export function useWithSimulator() {
   const dispatch = useAppDispatch();
-  const activity = useAppSelector((s) => s.state.activity!);
+  const activity = useAppSelector((s) => s.state.activity);
   const uniqueUserId = useAppSelector((s) => s.state.uniqueUserId);
   const cafeSimulator = CafeSimulator();
   const fruitSimulator = FruitSimulator();
@@ -53,6 +53,9 @@ export function useWithSimulator() {
   const planeSimulator = PlaneSimulator();
 
   function play(): SimulationOutput {
+    if (!activity) {
+      throw new Error("no activity selected");
+    }
     switch (activity.id) {
       case ActivityID.cafe:
         return cafeSimulator.play();
@@ -73,6 +76,9 @@ export function useWithSimulator() {
     notebook: INotebookState,
     displayedHints: ImproveCodeHint[]
   ): Experiment {
+    if (!activity) {
+      throw new Error("no activity selected");
+    }
     let experiment = initSimulate(
       inputs,
       notebook,

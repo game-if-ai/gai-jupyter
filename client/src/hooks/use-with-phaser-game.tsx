@@ -42,8 +42,7 @@ export function useWithPhaserGame(
     };
     const pg = new Phaser.Game(config);
     const playManually = simulation === undefined;
-    const scene = playManually ? "MainMenu" : "MainGame";
-    pg.scene.start(scene, {
+    pg.scene.start("Game", {
       playManually,
       isMuted,
       speed,

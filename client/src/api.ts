@@ -11,7 +11,7 @@ import {
   ActivityID,
   GameSimulationsSummary,
   SimulationSummary,
-} from "store/simulator";
+} from "./store/simulator";
 
 const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_ENDPOINT;
 

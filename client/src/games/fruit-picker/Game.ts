@@ -16,9 +16,9 @@ import { Fruits } from "./types";
 import { GameParams } from "..";
 import {
   addBackground,
+  addImage,
   addText,
   Anchor,
-  scaleImage,
   scaleText,
 } from "../phaser-helpers";
 
@@ -37,27 +37,23 @@ export default class MainGame extends Phaser.Scene {
   matchText?: Phaser.GameObjects.Text;
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
-
   bg?: Phaser.GameObjects.Image;
-  images: Phaser.GameObjects.Image[];
-  text: Phaser.GameObjects.Text[];
 
   constructor() {
-    super("MainGame");
+    super("Game");
     this.speed = 1;
     this.isPaused = false;
     this.isMuted = false;
     this.numCorrect = 0;
     this.fruit = [];
     this.fruitIdx = 0;
-    this.images = [];
-    this.text = [];
   }
 
   preload() {
     this.load.setPath("assets/fruit-picker");
     this.load.image("background", "background.jpg");
     this.load.image("logo", "logo.png");
+    this.load.image("logo2", "logo2.png");
     for (const f of Fruits) {
       this.load.image(f.name, `fruit/${f.sprite}.png`);
     }
@@ -68,10 +64,18 @@ export default class MainGame extends Phaser.Scene {
   }
 
   create(data: GameParams) {
-    window.addEventListener("resize", () => {
-      this.resize();
-    });
     this.config = data;
+    this.createScene();
+    // start game
+    this.eventSystem = data.eventSystem;
+    this.mute(data.isMuted);
+    this.changeSpeed(data.speed);
+    if (!this.config.playManually) {
+      this.start();
+    }
+  }
+
+  createScene(): void {
     // create scene
     const bg = addBackground(this, "background");
     this.timerText = addText(this, `${GAME_TIME}:00`, {
@@ -88,34 +92,70 @@ export default class MainGame extends Phaser.Scene {
       maxFontSize: 78,
     });
     this.bg = bg;
-    this.images.push(bg);
-    this.text.push(this.timerText);
-    this.text.push(this.matchText);
-    if (!this.config.playManually) {
-      this.accuracyText = addText(this, "Accuracy: 100%", {
+    this.accuracyText = addText(this, "Accuracy: 100%", {
+      bg,
+      yAnchor: Anchor.start,
+      xAnchor: Anchor.center,
+      widthRel: 0.5,
+      maxFontSize: 48,
+    });
+    this.tweens.add({
+      targets: bg,
+      alpha: { from: 0, to: 1 },
+      duration: 1000,
+    });
+    if (this.config?.playManually) {
+      const logo = addImage(this, "logo", undefined, { bg, y: -200 });
+      const logo2 = addImage(this, "logo2", undefined, {
         bg,
-        yAnchor: Anchor.start,
-        xAnchor: Anchor.end,
-        xRel: 1,
-        widthRel: 0.5,
-        maxFontSize: 48,
+        y: -200,
+      }).setAlpha(0);
+      this.tweens.add({
+        targets: bg,
+        alpha: { from: 0, to: 1 },
+        duration: 1000,
       });
-      this.text.push(this.accuracyText);
+      this.tweens.add({
+        targets: [logo, logo2],
+        y: bg.displayHeight * 0.7,
+        ease: "bounce.out",
+        duration: 1200,
+      });
+      logo.setInteractive();
+      logo.on(
+        "pointerdown",
+        () => {
+          this.sound.play("match");
+          this.tweens.add({
+            targets: logo2,
+            alpha: { from: 0, to: 1 },
+            duration: 250,
+            onComplete: () => {
+              this.tweens.add({
+                targets: logo2,
+                alpha: { from: 1, to: 0 },
+                duration: 250,
+                onComplete: () => {
+                  this.start();
+                  logo.destroy();
+                  logo2.destroy();
+                },
+              });
+            },
+          });
+        },
+        this
+      );
     }
-    // start game
-    this.eventSystem = data.eventSystem;
-    this.mute(data.isMuted);
-    this.changeSpeed(data.speed);
+  }
+
+  start() {
     this.sound.play("music", { loop: true });
     if (this.eventSystem) {
       this.eventSystem.on("pause", this.pause, this);
       this.eventSystem.on("mute", this.mute, this);
       this.eventSystem.on("changeSpeed", this.changeSpeed, this);
     }
-    this.start();
-  }
-
-  start() {
     if (this.config?.playManually) {
       this.config.simulation = this.config.simulator.play();
       this.input.on("gameobjectdown", this.selectFruit, this);
@@ -291,18 +331,5 @@ export default class MainGame extends Phaser.Scene {
     this.speed = speed;
     this.physics.config.timeScale = 1 / this.speed;
     this.time.timeScale = this.speed;
-  }
-
-  resize() {
-    if (!this?.cameras?.main) return;
-    for (const image of this.images) {
-      scaleImage(this, image);
-    }
-    for (const text of this.text) {
-      scaleText(this, text);
-    }
-    for (const fruit of this.fruit) {
-      fruit.setX(this.cameras.main.width * fruit.data.list["x"]);
-    }
   }
 }

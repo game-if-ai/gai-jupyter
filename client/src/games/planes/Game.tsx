@@ -22,8 +22,13 @@ import {
   scaleText,
 } from "../phaser-helpers";
 import { randomInt } from "../../utils";
-import { Bin } from "./MainMenu";
 import { VehicleTypes } from "./types";
+
+interface Bin {
+  bin: Phaser.GameObjects.Sprite;
+  text: Phaser.GameObjects.Text;
+  items: Phaser.GameObjects.Sprite[];
+}
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
@@ -33,16 +38,16 @@ export default class MainGame extends Phaser.Scene {
   eventSystem?: Phaser.Events.EventEmitter;
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
-  itemIdx: number;
-  numCorrect: number;
 
   bg?: Phaser.GameObjects.Image;
   pal?: Phaser.GameObjects.Sprite;
   scoreText?: Phaser.GameObjects.Text;
   bins: Record<string, Bin>;
+  itemIdx: number;
+  numCorrect: number;
 
   constructor() {
-    super("MainGame");
+    super("Game");
     this.speed = 1;
     this.isPaused = false;
     this.isMuted = false;
@@ -86,6 +91,13 @@ export default class MainGame extends Phaser.Scene {
     this.eventSystem = data.eventSystem;
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
+    this.createScene();
+    if (!this.config.playManually) {
+      this.start();
+    }
+  }
+
+  createScene(): void {
     // add background
     const bg = addBackground(this, "background");
     bg.setY(0 + bg.displayHeight / 2);
@@ -134,7 +146,37 @@ export default class MainGame extends Phaser.Scene {
       heightRel: 0.05,
       maxFontSize: 32,
     });
-    this.start();
+    // add buttons
+    if (this.config?.playManually) {
+      const text = addText(this, "Cars, Planes, or Trains?", {
+        bg,
+        widthRel: 0.9,
+        maxFontSize: 78,
+      });
+      const startButton = addImage(this, "button", undefined, {
+        bg,
+        yAnchor: Anchor.end,
+        widthRel: 0.3,
+      });
+      startButton.setY(startButton.y + startButton.displayHeight);
+      const startText = addText(this, "Start!", {
+        bg: startButton,
+        heightRel: 0.5,
+      });
+      // add events
+      startButton.setInteractive();
+      startButton.on(
+        "pointerdown",
+        () => {
+          this.sound.play("match");
+          this.start();
+          text.destroy();
+          startText.destroy();
+          startButton.destroy();
+        },
+        this
+      );
+    }
   }
 
   start() {
@@ -142,6 +184,32 @@ export default class MainGame extends Phaser.Scene {
       this.eventSystem.on("pause", this.pause, this);
       this.eventSystem.on("mute", this.mute, this);
       this.eventSystem.on("changeSpeed", this.changeSpeed, this);
+    }
+    if (this.config?.playManually) {
+      this.config.simulation = this.config.simulator.play();
+      this.input.on(
+        "drag",
+        function (
+          pointer: any,
+          item: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody,
+          dragX: number,
+          dragY: number
+        ) {
+          item.x = dragX;
+          item.y = dragY;
+        }
+      );
+      const ref = this;
+      this.input.on(
+        "drop",
+        function (
+          _pointer: any,
+          item: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody,
+          bin: { name: string }
+        ) {
+          ref.drag(item, bin.name);
+        }
+      );
     }
     // add events
     this.timerEvent = this.time.addEvent({
@@ -187,29 +255,32 @@ export default class MainGame extends Phaser.Scene {
     }
     const simulation = this.config.simulation as PlaneSimulationOutput;
     const spawn = simulation.spawns[this.itemIdx];
-    const response = spawn.classifierOutput!;
+    const response = spawn.classifierOutput;
     const object = this.physics.add.sprite(
       this.cameras.main.displayWidth * spawn.xPos,
       0,
-      `${response.realLabel}${randomInt(10) + 1}`
+      `${spawn.type}${randomInt(10) + 1}`
     );
     object.setDisplaySize(50, 50);
-    object.name = response.realLabel;
-
-    const delay = CLASSIFIER_DELAY + response.confidence * CLASSIFIER_DELAY;
-    const bin = this.bins[response.classifierLabel].bin;
-
-    this.tweens.add({
-      targets: object,
-      x: bin.x - bin.displayWidth / 2 + Math.random() * bin.displayWidth,
-      y: bin.y - bin.displayHeight / 2 + Math.random() * bin.displayHeight,
-      delay: delay / this.speed,
-      duration: 300 / this.speed,
-      ease: "sine.inout",
-      onComplete: () => {
-        this.drag(object, response.classifierLabel);
-      },
-    });
+    object.name = spawn.type;
+    if (response) {
+      const delay = CLASSIFIER_DELAY + response.confidence * CLASSIFIER_DELAY;
+      const bin = this.bins[response.classifierLabel].bin;
+      this.tweens.add({
+        targets: object,
+        x: bin.x - bin.displayWidth / 2 + Math.random() * bin.displayWidth,
+        y: bin.y - bin.displayHeight / 2 + Math.random() * bin.displayHeight,
+        delay: delay / this.speed,
+        duration: 300 / this.speed,
+        ease: "sine.inout",
+        onComplete: () => {
+          this.drag(object, response.classifierLabel);
+        },
+      });
+    } else {
+      object.setInteractive();
+      this.input.setDraggable(object);
+    }
     this.itemIdx++;
   }
 
@@ -222,6 +293,10 @@ export default class MainGame extends Phaser.Scene {
       this.sound.play("wrong");
     }
     item.body.moves = false;
+    if (this.config?.playManually) {
+      item.disableInteractive();
+      this.input.setDraggable(item, false);
+    }
     this.tweens.add({
       targets: item,
       scale: 1.4,
