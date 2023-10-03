@@ -12,10 +12,7 @@ import {
   selectNotebook,
   useJupyter,
 } from "@datalayer/jupyter-react";
-
 import { KernelManager } from "@jupyterlab/services";
-import React, { useEffect, useRef, useState } from "react";
-import { ToastContainer, ToastContainerProps } from "react-toastify";
 import {
   AppBar,
   Button,
@@ -34,6 +31,8 @@ import {
   Save,
   HelpOutlineOutlined,
 } from "@mui/icons-material";
+import React, { useEffect, useRef, useState } from "react";
+import { ToastContainer, ToastContainerProps } from "react-toastify";
 
 import { isGameActivity } from "../games";
 import { useWithNotebook } from "../hooks/use-with-notebook";
@@ -48,13 +47,15 @@ import { TooltipMsg } from "./Dialogue";
 import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
 import { ShortcutKeyboard } from "./ShortcutKeyboard";
-
-import "react-toastify/dist/ReactToastify.css";
 import { useWithImproveCode } from "../hooks/use-with-improve-code";
 import { extractSetupAndValidationCellOutputs } from "../utils";
 import { STEP } from "../store/state";
-import { useAppSelector } from "../store";
+import { useAppDispatch, useAppSelector } from "../store";
 import { useWithState } from "../store/state/useWithState";
+import { useWithSimulator } from "../store/simulator/useWithSimulator";
+import { updateLocalNotebook } from "../store/simulator";
+
+import "react-toastify/dist/ReactToastify.css";
 
 export enum KernelConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -64,15 +65,19 @@ export enum KernelConnectionStatus {
 
 function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const { uniqueUserId } = props;
-  const { loadSimulation, loadExperiment, toStep } = useWithState();
+  const dispatch = useAppDispatch();
+  const activity = useAppSelector((s) => s.state.activity!);
   const experiment = useAppSelector((s) => s.state.experiment);
-  const activity = useAppSelector((s) => s.state.activity);
-  const timesNotebookVisited = useAppSelector(
-    (s) => s.state.timesNotebookVisited
+  const localNotebook = useAppSelector(
+    (s) => s.simulator.localNotebooks[activity.id]
   );
   const isKeyboardOpen = useAppSelector((s) => s.keyboard.isOpen);
+  const pastExperiments = useAppSelector(
+    (s) => s.simulator.experiments[activity.id]
+  );
 
   const classes = useStyles();
+  const { loadSimulation, loadExperiment, toStep } = useWithState();
   const { messages, curMessage, addMessages } = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
   const [kernelStatus, setKernelStatus] = useState(
@@ -80,7 +85,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   );
   const {
     cells,
-    setupCellOutput,
     validationCellOutput,
     userInputCellsCode,
     hasError,
@@ -92,6 +96,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     editCode,
     resetCode,
     saveNotebook,
+    saveLocalChanges,
     runNotebook,
   } = useWithNotebook({
     curActivity: activity!,
@@ -101,7 +106,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
     validationCellOutput: validationCellOutput,
-    timesNotebookVisited,
     activeActivity: activity!,
     notebookIsRunning: notebookIsRunning,
     notebookRunCount,
@@ -111,14 +115,15 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const [curCell, setCurCell] = useState<string>("");
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [showResults, setShowResults] = useState<boolean>(false);
+  const [showLocalChanges, setShowLocalChanges] = useState<boolean>(
+    Boolean(localNotebook && !experiment)
+  );
   const [saveRun, setSaveRun] = useState<boolean>(false);
-
   const [kernel, setKernel] = useState<Kernel>();
-  const [pastExperiments] = useState(activity!.simulator.experiments);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [didScroll, setDidScroll] = useState<boolean>(false);
-  const [scrollPos, setScrollPos] = useState<number>(0);
+  const simulator = useWithSimulator();
   const kernelManager: KernelManager = useJupyter()
     .kernelManager as KernelManager;
 
@@ -247,10 +252,11 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   }, [showDescription, sawTutorial, messages, curMessage, cells]);
 
   useEffect(() => {
-    if (curCell && !Object.keys(cells).includes(curCell)) {
-      scrollRef?.current?.scroll({ top: scrollPos });
+    if (!isSaving && !notebookIsRunning && saveRun) {
+      setSaveRun(false);
+      simulate();
     }
-  }, [cells]);
+  }, [isSaving]);
 
   function saveAndRun(): void {
     if (isEdited) {
@@ -261,24 +267,11 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       simulate();
     }
   }
-  useEffect(() => {
-    if (!isSaving && !notebookIsRunning && saveRun) {
-      setSaveRun(false);
-      simulate();
-    }
-  }, [isSaving]);
 
   function toSimulation(): void {
     if (!notebook) {
       return;
     }
-    activity!.simulator.simulate(
-      setupCellOutput,
-      validationCellOutput,
-      notebook,
-      activity!.id,
-      hints.getDisplayedHints()
-    );
     loadSimulation(0);
   }
 
@@ -292,13 +285,13 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       }
       const [setupCellOutput, validationCellOutput] =
         extractSetupAndValidationCellOutputs(ranNotebook, activity!);
-      const experiment = activity!.simulator.simulate(
+      const experiment = simulator.simulate(
         setupCellOutput,
         validationCellOutput,
         ranNotebook,
-        activity!.id,
         hints.getDisplayedHints()
       );
+      dispatch(updateLocalNotebook({ id: activity.id, notebook: undefined }));
       loadExperiment(experiment);
       setShowResults(true);
     });
@@ -309,6 +302,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   }
 
   function scrollTo(cell: string): void {
+    setCurCell(cell);
     const element = document.getElementById(`cell-${cell}`);
     if (!element || !scrollRef.current) {
       return;
@@ -320,9 +314,39 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     });
   }
 
-  function onScroll(e: React.UIEvent<HTMLDivElement, UIEvent>): void {
+  function onScroll(_e: React.UIEvent<HTMLDivElement, UIEvent>): void {
     if (!scrollRef.current) return;
-    setScrollPos(scrollRef.current.scrollTop);
+    // check which cell is most visible and set it as the current cell in dropdown
+    let visibleCell;
+    let visibleCellPercent = 0;
+    const scrollTop = scrollRef.current.offsetTop + scrollRef.current.scrollTop;
+    const scrollBot = scrollTop + scrollRef.current.offsetHeight;
+    for (const cellId of Object.keys(cells).filter(
+      (cellKey) => !cells[cellKey].hiddenCell
+    )) {
+      const cellEle = document.getElementById(`cell-${cellId}`);
+      if (cellEle) {
+        // Calculate percentage of the element that's been seen
+        const cellTop = cellEle.offsetTop;
+        const cellHeight = cellEle.offsetHeight;
+        const cellBot = cellTop + cellHeight;
+        const percentage = Math.max(
+          0,
+          ((cellHeight -
+            Math.max(0, scrollTop - cellTop) -
+            Math.max(0, cellBot - scrollBot)) /
+            cellHeight) *
+            100
+        );
+        if (!visibleCell || percentage > visibleCellPercent) {
+          visibleCell = cellId;
+          visibleCellPercent = percentage;
+        }
+      }
+    }
+    if (visibleCell && visibleCell !== curCell) {
+      setCurCell(visibleCell);
+    }
   }
 
   function kernelStatusDisplay(): JSX.Element {
@@ -382,33 +406,37 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
   }
 
+  const visibleCells = Object.entries(cells).filter((v) => !v[1].hiddenCell);
   return (
-    <div className={classes.root}>
+    <div data-cy="notebook-root" className={classes.root}>
       <AppBar position="fixed">
         <Toolbar>
           <Select
+            data-cy="select"
+            data-test={curCell}
             value={curCell}
-            onChange={(e) => {
-              scrollTo(e.target.value);
-              setCurCell(e.target.value);
-            }}
+            onChange={(e) => scrollTo(e.target.value)}
             style={{ color: "white", maxWidth: "50%" }}
           >
             {Object.keys(cells)
               .filter((cellKey) => !cells[cellKey].hiddenCell)
               .map((c, i) => (
-                <MenuItem key={i} value={c}>
+                <MenuItem data-cy="select-item" key={i} value={c}>
                   {cells[c].cell.getMetadata("gai_title")}
                 </MenuItem>
               ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
           {kernelStatusDisplay()}
-          <IconButton onClick={() => setShowDescription(true)}>
+          <IconButton
+            data-cy="info-btn"
+            onClick={() => setShowDescription(true)}
+          >
             <Info />
           </IconButton>
           <TooltipMsg elemId="hint">
             <IconButton
+              data-cy="hint-btn"
               disabled={!hints.hintsAvailable || isSaving}
               onClick={() => {
                 hints.toastHint();
@@ -438,11 +466,16 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
                 />
               ) : undefined}
               {isEdited ? (
-                <IconButton disabled={isSaving} onClick={saveAndRun}>
+                <IconButton
+                  data-cy="save-btn"
+                  disabled={isSaving}
+                  onClick={saveAndRun}
+                >
                   <Save />
                 </IconButton>
               ) : (
                 <IconButton
+                  data-cy="run-btn"
                   disabled={
                     hasError ||
                     isSaving ||
@@ -460,6 +493,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       </AppBar>
       <Toolbar />
       <ShortcutKeyboard />
+
       {Object.entries(cells).length === 0 || !notebookInitialized ? (
         <span
           style={{
@@ -477,18 +511,29 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           <CircularProgress />{" "}
         </span>
       ) : (
-        <div className={classes.cells} ref={scrollRef} onScroll={onScroll}>
-          {Object.entries(cells)
-            .filter((v) => !v[1].hiddenCell)
-            .map((v) => (
-              <NotebookEditor
-                key={v[0]}
-                isSaving={isSaving}
-                cellState={v[1]}
-                editCode={editCode}
-                hints={hints}
-              />
-            ))}
+        <div
+          data-cy="cells"
+          className={classes.cells}
+          ref={scrollRef}
+          onScroll={onScroll}
+        >
+          {visibleCells.map((v, i) => (
+            <NotebookEditor
+              key={v[0]}
+              isSaving={isSaving}
+              cellState={v[1]}
+              hints={hints}
+              editCode={editCode}
+              saveLocalChanges={saveLocalChanges}
+              curCell={curCell}
+              onChangeCell={(direction: number) => {
+                const newCell = visibleCells[i + direction];
+                if (newCell) {
+                  scrollTo(newCell[0]);
+                }
+              }}
+            />
+          ))}
         </div>
       )}
       <div style={{ display: "none" }}>
@@ -500,6 +545,17 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           uid={NOTEBOOK_UID}
         />
       </div>
+
+      <ActionPopup
+        open={showDescription}
+        onClose={() => setShowDescription(false)}
+        title={activity!.title}
+        text={activity!.notebookDescription}
+      >
+        <Button data-cy="okay-btn" onClick={() => setShowDescription(false)}>
+          Okay
+        </Button>
+      </ActionPopup>
       <ActionPopup
         open={showResults && !hasError}
         onClose={() => setShowResults(false)}
@@ -508,22 +564,45 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       >
         {isGameActivity(activity!) ? (
           <TooltipMsg elemId="view-sim" placement="bottom">
-            <Button onClick={toSimulation}>View Simulation</Button>
+            <Button data-cy="view-sim-btn" onClick={toSimulation}>
+              View Simulation
+            </Button>
           </TooltipMsg>
         ) : undefined}
         <TooltipMsg elemId="view-summary" placement="bottom">
-          <Button onClick={() => toStep(STEP.SUMMARY)}>View Summary</Button>
+          <Button data-cy="view-sum-btn" onClick={() => toStep(STEP.SUMMARY)}>
+            View Summary
+          </Button>
         </TooltipMsg>
       </ActionPopup>
       <ActionPopup
-        open={showDescription}
-        onClose={() => setShowDescription(false)}
-        title={activity!.title}
-        text={activity!.description}
+        open={showLocalChanges}
+        onClose={() => {}}
+        title="Found unsaved changes"
+        text="You have unsaved local changes from a previous time. Would you like to load them?"
       >
-        <Button onClick={() => setShowDescription(false)}>Okay</Button>
+        <Button
+          onClick={() => {
+            setShowLocalChanges(false);
+            dispatch(
+              updateLocalNotebook({ id: activity.id, notebook: undefined })
+            );
+          }}
+        >
+          No, start fresh
+        </Button>
+        <Button
+          onClick={() => {
+            resetCode(undefined, localNotebook);
+            setShowLocalChanges(false);
+            dispatch(
+              updateLocalNotebook({ id: activity.id, notebook: undefined })
+            );
+          }}
+        >
+          Yes, load previous
+        </Button>
       </ActionPopup>
-      <ToastContainer {...defaultToastOptions} />
       <Popover
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}
@@ -545,6 +624,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           </MenuItem>
         ))}
       </Popover>
+      <ToastContainer {...defaultToastOptions} />
     </div>
   );
 }

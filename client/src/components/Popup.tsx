@@ -50,6 +50,7 @@ export function ActionPopup(props: {
 }): JSX.Element {
   return (
     <Popup
+      data-cy="action-popup"
       open={props.open}
       onClose={props.onClose}
       title={props.title}

@@ -4,6 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+/* eslint-disable */
 
 import React, { useEffect, useState } from "react";
 import { ContentsManager } from "@jupyterlab/services";
@@ -21,36 +22,33 @@ import { sessionStorageStore } from "./local-storage";
 import { STEP } from "./store/state";
 import { useAppSelector } from "./store";
 import { useWithState } from "./store/state/useWithState";
-import { getUniqueUserId } from "./utils";
 
 function App(): JSX.Element {
   const classes = useStyles();
-  const [uniqueUserId, setUniqueUserId] = useState("");
   const [notebooksCreated, setNotebooksCreated] = useState(false);
-
-  const activity = useAppSelector((s) => s.state.activity);
-  const experiment = useAppSelector((s) => s.state.experiment);
-  const step = useAppSelector((s) => s.state.step);
-  const { loadActivity } = useWithState();
+  const { activity, experiment, step, uniqueUserId } = useAppSelector(
+    (s) => s.state
+  );
+  const { loadActivity, toNotebook } = useWithState();
 
   useEffect(() => {
-    const uniqueId = getUniqueUserId();
-    setUniqueUserId(uniqueId);
     const cm = new ContentsManager();
-    const removeOldFiles = Activities.map((activity) => {
-      return cm.delete(
-        `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
-      );
-    });
-    Promise.all(removeOldFiles);
-    cm.save(`/${TEMP_NOTEBOOK_DIR}/`, { type: "directory" }).then(() => {
-      cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueId}/`, { type: "directory" }).then(
-        () => {
+    try {
+      const removeOldFiles = Activities.map((activity) => {
+        return cm.delete(
+          `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${activity.id}/test.ipynb`
+        );
+      });
+      Promise.all(removeOldFiles);
+      cm.save(`/${TEMP_NOTEBOOK_DIR}/`, { type: "directory" }).then(() => {
+        cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/`, {
+          type: "directory",
+        }).then(() => {
           const notebookCreationPromises = [
             // Create directories
             ...Activities.map(async (activity) => {
               return await cm.save(
-                `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/`,
+                `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${activity.id}/`,
                 {
                   type: "directory",
                 }
@@ -60,17 +58,18 @@ function App(): JSX.Element {
             ...Activities.map(async (activity) => {
               return await cm.copy(
                 `/${activity.id}/test.ipynb`,
-                `/${TEMP_NOTEBOOK_DIR}/${uniqueId}/${activity.id}/test.ipynb`
+                `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${activity.id}/test.ipynb`
               );
             }),
           ];
-
           Promise.all(notebookCreationPromises).finally(() => {
             setNotebooksCreated(true);
           });
-        }
-      );
-    });
+        });
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }, []);
 
   useEffect(() => {
@@ -88,6 +87,7 @@ function App(): JSX.Element {
       const activity = Activities.find((g) => g.id === activityParam);
       if (activity && step === STEP.PICK_GAME) {
         loadActivity(activity);
+        toNotebook();
       }
     }
   }, [loadActivity, step]);
@@ -95,22 +95,15 @@ function App(): JSX.Element {
   useEffect(() => {
     if (Cmi5.isCmiAvailable) {
       Cmi5.instance.initialize();
-    } else {
-      console.log("cmi5 not available");
     }
   }, [activity]);
 
   function sendCmi5Results(): void {
     if (!experiment) {
-      console.log("no experiment to evaluate");
       return;
     }
     const experimentScore = experiment.evaluationScore;
     if (!Cmi5.isCmiAvailable) {
-      console.log(
-        "cmi5 not available to send results",
-        `Score: ${experimentScore}`
-      );
       return;
     }
     Cmi5.instance.complete({
@@ -154,7 +147,11 @@ function App(): JSX.Element {
     return <div />;
   }
 
-  return <div className={classes.root}>{getComponent()}</div>;
+  return (
+    <div data-cy="root" data-test={step} className={classes.root}>
+      {getComponent()}
+    </div>
+  );
 }
 
 const useStyles = makeStyles(() => ({

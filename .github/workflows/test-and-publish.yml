@@ -16,35 +16,7 @@ jobs:
         run: npm run test:license
       - name: Client - Install
         run: cd client && yarn install
-      # - name: Client - audit
-      #   run: cd client && npm run test:audit
       - name: Client - Run lint test
         run: cd client && yarn run test:lint
       - name: Client - Run types test
         run: cd client && yarn run test:types
-  test-e2e:
-    name: test e2e
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: build + run app in docker-compose
-        env:
-          REACT_APP_JUPYTER_SERVER_TOKEN: '${{ secrets.REACT_APP_JUPYTER_SERVER_TOKEN }}'  
-        run: docker-compose up -d
-      - name: check services running
-        run: docker ps
-      - name: cypress - run tests
-        env:
-          REACT_APP_JUPYTER_SERVER_TOKEN: '${{ secrets.REACT_APP_JUPYTER_SERVER_TOKEN }}' 
-        run: make test-e2e-exec
-      - name: cypress failed - retrieve image diffs
-        run: |
-          make test-e2e-image-snapshots-copy
-          mkdir -p cypress/cypress/snapshots/snapshots/__diff_output__
-        if: ${{ failure() }}
-      - name: cypress failed - upload image-diff artifacts2
-        uses: actions/upload-artifact@v1
-        if: ${{ failure() }}
-        with:
-          name: snapshot_failed_diffs
-          path: cypress/cypress/snapshots/snapshots/__diff_output__

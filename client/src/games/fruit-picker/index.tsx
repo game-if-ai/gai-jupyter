@@ -5,12 +5,11 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import Phaser from "phaser";
-import { FruitSimulator } from "./simulator";
-import MainMenu from "./MainMenu";
-import MainGame from "./MainGame";
-import { Summary } from "./Summary";
+import FruitGame from "./Game";
+import { Summary } from "./components/summary";
 import { Game } from "..";
 import { useWithFruitPickerCodeExamine } from "./hooks/use-with-fruit-picker-code-examine";
+import { ActivityID } from "../../store/simulator";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -23,19 +22,20 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
       gravity: { y: 150 },
     },
   },
-  scene: [MainMenu, MainGame],
+  scene: [FruitGame],
 };
 
 export const FruitPicker: Game = {
-  id: "fruitpicker",
+  id: ActivityID.fruit,
   title: "Fruit Picker",
   activityType: "GAME",
-  description:
+  gameDescription:
+    "PAL the robot is gathering fruit for their picky human overlords, and they need your help! Train PAL's AI by building a classifier to select fruit based on their physical traits.",
+  notebookDescription:
     "You are trying to build a classifier to select fruit based on their physical traits.",
   config: GameConfig,
-  simulator: new FruitSimulator(),
-  summaryPanel: Summary,
   improveCodeHints: [],
+  summaryPanel: Summary,
   codeExamine: useWithFruitPickerCodeExamine,
 };
 

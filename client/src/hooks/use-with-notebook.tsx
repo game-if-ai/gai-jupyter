@@ -6,7 +6,6 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import { useEffect, useState } from "react";
 import { selectNotebook, selectNotebookModel } from "@datalayer/jupyter-react";
 import { INotebookModel } from "@jupyterlab/notebook";
 import { CellList } from "@jupyterlab/notebook/lib/celllist";
@@ -18,6 +17,7 @@ import {
   isError,
   IError,
 } from "@jupyterlab/nbformat";
+import { useEffect, useState } from "react";
 
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import {
@@ -26,9 +26,9 @@ import {
   extractCellCode,
   formatCellCode,
 } from "../utils";
-import { AllExperimentTypes } from "games/activity-types";
-import { Activity } from "../games";
 import { KernelConnectionStatus } from "../components/Notebook";
+import { useAppDispatch } from "../store";
+import { Activity, Experiment, updateLocalNotebook } from "../store/simulator";
 
 export interface CellState {
   cell: ICellModel;
@@ -45,7 +45,7 @@ export type UserInputCellsCode = Record<string, string[]>;
 
 export function useWithNotebook(props: {
   curActivity: Activity;
-  curExperiment?: AllExperimentTypes;
+  curExperiment?: Experiment;
   kernelStatus: KernelConnectionStatus;
 }) {
   const { curActivity, curExperiment, kernelStatus } = props;
@@ -54,6 +54,7 @@ export function useWithNotebook(props: {
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
   const [curExperimentLoaded, setCurExperimentLoaded] = useState(false);
 
+  const dispatch = useAppDispatch();
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
   const [validationCellOutput, setValidationCellOutput] = useState<any[]>([]);
   const [cells, setCells] = useState<CellsStates>({});
@@ -237,7 +238,21 @@ export function useWithNotebook(props: {
     });
   }
 
-  function resetCode(experiment?: AllExperimentTypes): void {
+  function saveLocalChanges(): void {
+    // save local changes temporarily
+    if (notebook?.model) {
+      const nbc = notebook.model.toJSON() as INotebookContent;
+      for (const [i, cell] of Object.values(cells).entries()) {
+        nbc.cells[i].source = cell.code;
+      }
+      dispatch(updateLocalNotebook({ id: curActivity.id, notebook: nbc }));
+    }
+  }
+
+  function resetCode(
+    experiment?: Experiment,
+    localNotebook?: INotebookContent
+  ): void {
     if (!notebook?.adapter) {
       return;
     }
@@ -249,6 +264,10 @@ export function useWithNotebook(props: {
       setNotebookConnected(false);
     } else if (curExperiment?.notebookContent) {
       notebook.adapter.setNotebookModel(curExperiment.notebookContent);
+      setIsEdited(true);
+      setNotebookConnected(false);
+    } else if (localNotebook) {
+      notebook.adapter.setNotebookModel(localNotebook);
       setIsEdited(true);
       setNotebookConnected(false);
     }
@@ -285,6 +304,7 @@ export function useWithNotebook(props: {
     notebookRunCount,
     notebookInitialRunComplete: notebookRunCount > 0,
     saveNotebook,
+    saveLocalChanges,
     runNotebook,
     editCode,
     resetCode,

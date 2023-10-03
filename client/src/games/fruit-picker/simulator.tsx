@@ -5,29 +5,22 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import { Fruit, Fruits, FruitTrait } from "./types";
-import { Experiment, Simulator } from "../simulator";
-import {
-  average,
-  random,
-  randomInt,
-  storeNotebookExperimentInGql,
-} from "../../utils";
 import { INotebookState } from "@datalayer/jupyter-react";
-import { ActivityID } from "games";
+import { Fruit, Fruits, FruitTrait } from "./types";
+import { average, random, randomInt } from "../../utils";
 import { evaluateFruitPickerExperiment } from "./hooks/fruit-picker-score-evaluation";
-import { FruitPickerCodeInfo } from "./hooks/use-with-fruit-picker-code-examine";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
+import {
+  ActivityID,
+  Experiment,
+  GameSimulationsSummary,
+  Simulator,
+} from "../../store/simulator";
+import { initSimulate } from "../../store/simulator/useWithSimulator";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
 export const CLASSIFIER_DELAY = 2000; // delay in ms for classifier catch speed at 0 confidence
-
-export type FruitPickerExperiment = Experiment<
-  FruitSimulationOutput,
-  FruitSimulationsSummary,
-  FruitPickerCodeInfo
->;
 
 export interface FruitClassifierInput {
   fruit: Fruit;
@@ -44,16 +37,7 @@ export interface FruitSimulationOutput {
   spawns: FruitSpawn[];
 }
 
-export interface FruitSimulationsSummary {
-  lowAccuracy: number;
-  highAccuracy: number;
-  averageAccuracy: number;
-  averagePrecision: number;
-  averageRecall: number;
-  averageF1Score: number;
-  lowF1Score: number;
-  highF1Score: number;
-}
+export interface FruitSimulationsSummary extends GameSimulationsSummary {}
 
 export interface FruitClassifierOutput {
   fruit: Fruit;
@@ -70,16 +54,31 @@ export interface FruitSpawn {
   classifierOutput?: FruitClassifierOutput;
 }
 
-export class FruitSimulator extends Simulator<
-  FruitSimulationOutput,
-  FruitSimulationsSummary,
-  FruitPickerCodeInfo
-> {
-  scoreExperiment(experiment: FruitPickerExperiment): number {
+export function FruitSimulator(): Simulator {
+  function scoreExperiment(experiment: Experiment): number {
     return evaluateFruitPickerExperiment(experiment);
   }
 
-  play(): FruitSimulationOutput {
+  function updateSummary(
+    simulations: FruitSimulationOutput[],
+    summary: FruitSimulationsSummary
+  ): FruitSimulationsSummary {
+    const accuracies = simulations.map((s) => s.accuracy);
+    const precisions = simulations.map((s) => s.precision);
+    const recalls = simulations.map((s) => s.recall);
+    const f1Scores = simulations.map((s) => s.f1Score);
+    summary.lowAccuracy = Math.min(...accuracies);
+    summary.highAccuracy = Math.max(...accuracies);
+    summary.averageAccuracy = average(accuracies);
+    summary.averagePrecision = average(precisions);
+    summary.averageRecall = average(recalls);
+    summary.averageF1Score = average(f1Scores);
+    summary.lowF1Score = Math.min(...f1Scores);
+    summary.highF1Score = Math.max(...f1Scores);
+    return summary;
+  }
+
+  function play(): FruitSimulationOutput {
     const traits = Object.values(FruitTrait);
     const numFruitSpawned = Math.floor((GAME_TIME * 1000) / SPAWN_TIME);
     const label = traits[randomInt(traits.length)];
@@ -101,41 +100,20 @@ export class FruitSimulator extends Simulator<
     };
   }
 
-  updateSummary(
-    simulations: FruitSimulationOutput[],
-    summary: FruitSimulationsSummary
-  ): FruitSimulationsSummary {
-    const accuracies = simulations.map((s) => s.accuracy);
-    const precisions = simulations.map((s) => s.precision);
-    const recalls = simulations.map((s) => s.recall);
-    const f1Scores = simulations.map((s) => s.f1Score);
-    summary.lowAccuracy = Math.min(...accuracies);
-    summary.highAccuracy = Math.max(...accuracies);
-    summary.averageAccuracy = average(accuracies);
-    summary.averagePrecision = average(precisions);
-    summary.averageRecall = average(recalls);
-    summary.averageF1Score = average(f1Scores);
-    summary.lowF1Score = Math.min(...f1Scores);
-    summary.highF1Score = Math.max(...f1Scores);
-    return summary;
-  }
-
-  simulate(
+  function simulate(
     inputs: number[],
     outputs: FruitClassifierOutput[][],
     notebook: INotebookState,
-    activityId: ActivityID,
     displayedHints: ImproveCodeHint[]
-  ): FruitPickerExperiment {
-    const experiment = super.simulate(
+  ): Experiment {
+    const experiment = initSimulate(
       inputs,
-      outputs,
       notebook,
-      activityId,
+      ActivityID.fruit,
       displayedHints
     );
     for (let run = 0; run < outputs.length; run++) {
-      const sim = this.play();
+      const sim = play();
       const simClassifierData = outputs[run];
       const fruits = outputs[run].map((o) => o.fruit);
       sim.label = outputs[run][0].label as FruitTrait;
@@ -208,19 +186,18 @@ export class FruitSimulator extends Simulator<
       sim.recall = sumTruePositives / (sumTruePositives + sumFalseNegatives);
       sim.f1Score =
         (2 * sim.precision * sim.recall) / (sim.precision + sim.recall);
-      // sim.accuracy = (sumTruePositives + sumTrueNegatives) / (sumTruePositives + sumTrueNegatives + sumFalseNegatives + sumFalsePositives)
       experiment.simulations.push(sim);
     }
-
-    experiment.summary = this.updateSummary(
-      experiment.simulations,
-      experiment.summary
+    experiment.summary = updateSummary(
+      experiment.simulations as FruitSimulationOutput[],
+      experiment.summary as FruitSimulationsSummary
     );
-    experiment.evaluationScore = this.scoreExperiment(experiment);
-    if (experiment.simulations.length > 0) {
-      this.experiments.push(experiment);
-    }
-    storeNotebookExperimentInGql(experiment);
+    experiment.evaluationScore = scoreExperiment(experiment);
     return experiment;
   }
+
+  return {
+    play,
+    simulate,
+  };
 }

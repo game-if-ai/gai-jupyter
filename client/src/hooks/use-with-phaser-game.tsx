@@ -7,14 +7,15 @@ The full terms of this copyright and license should always be found in the root 
 /* eslint-disable */
 
 import React, { useEffect, useState } from "react";
-import { SIMULATION_TYPES } from "games/activity-types";
 import { Game } from "../games";
+import { SimulationOutput } from "../store/simulator";
+import { useWithSimulator } from "../store/simulator/useWithSimulator";
 
 export function useWithPhaserGame(
   gameContainerRef: React.MutableRefObject<HTMLDivElement | null>
 ) {
   const [game, setGame] = useState<Game>();
-  const [simulation, setSimulation] = useState<SIMULATION_TYPES>();
+  const [simulation, setSimulation] = useState<SimulationOutput>();
   const [phaserGame, setPhaserGame] = useState<Phaser.Game>();
   const [eventSystem] = useState<Phaser.Events.EventEmitter>(
     new Phaser.Events.EventEmitter()
@@ -22,7 +23,9 @@ export function useWithPhaserGame(
   const [speed, setSpeed] = useState<number>(1);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+
   const hasGame = Boolean(gameContainerRef.current?.firstChild);
+  const simulator = useWithSimulator();
 
   useEffect(() => {
     if (!game || phaserGame || hasGame) {
@@ -39,19 +42,18 @@ export function useWithPhaserGame(
     };
     const pg = new Phaser.Game(config);
     const playManually = simulation === undefined;
-    const scene = playManually ? "MainMenu" : "MainGame";
-    pg.scene.start(scene, {
+    pg.scene.start("Game", {
       playManually,
       isMuted,
       speed,
       eventSystem,
-      simulator: game.simulator,
+      simulator,
       simulation,
     });
     setPhaserGame(pg);
   }, [phaserGame, game, hasGame]);
 
-  function loadPhaserGame(game: Game, simulation?: SIMULATION_TYPES): void {
+  function loadPhaserGame(game: Game, simulation?: SimulationOutput): void {
     if (phaserGame) {
       destroyPhaserGame();
     }

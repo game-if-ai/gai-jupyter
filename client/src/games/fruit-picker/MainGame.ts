@@ -8,33 +8,26 @@ The full terms of this copyright and license should always be found in the root 
 import Phaser from "phaser";
 import {
   CLASSIFIER_DELAY,
+  FruitSimulationOutput,
   GAME_TIME,
   SPAWN_TIME,
-  FruitSimulationOutput,
-  FruitSimulationsSummary,
 } from "./simulator";
 import { Fruits } from "./types";
 import { GameParams } from "..";
 import {
-  addBackgroundImage,
+  addBackground,
   addText,
+  Anchor,
   scaleImage,
   scaleText,
 } from "../phaser-helpers";
-import { FruitPickerCodeInfo } from "./hooks/use-with-fruit-picker-code-examine";
-
-export type FruitGameParams = GameParams<
-  FruitSimulationOutput,
-  FruitSimulationsSummary,
-  FruitPickerCodeInfo
->;
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
   isPaused: boolean;
   isMuted: boolean;
   numCorrect: number;
-  config?: FruitGameParams;
+  config?: GameParams;
   eventSystem?: Phaser.Events.EventEmitter;
 
   fruit: Phaser.GameObjects.Sprite[];
@@ -45,6 +38,7 @@ export default class MainGame extends Phaser.Scene {
   timerEvent?: Phaser.Time.TimerEvent;
   spawnEvent?: Phaser.Time.TimerEvent;
 
+  bg?: Phaser.GameObjects.Image;
   images: Phaser.GameObjects.Image[];
   text: Phaser.GameObjects.Text[];
 
@@ -62,45 +56,49 @@ export default class MainGame extends Phaser.Scene {
 
   preload() {
     this.load.setPath("assets/fruit-picker");
-    this.load.image("background", "background.png");
+    this.load.image("background", "background.jpg");
     this.load.image("logo", "logo.png");
-    this.load.setPath("assets/fruit-picker/fruit");
     for (const f of Fruits) {
-      this.load.image(f.name, `${f.sprite}.png`);
+      this.load.image(f.name, `fruit/${f.sprite}.png`);
     }
-    this.load.setPath("assets/fruit-picker/sounds");
+    this.load.setPath("assets/sounds");
     this.load.audio("music", ["music.ogg", "music.mp3"]);
     this.load.audio("countdown", ["countdown.ogg", "countdown.mp3"]);
     this.load.audio("match", ["match.ogg", "match.mp3"]);
   }
 
-  create(data: FruitGameParams) {
+  create(data: GameParams) {
     window.addEventListener("resize", () => {
       this.resize();
     });
     this.config = data;
     // create scene
-    this.images.push(addBackgroundImage(this, "background"));
+    const bg = addBackground(this, "background");
     this.timerText = addText(this, `${GAME_TIME}:00`, {
-      x: 5,
-      width: 0.4,
+      bg,
+      yAnchor: Anchor.start,
+      xAnchor: Anchor.start,
+      widthRel: 0.5,
       maxFontSize: 48,
     });
     this.matchText = addText(this, "Catch the fruits!", {
-      xRel: 0.5,
-      yRel: 1,
-      width: 1,
+      bg,
+      yAnchor: Anchor.end,
+      widthRel: 1,
       maxFontSize: 78,
     });
+    this.bg = bg;
+    this.images.push(bg);
     this.text.push(this.timerText);
     this.text.push(this.matchText);
     if (!this.config.playManually) {
       this.accuracyText = addText(this, "Accuracy: 100%", {
-        x: -5,
+        bg,
+        yAnchor: Anchor.start,
+        xAnchor: Anchor.end,
         xRel: 1,
-        width: 0.4,
-        height: 0.1,
-        maxFontSize: 32,
+        widthRel: 0.5,
+        maxFontSize: 48,
       });
       this.text.push(this.accuracyText);
     }
@@ -139,10 +137,11 @@ export default class MainGame extends Phaser.Scene {
       callback: this.spawnFruit,
       callbackScope: this,
     });
+    const simulation = this.config?.simulation as FruitSimulationOutput;
     scaleText(
       this,
       this.matchText!,
-      `Catch the ${this.config?.simulation?.matchLabel} fruits!`
+      `Catch the ${simulation?.matchLabel} fruits!`
     );
   }
 
@@ -171,13 +170,13 @@ export default class MainGame extends Phaser.Scene {
   }
 
   spawnFruit() {
-    if (!this.config || !this.config.simulation) {
+    if (!this.config || !this.config.simulation || !this.bg) {
       return;
     }
-    const simulation = this.config.simulation;
+    const simulation = this.config.simulation as FruitSimulationOutput;
     const fruit = simulation.spawns[this.fruitIdx];
     const fruitObj = this.physics.add.sprite(
-      this.cameras.main.width * fruit.xPos,
+      this.bg.displayWidth * fruit.xPos,
       0,
       fruit.fruit.name
     );
@@ -219,10 +218,8 @@ export default class MainGame extends Phaser.Scene {
       return;
     }
     fruit.state = "deleting";
-    if (
-      fruit.data.list[this.config.simulation.label] ===
-      this.config.simulation.matchLabel
-    ) {
+    const simulation = this.config.simulation as FruitSimulationOutput;
+    if (fruit.data.list[simulation.label] === simulation.matchLabel) {
       this.tweens.add({
         targets: fruit,
         scale: 1.4,

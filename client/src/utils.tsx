@@ -5,20 +5,24 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import { Completion } from "@codemirror/autocomplete";
-
-import { INotebookState, newUuid } from "@datalayer/jupyter-react";
+import { INotebookState } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
 import Cmi5, { LaunchParameters } from "@xapi/cmi5";
-import { GaiCellTypes, UNIQUE_USER_ID_LS } from "./local-constants";
-import { UserInputCellsCode } from "./hooks/use-with-notebook";
-import { localStorageGet, localStorageStore } from "./local-storage";
-import { AllExperimentTypes, GameExperimentTypes } from "games/activity-types";
 import { EditorView } from "codemirror";
+
+import { GaiCellTypes } from "./local-constants";
 import { submitNotebookExperimentGQL } from "./api";
-import { Activity, ActivityID } from "./games";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
+import { UserInputCellsCode } from "hooks/use-with-notebook";
+import { Activity, ActivityID, Experiment } from "store/simulator";
+
+export function waitMs(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 export function copyAndSet<T>(a: T[], i: number, item: T): T[] {
   return [...a.slice(0, i), item, ...a.slice(i + 1)];
@@ -45,6 +49,10 @@ export function randomInt(max: number, min: number = 0): number {
 export function average(arr: number[]) {
   const total = arr.reduce((acc, c) => acc + c, 0);
   return total / arr.length;
+}
+
+export function round(n: number): string {
+  return `${Math.round(n * 100)}%`;
 }
 
 export function capitalizeFirst(word: string): string {
@@ -187,7 +195,10 @@ export function splitListOfStringsBy(strings: string[], delimiter: string) {
   }, []);
 }
 
-function f1ScoreComparison(a: GameExperimentTypes, b: GameExperimentTypes) {
+function f1ScoreComparison(a: Experiment, b: Experiment) {
+  if (!("averageF1Score" in a.summary) || !("averageF1Score" in b.summary)) {
+    return 0;
+  }
   if (a.summary.averageF1Score < b.summary.averageF1Score) {
     return -1;
   }
@@ -197,11 +208,14 @@ function f1ScoreComparison(a: GameExperimentTypes, b: GameExperimentTypes) {
   return 0;
 }
 
-export function sortExperimentsByF1Score(experiments: GameExperimentTypes[]) {
+export function sortExperimentsByF1Score(experiments: Experiment[]) {
   return experiments.slice().sort(f1ScoreComparison);
 }
 
-export function getCmiParams(notebookActivityId: string): LaunchParameters {
+export function getCmiParams(
+  notebookActivityId: string,
+  userId: string
+): LaunchParameters {
   const searchParams = new URL(window.location.href).searchParams;
   const activityId = searchParams.get("activityId") || notebookActivityId;
   const actor = searchParams.get("actor") || "{}";
@@ -211,7 +225,7 @@ export function getCmiParams(notebookActivityId: string): LaunchParameters {
 
   let launchParams: LaunchParameters = {
     activityId: activityId,
-    actor: { objectType: "Agent", name: getUniqueUserId() },
+    actor: { objectType: "Agent", name: userId },
     endpoint: endpoint,
     fetch: fetch,
     registration: registration,
@@ -242,17 +256,6 @@ export function getCmiParams(notebookActivityId: string): LaunchParameters {
     }
   }
   return launchParams;
-}
-
-export function getUniqueUserId(): string {
-  const uniqueIdFromLocalStorage = localStorageGet(UNIQUE_USER_ID_LS);
-  const effectiveUniqueId = uniqueIdFromLocalStorage || newUuid();
-  localStorageStore(UNIQUE_USER_ID_LS, effectiveUniqueId);
-  return effectiveUniqueId;
-}
-
-export function round(n: number): string {
-  return `${Math.round(n * 100)}%`;
 }
 
 export function extractAllUserInputCode(notebookContent: INotebookContent) {
@@ -307,7 +310,10 @@ export const apply = (view: EditorView, completion: Completion) => {
   return true;
 };
 
-export function storeNotebookExperimentInGql(experiment: AllExperimentTypes) {
+export function storeNotebookExperimentInGql(
+  experiment: Experiment,
+  userId: string
+) {
   const {
     activityId,
     notebookContent: notebookState,
@@ -315,7 +321,7 @@ export function storeNotebookExperimentInGql(experiment: AllExperimentTypes) {
     displayedHints,
   } = experiment;
   submitNotebookExperimentGQL({
-    cmi5LaunchParameters: getCmiParams(experiment.activityId),
+    cmi5LaunchParameters: getCmiParams(experiment.activityId, userId),
     activityId,
     notebookState: JSON.stringify(notebookState || "{}"),
     summary,

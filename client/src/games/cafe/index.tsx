@@ -6,16 +6,15 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import Phaser from "phaser";
-import { CafeSimulator } from "./simulator";
-import MainMenu from "./MainMenu";
-import MainGame from "./MainGame";
-import { Summary } from "./Summary";
+import CafeGame from "./Game";
+import { Summary } from "./components/summary";
 import { Game } from "..";
 import {
   CafeCodeInfo,
   useWithCafeCodeExamine,
 } from "./hooks/use-with-cafe-code-examine";
 import { apply } from "../../utils";
+import { ActivityID } from "../../store/simulator";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -28,14 +27,16 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
       gravity: { y: 150 },
     },
   },
-  scene: [MainMenu, MainGame],
+  scene: [CafeGame],
 };
 
 export const Cafe: Game = {
-  id: "cafe",
+  id: ActivityID.cafe,
   title: "Bought or Not!",
   activityType: "GAME",
-  description:
+  gameDescription:
+    "PAL the robot is sorting products based on customer feedback, and they need your help! Based on the review, should the product be Bought or Not? Train PAL's AI by completing a notebook to build a sentiment classifier.",
+  notebookDescription:
     "Please complete this notebook to build a sentiment classifier. You will receive hints on how to improve its performance as you go.",
   config: GameConfig,
   autocompletion: [
@@ -216,7 +217,6 @@ export const Cafe: Game = {
       },
     },
   ],
-  simulator: new CafeSimulator(),
   summaryPanel: Summary,
   codeExamine: useWithCafeCodeExamine,
 };

@@ -132,7 +132,7 @@ function GamePlayer(): JSX.Element {
   }
 
   return (
-    <div>
+    <div data-cy="simulation-panel-root">
       <div className={classes.controls}>
         <Button sx={{ textTransform: "none" }} onClick={toNotebook}>
           Notebook

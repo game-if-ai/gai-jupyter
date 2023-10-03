@@ -5,33 +5,35 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import {
   Button,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
+  Typography,
 } from "@mui/material";
-import { Activities, Activity, isGameActivity } from "../games";
+import { Activities, isGameActivity } from "../games";
 import { useWithPhaserGame } from "../hooks/use-with-phaser-game";
 import { useWithWindowSize } from "../hooks/use-with-window-size";
+import { useAppSelector } from "../store";
 import { useWithState } from "../store/state/useWithState";
 
 function ActivityPicker(): JSX.Element {
-  const [activity, setActivity] = useState<Activity>();
+  const activity = useAppSelector((s) => s.state.activity);
   const { width, height } = useWithWindowSize();
   const gameContainerRef = useRef<HTMLDivElement | null>(null);
   const { loadPhaserGame, destroyPhaserGame } =
     useWithPhaserGame(gameContainerRef);
-  const { loadActivity } = useWithState();
+  const { loadActivity, toNotebook } = useWithState();
 
   function selectGame(id: string): void {
     const activity = Activities.find((g) => g.id === id);
     if (!activity) {
       return;
     }
-    setActivity(activity);
+    loadActivity(activity);
     if (isGameActivity(activity)) {
       loadPhaserGame(activity);
     }
@@ -42,33 +44,38 @@ function ActivityPicker(): JSX.Element {
       return;
     }
     destroyPhaserGame();
-    loadActivity(activity);
+    toNotebook();
   }
 
   return (
-    <div>
+    <div data-cy="activity-picker-root">
       <div style={{ paddingTop: 20, paddingLeft: 20, paddingRight: 20 }}>
         <FormControl fullWidth>
           <InputLabel>Select Game</InputLabel>
           <Select
+            data-cy="select"
             value={activity?.id || ""}
             label="Select Game"
             onChange={(e) => selectGame(e.target.value)}
           >
             {Activities.map((g) => (
-              <MenuItem key={g.id} value={g.id}>
+              <MenuItem data-cy={`${g.id}`} key={g.id} value={g.id}>
                 {g.title}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
-        <Button disabled={!activity} onClick={confirm}>
+        <Button data-cy="next-btn" disabled={!activity} onClick={confirm}>
           Confirm
         </Button>
+        <Typography data-cy="description">
+          {activity?.gameDescription}
+        </Typography>
       </div>
       <div
+        data-cy="game-container"
         id="game-container"
-        style={{ width, height: height - 125 }}
+        style={{ width, height: height - 200 }}
         ref={gameContainerRef}
       />
     </div>

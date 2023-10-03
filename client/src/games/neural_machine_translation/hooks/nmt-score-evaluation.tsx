@@ -1,7 +1,9 @@
-import { NMTExperiment } from "../simulator";
+import { Experiment } from "store/simulator";
+import { NMTCodeInfo } from "./use-with-nn-code-examine";
 
-export function evaluteNMTExperiment(curExperiment: NMTExperiment) {
+export function evaluteNMTExperiment(curExperiment: Experiment) {
   let finalScore = 0;
+  const codeInfo = curExperiment.codeInfo as NMTCodeInfo;
   const pointsPerElement = 1 / 12;
   const {
     callsFitOnTexts,
@@ -16,7 +18,7 @@ export function evaluteNMTExperiment(curExperiment: NMTExperiment) {
     dataIsNumpyArray,
     preprocessedDataCorrectDimensions,
     outputCorrectlyFormatted,
-  } = curExperiment.codeInfo;
+  } = codeInfo;
   callsFitOnTexts && (finalScore += pointsPerElement);
   callsTextsToSequences && (finalScore += pointsPerElement);
   callsPadSequences && (finalScore += pointsPerElement);

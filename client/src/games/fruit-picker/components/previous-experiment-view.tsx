@@ -16,20 +16,19 @@ import {
   round,
   sortExperimentsByF1Score,
 } from "../../../utils";
-import { FruitPickerExperiment } from "../simulator";
-import { AllExperimentTypes } from "../../activity-types";
 import { useAppSelector } from "../../../store";
+import { FruitSimulationsSummary } from "../simulator";
+import { Experiment } from "store/simulator";
 
 export function FruitPickerPreviousExperimentsView(props: {
   classes: Record<string, any>;
-  setExperiment: (e: AllExperimentTypes) => void;
+  setExperiment: (e: Experiment) => void;
 }) {
   const activity = useAppSelector((s) => s.state.activity!);
-  const currentExperiment = useAppSelector(
-    (s) => s.state.experiment! as FruitPickerExperiment
+  const currentExperiment = useAppSelector((s) => s.state.experiment!);
+  const previousExperiments = useAppSelector(
+    (s) => s.simulator.experiments[activity.id]
   );
-  const previousExperiments = activity.simulator
-    .experiments as FruitPickerExperiment[];
 
   const { classes, setExperiment } = props;
   const experimentsSortedByF1score =
@@ -78,7 +77,9 @@ export function FruitPickerPreviousExperimentsView(props: {
                 previousExperiment.id === currentExperiment.id;
               const isBestExperiment = bestRunId === previousExperiment.id;
               const isWorstExperiment = worstRunId === previousExperiment.id;
-              const { summary, time: dateOfExperiment } = previousExperiment;
+              const summary =
+                previousExperiment.summary as FruitSimulationsSummary;
+              const dateOfExperiment = previousExperiment.time;
               return (
                 <TableRow
                   key={i}

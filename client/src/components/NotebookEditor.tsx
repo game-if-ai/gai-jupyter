@@ -33,12 +33,13 @@ import {
 } from "@codemirror/commands";
 import { keymap } from "@codemirror/view";
 
-import { CellState } from "../hooks/use-with-notebook";
+import { pythonLibs } from "../python-autocomplete-libs";
 import { capitalizeFirst } from "../utils";
-import { useWithDialogue } from "../store/dialogue/useWithDialogue";
-import { UseWithImproveCode } from "../hooks/use-with-improve-code";
 import { useAppSelector } from "../store";
+import { useWithDialogue } from "../store/dialogue/useWithDialogue";
 import { useWithShortcutKeys } from "../store/keyboard/useWithKeyboard";
+import { UseWithImproveCode } from "../hooks/use-with-improve-code";
+import { CellState } from "../hooks/use-with-notebook";
 import { TooltipMsg } from "./Dialogue";
 import { Output } from "./Output";
 
@@ -74,10 +75,13 @@ const customErrorMessages: CustomErrorMessage[] = [
 ];
 
 export function NotebookEditor(props: {
+  curCell: string;
   cellState: CellState;
   hints: UseWithImproveCode;
   isSaving: boolean;
   editCode: (cell: string, code: string) => void;
+  saveLocalChanges: () => void;
+  onChangeCell: (direction: number) => void;
 }): JSX.Element {
   const classes = useStyles();
   const { cellState, hints, isSaving } = props;
@@ -101,7 +105,7 @@ export function NotebookEditor(props: {
     if (!word || (word.from === word.to && !context.explicit)) return null;
     return {
       from: word.from,
-      options: activity.autocompletion,
+      options: [...(activity.autocompletion || []), ...pythonLibs],
     };
   }
 
@@ -115,6 +119,35 @@ export function NotebookEditor(props: {
     const extensions = [
       python(), // python language
       keymap.of([indentWithTab]), // enable TAB key
+      // navigate between cells with up/down arrow
+      keymap.of([
+        {
+          key: "ArrowDown",
+          run(target) {
+            const lineNum = target.state.doc.lineAt(
+              target.state.selection.main.head
+            ).number;
+            if (lineNum === target.state.doc.lines) {
+              props.onChangeCell(1);
+            }
+            return false;
+          },
+        },
+      ]),
+      keymap.of([
+        {
+          key: "ArrowUp",
+          run(target) {
+            const lineNum = target.state.doc.lineAt(
+              target.state.selection.main.head
+            ).number;
+            if (lineNum === 1) {
+              props.onChangeCell(-1);
+            }
+            return false;
+          },
+        },
+      ]),
       indentUnit.of("    "), // use 4 spaces for indents
       EditorState.readOnly.of(isDisabled), // disable editing
       EditorView.focusChangeEffect.of((_, focusing) => {
@@ -122,8 +155,8 @@ export function NotebookEditor(props: {
         if (focusing) selectCell(cell);
         return StateEffect.define(undefined).of(null);
       }),
-      lintCompartment.of(linter(() => [])),
       autocompletion({ optionClass: () => "autocompleteOption" }),
+      lintCompartment.of(linter(() => [])),
       isDisabled ? minimalSetup : basicSetup,
     ];
     if (!isDisabled) {
@@ -143,16 +176,27 @@ export function NotebookEditor(props: {
         })
       );
     }
-    setEditor(
-      new EditorView({
-        state: EditorState.create({
-          doc: cell.toJSON().source as string,
-          extensions,
-        }),
-        parent: doc,
-      })
-    );
+    const ed = new EditorView({
+      state: EditorState.create({
+        doc: cell.toJSON().source as string,
+        extensions,
+      }),
+      parent: doc,
+    });
+    ed.dom.addEventListener("input", async (e) => {
+      e.stopPropagation();
+      props.saveLocalChanges();
+    });
+    setEditor(ed);
   }, [cell]);
+
+  useEffect(() => {
+    if (!editor || props.curCell !== cellId) {
+      return;
+    }
+    editor.focus();
+    editor.dispatch({ selection: { anchor: 0 } });
+  }, [props.curCell]);
 
   useEffect(() => {
     if (isDisabled) {
@@ -266,6 +310,7 @@ export function NotebookEditor(props: {
 
   return (
     <div
+      data-cy="cell"
       id={`cell-${cellId}`}
       style={{
         backgroundColor: isDisabled ? "#E3E3E3" : "#FFFFFF",
@@ -277,6 +322,7 @@ export function NotebookEditor(props: {
         ) : (
           <div>
             <IconButton
+              data-cy="undo-btn"
               disabled={!editor || undoDepth(editor.state) === 0}
               onClick={() =>
                 undo({
@@ -288,6 +334,7 @@ export function NotebookEditor(props: {
               <Undo />
             </IconButton>
             <IconButton
+              data-cy="redo-btn"
               disabled={!editor || redoDepth(editor.state) === 0}
               onClick={() =>
                 redo({
@@ -307,6 +354,7 @@ export function NotebookEditor(props: {
         </TooltipMsg>
         {isDisabled ? undefined : (
           <IconButton
+            data-cy="hint-btn"
             disabled={!hints.hintsAvailable || isSaving}
             onClick={() => {
               hints.toastHint();
@@ -319,6 +367,8 @@ export function NotebookEditor(props: {
         <div style={{ flexGrow: 1 }} />
         <TooltipMsg elemId={`output-${cellId}`}>
           <Button
+            data-cy="output-btn"
+            data-test={showOutput || hasError}
             data-elemid={`output-${cellId}`}
             startIcon={
               showOutput || hasError ? <Visibility /> : <VisibilityOff />
@@ -330,7 +380,12 @@ export function NotebookEditor(props: {
         </TooltipMsg>
       </div>
       <div id={`code-input-${cellId}`} />
-      <Collapse in={showOutput || hasError} timeout={500} unmountOnExit>
+      <Collapse
+        data-cy="output"
+        in={showOutput || hasError}
+        timeout={500}
+        unmountOnExit
+      >
         {outputElement}
       </Collapse>
     </div>

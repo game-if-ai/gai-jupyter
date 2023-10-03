@@ -10,41 +10,58 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 
-import {
-  DialogueMessage,
-  useWithDialogue,
-} from "../store/dialogue/useWithDialogue";
-import { AllExperimentTypes } from "../games/activity-types";
 import { CafeCurrentExperimentView } from "../games/cafe/components/current-experiment-view";
 import { CafePreviousExperimentsView } from "../games/cafe/components/previous-experiment-view";
 import { FruitPickerCurrentExperimentView } from "../games/fruit-picker/components/current-experiment-view";
 import { FruitPickerPreviousExperimentsView } from "../games/fruit-picker/components/previous-experiment-view";
 import { NMTCurrentExperimentView } from "../games/neural_machine_translation/components/current-experiment-view";
-import { useWithState } from "../store/state/useWithState";
+import { PlaneCurrentExperimentView } from "../games/planes/components/current-experiment-view";
+import { PlanePreviousExperimentsView } from "../games/planes/components/previous-experiment-view";
 import { useAppSelector } from "../store";
+import { ActivityID, Experiment } from "../store/simulator";
+import { useWithState } from "../store/state/useWithState";
+import {
+  DialogueMessage,
+  useWithDialogue,
+} from "../store/dialogue/useWithDialogue";
 
 function Summary(props: { onSubmit: () => void }): JSX.Element {
   const { loadExperiment } = useWithState();
   const activity = useAppSelector((s) => s.state.activity!);
   const experiment = useAppSelector((s) => s.state.experiment!);
+  const previousExperiments = useAppSelector(
+    (s) => s.simulator.experiments[activity.id]
+  );
   const summary = experiment.summary;
-  const previousExperiments = activity.simulator.experiments;
 
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
   const { addMessages } = useWithDialogue();
 
-  function _setExperiment(experiment: AllExperimentTypes) {
+  function _setExperiment(experiment: Experiment) {
     loadExperiment(experiment);
     setViewPreviousExperiments(false);
   }
 
   useEffect(() => {
     const msgs: DialogueMessage[] = [];
-    if (
-      experiment.activityId === "cafe" ||
-      experiment.activityId === "fruitpicker"
-    ) {
+    if (experiment.activityId === ActivityID.nmt) {
+      if (experiment.evaluationScore < 1) {
+        msgs.push({
+          id: "notebook",
+          title: "Incomplete",
+          text: "You have not completed all the tasks for this experiment.",
+          noSave: true,
+        });
+      } else {
+        msgs.push({
+          id: "submit",
+          title: "Experiment Complete",
+          text: "Congratulations! You have completed all the requirements for this experiment.",
+          noSave: true,
+        });
+      }
+    } else {
       if (experiment.evaluationScore <= 0.6) {
         msgs.push({
           id: "notebook",
@@ -68,45 +85,35 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
         });
       }
     }
-    if (experiment.activityId === "neural_machine_translation") {
-      if (experiment.evaluationScore < 1) {
-        msgs.push({
-          id: "notebook",
-          title: "Incomplete",
-          text: "You have not completed all the tasks for this experiment.",
-          noSave: true,
-        });
-      } else {
-        msgs.push({
-          id: "submit",
-          title: "Experiment Complete",
-          text: "Congratulations! You have completed all the requirements for this experiment.",
-          noSave: true,
-        });
-      }
-    }
     addMessages(msgs);
   }, [summary]);
 
   function curExperimentView() {
     switch (experiment.activityId) {
-      case "cafe":
+      case ActivityID.cafe:
         return (
           <CafeCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
           />
         );
-      case "fruitpicker":
+      case ActivityID.fruit:
         return (
           <FruitPickerCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
           />
         );
-      case "neural_machine_translation":
+      case ActivityID.nmt:
         return (
           <NMTCurrentExperimentView
+            classes={classes}
+            onSubmit={props.onSubmit}
+          />
+        );
+      case ActivityID.planes:
+        return (
+          <PlaneCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
           />
@@ -118,29 +125,36 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
 
   function previousExperimentView(): JSX.Element | undefined {
     switch (experiment.activityId) {
-      case "cafe":
+      case ActivityID.cafe:
         return (
           <CafePreviousExperimentsView
             classes={classes}
             setExperiment={_setExperiment}
           />
         );
-      case "fruitpicker":
+      case ActivityID.fruit:
         return (
           <FruitPickerPreviousExperimentsView
             classes={classes}
             setExperiment={_setExperiment}
           />
         );
-      case "neural_machine_translation":
+      case ActivityID.nmt:
         return undefined;
+      case ActivityID.planes:
+        return (
+          <PlanePreviousExperimentsView
+            classes={classes}
+            setExperiment={_setExperiment}
+          />
+        );
       default:
         return undefined;
     }
   }
 
   return (
-    <div>
+    <div data-cy="summary-root">
       {previousExperiments.length > 0 && Boolean(previousExperimentView()) ? (
         <Button
           onClick={() => setViewPreviousExperiments((prevValue) => !prevValue)}

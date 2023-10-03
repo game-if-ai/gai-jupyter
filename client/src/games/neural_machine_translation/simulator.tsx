@@ -5,16 +5,13 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import { INotebookState } from "@datalayer/jupyter-react";
-import { ActivityID } from "games";
-import { Experiment, Simulator } from "../simulator";
 import { NMTCodeInfo } from "./hooks/use-with-nn-code-examine";
 import { getAllNMTCodeInfo } from "./hooks/examine-nn-code-helpers";
-import {
-  extractAllUserInputCode,
-  storeNotebookExperimentInGql,
-} from "../../utils";
+import { extractAllUserInputCode } from "../../utils";
 import { evaluteNMTExperiment } from "./hooks/nmt-score-evaluation";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
+import { ActivityID, Experiment, Simulator } from "../../store/simulator";
+import { initSimulate } from "../../store/simulator/useWithSimulator";
 
 export interface NMTSimulationOutput {}
 
@@ -22,44 +19,25 @@ export type NMTClassifierOutput = string[];
 
 export interface NMTSimulationsSummary extends NMTCodeInfo {}
 
-export type NMTExperiment = Experiment<
-  NMTSimulationOutput,
-  NMTSimulationsSummary,
-  NMTCodeInfo
->;
-
-export class NMTSimulator extends Simulator<
-  NMTSimulationOutput,
-  NMTSimulationsSummary,
-  NMTCodeInfo
-> {
-  scoreExperiment(experiment: NMTExperiment): number {
+export function NMTSimulator(): Simulator {
+  function scoreExperiment(experiment: Experiment): number {
     return evaluteNMTExperiment(experiment);
   }
 
-  updateSummary(
-    simulations: NMTSimulationOutput[],
-    summary: NMTSimulationsSummary
-  ): NMTSimulationsSummary {
-    return summary;
-  }
-
-  play(): NMTSimulationOutput {
+  function play(): NMTSimulationOutput {
     return {};
   }
 
-  simulate(
+  function simulate(
     inputs: number[],
     outputs: NMTClassifierOutput,
     notebook: INotebookState,
-    activityId: ActivityID,
     displayedHints: ImproveCodeHint[]
-  ): NMTExperiment {
-    const experiment = super.simulate(
+  ): Experiment {
+    const experiment = initSimulate(
       inputs,
-      outputs,
       notebook,
-      activityId,
+      ActivityID.nmt,
       displayedHints
     );
     if (experiment.notebookContent) {
@@ -68,10 +46,13 @@ export class NMTSimulator extends Simulator<
         outputs
       );
     }
-    experiment.summary = experiment.codeInfo;
-    experiment.evaluationScore = this.scoreExperiment(experiment);
-    this.experiments.push(experiment);
-    storeNotebookExperimentInGql(experiment);
+    // experiment.summary = experiment.codeInfo;
+    experiment.evaluationScore = scoreExperiment(experiment);
     return experiment;
   }
+
+  return {
+    play,
+    simulate,
+  };
 }

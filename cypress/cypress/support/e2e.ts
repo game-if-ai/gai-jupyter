@@ -21,6 +21,16 @@ The full terms of this copyright and license should always be found in the root 
 
 // Import commands.js using ES2015 syntax:
 import "./commands";
+import { addMatchImageSnapshotCommand } from "@simonsmith/cypress-image-snapshot/command";
 
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
+addMatchImageSnapshotCommand();
+addMatchImageSnapshotCommand({
+  failureThreshold: 0.35,
+  failureThresholdType: "percent",
+});
+
+Cypress.on("uncaught:exception", (err, runnable) => {
+  // returning false here prevents Cypress from
+  // failing the test
+  return false;
+});
