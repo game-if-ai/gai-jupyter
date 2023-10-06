@@ -6,7 +6,7 @@ The full terms of this copyright and license should always be found in the root 
 */
 import { combineReducers, createStore } from "redux";
 import state from "./state";
-// import notebook from "./notebook";
+import notebookState from "./notebook";
 import simulator from "./simulator";
 import keyboard from "./keyboard";
 import dialogue from "./dialogue";
@@ -20,7 +20,7 @@ export function configureStore(initialState) {
 export function createReducer(asyncReducers) {
   return combineReducers({
     state,
-    // notebook,
+    notebookState,
     simulator,
     keyboard,
     dialogue,

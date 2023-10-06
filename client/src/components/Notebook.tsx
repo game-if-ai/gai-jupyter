@@ -54,6 +54,7 @@ import { useAppDispatch, useAppSelector } from "../store";
 import { useWithState } from "../store/state/useWithState";
 import { useWithSimulator } from "../store/simulator/useWithSimulator";
 import { updateLocalNotebook } from "../store/simulator";
+import { setCurCell } from "../store/notebook";
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -75,6 +76,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const pastExperiments = useAppSelector(
     (s) => s.simulator.experiments[activity.id]
   );
+  const curCell = useAppSelector((s) => s.notebookState.curCell);
 
   const classes = useStyles();
   const { loadSimulation, loadExperiment, toStep } = useWithState();
@@ -112,7 +114,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   });
   const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
   const sawTutorial = Boolean(sessionStorageGet("saw_notebook_walkthrough"));
-  const [curCell, setCurCell] = useState<string>("");
   const [showDescription, setShowDescription] = useState<boolean>(!sawTutorial);
   const [showResults, setShowResults] = useState<boolean>(false);
   const [showLocalChanges, setShowLocalChanges] = useState<boolean>(
@@ -245,7 +246,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         (c) => c.cell.getMetadata("gai_cell_type") === GaiCellTypes.MODEL
       );
       if (modelCell) {
-        setCurCell(modelCell.cell.id);
+        dispatch(setCurCell(modelCell.cell.id));
         scrollTo(modelCell.cell.id);
       }
     }
@@ -302,7 +303,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   }
 
   function scrollTo(cell: string): void {
-    setCurCell(cell);
+    dispatch(setCurCell(cell));
     const element = document.getElementById(`cell-${cell}`);
     if (!element || !scrollRef.current) {
       return;
@@ -345,7 +346,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       }
     }
     if (visibleCell && visibleCell !== curCell) {
-      setCurCell(visibleCell);
+      dispatch(setCurCell(visibleCell));
     }
   }
 
