@@ -53,8 +53,8 @@ import { STEP } from "../store/state";
 import { useAppDispatch, useAppSelector } from "../store";
 import { useWithState } from "../store/state/useWithState";
 import { useWithSimulator } from "../store/simulator/useWithSimulator";
-import { updateLocalNotebook } from "../store/simulator";
-import { setCurCell } from "../store/notebook";
+import { clearExperiments } from "../store/simulator";
+import { setCurCell, updateLocalNotebook } from "../store/notebook";
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -70,7 +70,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const activity = useAppSelector((s) => s.state.activity!);
   const experiment = useAppSelector((s) => s.state.experiment);
   const localNotebook = useAppSelector(
-    (s) => s.simulator.localNotebooks[activity.id]
+    (s) => s.notebookState.localNotebooks[activity.id]
   );
   const isKeyboardOpen = useAppSelector((s) => s.keyboard.isOpen);
   const pastExperiments = useAppSelector(
@@ -121,7 +121,9 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   );
   const [saveRun, setSaveRun] = useState<boolean>(false);
   const [kernel, setKernel] = useState<Kernel>();
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [historyPopup, setHistoryPopup] = useState<HTMLButtonElement | null>(
+    null
+  );
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [didScroll, setDidScroll] = useState<boolean>(false);
   const simulator = useWithSimulator();
@@ -151,41 +153,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       }
     };
   }, [kernel]);
-
-  function connectToNewKernel() {
-    if (!kernelManager) {
-      return;
-    }
-    setKernelStatus(KernelConnectionStatus.CONNECTING);
-    const newKernel = new Kernel({ kernelManager, kernelName: "python" });
-    newKernel
-      .getJupyterKernel()
-      .then((kernelConnection) => {
-        kernelConnection.statusChanged.connect((statusChange) => {
-          switch (statusChange.status) {
-            case "starting":
-            case "restarting":
-            case "autorestarting":
-              setKernelStatus(KernelConnectionStatus.CONNECTING);
-              break;
-            case "idle":
-            case "busy":
-              setKernelStatus(KernelConnectionStatus.FINE);
-              break;
-            // case "terminating":
-            // case "dead":
-            // case "unknown":
-            default:
-              setKernelStatus(KernelConnectionStatus.UNKNOWN);
-              break;
-          }
-        });
-      })
-      .catch(() => {
-        setKernelStatus(KernelConnectionStatus.UNKNOWN);
-      });
-    setKernel(newKernel);
-  }
 
   useEffect(() => {
     if (kernel) {
@@ -259,6 +226,41 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
   }, [isSaving]);
 
+  function connectToNewKernel() {
+    if (!kernelManager) {
+      return;
+    }
+    setKernelStatus(KernelConnectionStatus.CONNECTING);
+    const newKernel = new Kernel({ kernelManager, kernelName: "python" });
+    newKernel
+      .getJupyterKernel()
+      .then((kernelConnection) => {
+        kernelConnection.statusChanged.connect((statusChange) => {
+          switch (statusChange.status) {
+            case "starting":
+            case "restarting":
+            case "autorestarting":
+              setKernelStatus(KernelConnectionStatus.CONNECTING);
+              break;
+            case "idle":
+            case "busy":
+              setKernelStatus(KernelConnectionStatus.FINE);
+              break;
+            // case "terminating":
+            // case "dead":
+            // case "unknown":
+            default:
+              setKernelStatus(KernelConnectionStatus.UNKNOWN);
+              break;
+          }
+        });
+      })
+      .catch(() => {
+        setKernelStatus(KernelConnectionStatus.UNKNOWN);
+      });
+    setKernel(newKernel);
+  }
+
   function saveAndRun(): void {
     if (isEdited) {
       if (isSaving || notebookIsRunning) return;
@@ -299,7 +301,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   }
 
   function onReset(event: React.MouseEvent<HTMLButtonElement>): void {
-    setAnchorEl(event.currentTarget);
+    setHistoryPopup(event.currentTarget);
   }
 
   function scrollTo(cell: string): void {
@@ -439,10 +441,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
             <IconButton
               data-cy="hint-btn"
               disabled={!hints.hintsAvailable || isSaving}
-              onClick={() => {
-                hints.toastHint();
-                // hintClickedCmi5(activity.id);
-              }}
+              onClick={() => hints.toastHint()}
             >
               <HelpOutlineOutlined />
             </IconButton>
@@ -494,7 +493,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       </AppBar>
       <Toolbar />
       <ShortcutKeyboard />
-
       {Object.entries(cells).length === 0 || !notebookInitialized ? (
         <span
           style={{
@@ -546,7 +544,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           uid={NOTEBOOK_UID}
         />
       </div>
-
       <ActionPopup
         open={showDescription}
         onClose={() => setShowDescription(false)}
@@ -580,7 +577,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         open={showLocalChanges}
         onClose={() => {}}
         title="Found unsaved changes"
-        text="You have unsaved local changes from a previous time. Would you like to load them?"
+        text="You have unsaved code from a previous session. Would you like to load it?"
       >
         <Button
           onClick={() => {
@@ -605,9 +602,9 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         </Button>
       </ActionPopup>
       <Popover
-        open={Boolean(anchorEl)}
-        anchorEl={anchorEl}
-        onClose={() => setAnchorEl(null)}
+        open={Boolean(historyPopup)}
+        anchorEl={historyPopup}
+        onClose={() => setHistoryPopup(null)}
         anchorOrigin={{
           vertical: "bottom",
           horizontal: "left",
@@ -618,12 +615,22 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
             key={e.id}
             onClick={() => {
               resetCode(e);
-              setAnchorEl(null);
+              setHistoryPopup(null);
             }}
           >
             {`${new Date(e.time).toLocaleTimeString()}`}
           </MenuItem>
         ))}
+        {pastExperiments.length > 0 ? (
+          <MenuItem
+            onClick={() => {
+              dispatch(clearExperiments(activity.id));
+              setHistoryPopup(null);
+            }}
+          >
+            Clear Past Experiments
+          </MenuItem>
+        ) : undefined}
       </Popover>
       <ToastContainer {...defaultToastOptions} />
     </div>

@@ -10,6 +10,7 @@ import {
   SPAWN_TIME,
   GAME_TIME,
   PlaneSimulationOutput,
+  VehicleTypes,
   CLASSIFIER_DELAY,
 } from "./simulator";
 import { GameParams } from "..";
@@ -22,7 +23,6 @@ import {
   scaleText,
 } from "../phaser-helpers";
 import { randomInt } from "../../utils";
-import { VehicleTypes } from "./types";
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
@@ -63,10 +63,10 @@ export default class MainGame extends Phaser.Scene {
     this.load.setPath("assets/planes");
     this.load.image(`background`, `background.jpg`);
     this.load.image(`background2`, `background2.jpg`);
-    for (let i = 1; i <= 10; i++) {
-      this.load.image(`car${i}`, `cars/automobile_${i}.png`);
+    for (let i = 0; i < 100; i++) {
+      this.load.image(`car${i}`, `cars/automobile_${800 + i}.png`);
       this.load.image(`plane${i}`, `planes/airplane_${i}.png`);
-      this.load.image(`tank${i}`, `tanks/tank_${i}.png`);
+      this.load.image(`tank${i}`, `tanks/tank_${1600 + i}.png`);
     }
     for (let i = 1; i <= 3; i++) {
       this.load.image(`crate${i}`, `crate${i}.jpg`);
@@ -153,7 +153,7 @@ export default class MainGame extends Phaser.Scene {
         bg: this.bg,
         widthRel: 0.3,
       });
-      button.setY(text.y + text.displayHeight);
+      button.setY(text.y + text.displayHeight + button.displayHeight);
       const buttonText = addText(this, pause ? "Continue" : "Start!", {
         bg: button,
         heightRel: 0.5,
@@ -272,7 +272,7 @@ export default class MainGame extends Phaser.Scene {
     const object = this.physics.add.sprite(
       this.cameras.main.displayWidth * spawn.xPos,
       0,
-      `${spawn.type}${randomInt(10) + 1}`
+      `${spawn.type}${randomInt(99)}`
     );
     object.setDisplaySize(100, 100);
     object.name = spawn.type;

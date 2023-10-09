@@ -6,7 +6,6 @@ The full terms of this copyright and license should always be found in the root 
 */
 
 import { INotebookState } from "@datalayer/jupyter-react";
-import { VehicleType, VehicleTypes } from "./types";
 import { average, extractAllUserInputCode, randomInt } from "../../utils";
 import { getAllPlaneCodeInfo } from "./hooks/examine-plane-code-helpers";
 import { PlaneCodeInfo } from "./hooks/use-with-plane-code-examine";
@@ -24,6 +23,9 @@ export const GAME_TIME = 60; // time the game lasts in seconds
 export const SPAWN_TIME = 2000;
 export const CLASSIFIER_DELAY = 1000; // delay in ms for classifier catch speed at 0 confidence
 
+export type VehicleType = "car" | "plane" | "tank";
+export const VehicleTypes: VehicleType[] = ["car", "plane", "tank"];
+
 export interface PlaneSimulationOutput {
   accuracy: number;
   precision: number;
@@ -35,9 +37,8 @@ export interface PlaneSimulationOutput {
 export interface PlaneSimulationsSummary extends GameSimulationsSummary {}
 
 export interface ClassifierOutput {
-  inputText: string;
-  classifierLabel: VehicleType; // what the classifier thought it was
   realLabel: VehicleType; // what is actually was
+  classifierLabel: VehicleType; // what the classifier thought it was
   confidence: number; // how confident the classifier was (0 to 1)
 }
 
@@ -118,8 +119,7 @@ export function PlaneSimulator(): Simulator {
       };
       const numItemsSpawned = (GAME_TIME * 1000) / SPAWN_TIME;
       for (let i = 0; i < numItemsSpawned; i++) {
-        const classifierOutput =
-          classifierOutputs[randomInt(classifierOutputs.length)];
+        const classifierOutput = classifierOutputs[i];
         if (classifierOutput.classifierLabel === classifierOutput.realLabel) {
           sim.accuracy++;
         }
