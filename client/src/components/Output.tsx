@@ -50,21 +50,36 @@ export function Output(props: { outputs: IOutput[] }): JSX.Element {
             </div>
           );
         } else {
-          const data = JSON.parse(
-            JSON.stringify((output.data as any)["application/json"])
-          );
-          return (
-            <div
-              key={i}
-              style={{ height: "fit-content", backgroundColor: "lightyellow" }}
-            >
-              <JsonView
-                data={data}
-                shouldInitiallyExpand={(level) => true}
-                style={defaultStyles}
-              />
-            </div>
-          );
+          try {
+            const data = JSON.parse(
+              JSON.stringify((output.data as any)["application/json"])
+            );
+            return (
+              <div
+                key={i}
+                style={{
+                  height: "fit-content",
+                  backgroundColor: "lightyellow",
+                }}
+              >
+                <JsonView
+                  data={data}
+                  shouldInitiallyExpand={(level) => true}
+                  style={defaultStyles}
+                />
+              </div>
+            );
+          } catch (err) {
+            return (
+              <div
+                key={i}
+                style={{
+                  height: "fit-content",
+                  backgroundColor: "lightyellow",
+                }}
+              ></div>
+            );
+          }
         }
       })}
     </div>

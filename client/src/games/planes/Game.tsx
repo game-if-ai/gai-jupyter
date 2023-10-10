@@ -10,6 +10,7 @@ import {
   SPAWN_TIME,
   GAME_TIME,
   PlaneSimulationOutput,
+  VehicleTypes,
   CLASSIFIER_DELAY,
 } from "./simulator";
 import { GameParams } from "..";
@@ -22,13 +23,6 @@ import {
   scaleText,
 } from "../phaser-helpers";
 import { randomInt } from "../../utils";
-import { VehicleTypes } from "./types";
-
-interface Bin {
-  bin: Phaser.GameObjects.Sprite;
-  text: Phaser.GameObjects.Text;
-  items: Phaser.GameObjects.Sprite[];
-}
 
 export default class MainGame extends Phaser.Scene {
   speed: number;
@@ -40,9 +34,11 @@ export default class MainGame extends Phaser.Scene {
   spawnEvent?: Phaser.Time.TimerEvent;
 
   bg?: Phaser.GameObjects.Image;
-  pal?: Phaser.GameObjects.Sprite;
+  bins: Record<string, Phaser.GameObjects.Sprite>;
   scoreText?: Phaser.GameObjects.Text;
-  bins: Record<string, Bin>;
+
+  items: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody[];
+  rects: Phaser.GameObjects.Rectangle[];
   itemIdx: number;
   numCorrect: number;
 
@@ -53,19 +49,13 @@ export default class MainGame extends Phaser.Scene {
     this.isMuted = false;
     this.numCorrect = 0;
     this.itemIdx = 0;
+    this.items = [];
+    this.rects = [];
     this.bins = {};
   }
 
   preload() {
     this.load.setPath("assets");
-    this.load.spritesheet("pal", "pal_spritesheet.png", {
-      frameWidth: 250,
-      frameHeight: 250,
-    });
-    this.load.image(
-      "window",
-      "wordui/inner_panels/blue/premade_panels/blue_long_horizontal.png"
-    );
     this.load.image(
       "button",
       "wordui/buttons/long_buttons/blue_button_complete.png"
@@ -73,10 +63,10 @@ export default class MainGame extends Phaser.Scene {
     this.load.setPath("assets/planes");
     this.load.image(`background`, `background.jpg`);
     this.load.image(`background2`, `background2.jpg`);
-    for (let i = 1; i <= 10; i++) {
-      this.load.image(`car${i}`, `cars/automobile_${i}.png`);
+    for (let i = 0; i < 100; i++) {
+      this.load.image(`car${i}`, `cars/automobile_${800 + i}.png`);
       this.load.image(`plane${i}`, `planes/airplane_${i}.png`);
-      this.load.image(`tank${i}`, `tanks/tank_${i}.png`);
+      this.load.image(`tank${i}`, `tanks/tank_${1600 + i}.png`);
     }
     for (let i = 1; i <= 3; i++) {
       this.load.image(`crate${i}`, `crate${i}.jpg`);
@@ -89,6 +79,9 @@ export default class MainGame extends Phaser.Scene {
   create(data: GameParams) {
     this.config = data;
     this.eventSystem = data.eventSystem;
+    this.eventSystem.on("pause", this.pause, this);
+    this.eventSystem.on("mute", this.mute, this);
+    this.eventSystem.on("changeSpeed", this.changeSpeed, this);
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
     this.createScene();
@@ -99,9 +92,10 @@ export default class MainGame extends Phaser.Scene {
 
   createScene(): void {
     // add background
+    const camera = this.cameras.main;
     const bg = addBackground(this, "background");
-    bg.setY(0 + bg.displayHeight / 2);
     this.bg = bg;
+    bg.setY(0 + bg.displayHeight / 2);
     let bgHeight = bg.displayHeight;
     while (bgHeight <= this.cameras.main.displayHeight) {
       const bg2 = addImage(this, "background", undefined, { bg, widthRel: 1 });
@@ -109,34 +103,26 @@ export default class MainGame extends Phaser.Scene {
       bgHeight += bg2.displayHeight;
     }
     const bgBot = addImage(this, "background2", undefined, { bg, widthRel: 1 });
-    bgBot.setY(this.cameras.main.displayHeight - bgBot.displayHeight * 0.5);
+    bgBot.setY(camera.displayHeight - bgBot.displayHeight * 0.5);
     // add crates
-    for (let i = 1; i <= 3; i++) {
-      const crate = addSprite(this, `crate${i}`, undefined, {
-        bg: bgBot,
-        xAnchor: [Anchor.start, Anchor.center, Anchor.end][i - 1],
-        yAnchor: Anchor.end,
-        widthRel: 0.3,
-        x: 0,
-      });
+    for (let i = 0; i < 3; i++) {
+      const crate = addSprite(this, `crate${i + 1}`);
+      crate.setDisplaySize(bgBot.displayWidth / 3, bgBot.displayHeight / 2);
+      crate.setX(bgBot.displayWidth / 6 + (bgBot.displayWidth / 3) * i);
+      crate.setY(camera.displayHeight - bgBot.displayHeight / 4);
       const dropZone = this.add
         .zone(crate.x, crate.y, crate.displayWidth, crate.displayHeight)
         .setRectangleDropZone(crate.displayWidth, crate.displayHeight);
-      dropZone.name = VehicleTypes[i - 1];
-      const trashText = addText(this, VehicleTypes[i - 1], {
+      dropZone.name = VehicleTypes[i];
+      const trashText = addText(this, VehicleTypes[i].toUpperCase(), {
         bg: crate,
         xAnchor: Anchor.center,
-        yAnchor: Anchor.start,
+        yAnchor: Anchor.center,
         widthRel: 1,
         maxFontSize: 36,
       });
       trashText.depth = 1;
-      trashText.setY(trashText.y - trashText.displayHeight / 2);
-      this.bins[VehicleTypes[i - 1]] = {
-        bin: crate,
-        text: trashText,
-        items: [],
-      };
+      this.bins[VehicleTypes[i]] = crate;
     }
     // add text
     this.scoreText = addText(this, "Time: 120:00 | Accuracy: 100%", {
@@ -148,66 +134,76 @@ export default class MainGame extends Phaser.Scene {
     });
     // add buttons
     if (this.config?.playManually) {
-      const text = addText(this, "Cars, Planes, or Trains?", {
-        bg,
-        widthRel: 0.9,
-        maxFontSize: 78,
-      });
-      const startButton = addImage(this, "button", undefined, {
-        bg,
-        yAnchor: Anchor.end,
+      this.createMenu("Cars, Planes, or Trains?");
+    }
+  }
+
+  async createMenu(title: string, pause = false) {
+    if (pause) {
+      this.pause(true);
+    }
+    const text = addText(this, title, {
+      bg: this.bg,
+      widthRel: 0.9,
+      maxFontSize: 78,
+    });
+    text.setY(0 + text.displayHeight);
+    if (this.config?.playManually || pause) {
+      const button = addImage(this, "button", undefined, {
+        bg: this.bg,
         widthRel: 0.3,
       });
-      startButton.setY(startButton.y + startButton.displayHeight);
-      const startText = addText(this, "Start!", {
-        bg: startButton,
+      button.setY(text.y + text.displayHeight + button.displayHeight);
+      const buttonText = addText(this, pause ? "Continue" : "Start!", {
+        bg: button,
         heightRel: 0.5,
       });
-      // add events
-      startButton.setInteractive();
-      startButton.on(
+      button.setInteractive();
+      button.on(
         "pointerdown",
         () => {
-          this.sound.play("match");
-          this.start();
+          if (pause) {
+            this.pause(false);
+          } else {
+            this.sound.play("match");
+            this.start();
+          }
           text.destroy();
-          startText.destroy();
-          startButton.destroy();
+          buttonText.destroy();
+          button.destroy();
         },
         this
       );
+      if (this.config?.playManually && pause) {
+        await new Promise((res) => setTimeout(res, 1000));
+        this.pause(false);
+        text.destroy();
+        buttonText.destroy();
+        button.destroy();
+      }
     }
   }
 
   start() {
-    if (this.eventSystem) {
-      this.eventSystem.on("pause", this.pause, this);
-      this.eventSystem.on("mute", this.mute, this);
-      this.eventSystem.on("changeSpeed", this.changeSpeed, this);
-    }
+    this.numCorrect = 0;
+    this.itemIdx = 0;
+    this.items.forEach((i) => i.destroy());
+    this.rects.forEach((i) => i.destroy());
+    this.items = [];
+    this.rects = [];
     if (this.config?.playManually) {
       this.config.simulation = this.config.simulator.play();
       this.input.on(
         "drag",
         function (
-          pointer: any,
+          _pointer: any,
           item: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody,
           dragX: number,
           dragY: number
         ) {
+          if (!item.name) return;
           item.x = dragX;
           item.y = dragY;
-        }
-      );
-      const ref = this;
-      this.input.on(
-        "drop",
-        function (
-          _pointer: any,
-          item: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody,
-          bin: { name: string }
-        ) {
-          ref.drag(item, bin.name);
         }
       );
     }
@@ -218,7 +214,7 @@ export default class MainGame extends Phaser.Scene {
       callback: this.gameOver,
       callbackScope: this,
     });
-    this.time.addEvent({
+    this.spawnEvent = this.time.addEvent({
       delay: SPAWN_TIME,
       startAt: SPAWN_TIME,
       timeScale: this.speed,
@@ -226,6 +222,7 @@ export default class MainGame extends Phaser.Scene {
       callback: this.spawn,
       callbackScope: this,
     });
+    this.pause(false);
   }
 
   update() {
@@ -247,10 +244,26 @@ export default class MainGame extends Phaser.Scene {
       this.scoreText!,
       `Time: ${seconds}:${ms} | Accuracy: ${acc}%`
     );
+    // check collision
+    if (this.config?.playManually) {
+      this.items.forEach((i) => {
+        if (!i.name) return;
+        VehicleTypes.forEach((v) => {
+          if (
+            Phaser.Geom.Intersects.RectangleToRectangle(
+              i.getBounds(),
+              this.bins[v].getBounds()
+            )
+          ) {
+            this.drop(i, v);
+          }
+        });
+      });
+    }
   }
 
   spawn() {
-    if (!this.config || !this.config.simulation || !this.bg) {
+    if (!this.config || !this.config.simulation) {
       return;
     }
     const simulation = this.config.simulation as PlaneSimulationOutput;
@@ -259,13 +272,13 @@ export default class MainGame extends Phaser.Scene {
     const object = this.physics.add.sprite(
       this.cameras.main.displayWidth * spawn.xPos,
       0,
-      `${spawn.type}${randomInt(10) + 1}`
+      `${spawn.type}${randomInt(99)}`
     );
-    object.setDisplaySize(50, 50);
+    object.setDisplaySize(100, 100);
     object.name = spawn.type;
     if (response) {
       const delay = CLASSIFIER_DELAY + response.confidence * CLASSIFIER_DELAY;
-      const bin = this.bins[response.classifierLabel].bin;
+      const bin = this.bins[response.classifierLabel];
       this.tweens.add({
         targets: object,
         x: bin.x - bin.displayWidth / 2 + Math.random() * bin.displayWidth,
@@ -274,7 +287,7 @@ export default class MainGame extends Phaser.Scene {
         duration: 300 / this.speed,
         ease: "sine.inout",
         onComplete: () => {
-          this.drag(object, response.classifierLabel);
+          this.drop(object, response.classifierLabel);
         },
       });
     } else {
@@ -282,15 +295,20 @@ export default class MainGame extends Phaser.Scene {
       this.input.setDraggable(object);
     }
     this.itemIdx++;
+    this.items.push(object);
   }
 
-  drag(item: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody, bin: string) {
+  drop(item: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody, bin: string) {
+    if (!item.name) return;
+    const name = item.name;
+    item.name = "";
     // if the gameObject and zone match
-    if (item.name === bin) {
+    if (name === bin) {
       this.sound.play("match");
       this.numCorrect++;
     } else {
       this.sound.play("wrong");
+      this.createMenu(`Wrong: ${bin}\nCorrect: ${name}`, true);
     }
     item.body.moves = false;
     if (this.config?.playManually) {
@@ -305,24 +323,31 @@ export default class MainGame extends Phaser.Scene {
       ease: "sine.inout",
       duration: 100,
       onComplete: () => {
-        this.add.rectangle(
+        const rect = this.add.rectangle(
           item.x,
           item.y,
           item.displayWidth,
           item.displayHeight,
-          item.name === bin ? 0x00ff00 : 0xff0000,
+          name === bin ? 0x00ff00 : 0xff0000,
           0.25
         );
+        this.rects.push(rect);
       },
     });
-    this.bins[bin].items.push(item);
   }
 
   gameOver() {
+    this.input.off("drag");
+    this.timerEvent?.remove();
     this.spawnEvent?.remove();
     this.eventSystem?.emit("gameOver");
-    this.physics.world.pause();
-    this.tweens.pauseAll();
+    this.pause(true);
+    this.items.forEach((i) => {
+      if (i.name) {
+        i.destroy();
+      }
+    });
+    this.createMenu("Game Over!");
   }
 
   mute(muted: boolean) {

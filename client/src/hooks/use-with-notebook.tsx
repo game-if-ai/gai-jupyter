@@ -28,7 +28,8 @@ import {
 } from "../utils";
 import { KernelConnectionStatus } from "../components/Notebook";
 import { useAppDispatch } from "../store";
-import { Activity, Experiment, updateLocalNotebook } from "../store/simulator";
+import { Activity, Experiment } from "../store/simulator";
+import { updateLocalNotebook } from "../store/notebook";
 
 export interface CellState {
   cell: ICellModel;
@@ -190,6 +191,7 @@ export function useWithNotebook(props: {
     } finally {
       setNotebookIsRunning(false);
       setNotebookRuns((prevValue) => prevValue + 1);
+      console.log(notebook);
       return notebook;
     }
   }

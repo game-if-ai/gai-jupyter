@@ -12,6 +12,7 @@ import { ICellModel } from "@jupyterlab/cells";
 
 import { useAppDispatch } from "../";
 import { setKey, setOpen } from ".";
+import { setCurCell } from "../notebook";
 
 export interface ShortcutKey {
   text: string;
@@ -73,6 +74,7 @@ export function useWithShortcutKeys(): UseWithShortcutKeys {
   }
 
   function selectCell(cell: ICellModel): void {
+    dispatch(setCurCell(cell.id));
     if (cell.getMetadata("contenteditable") === false) {
       dispatch(setOpen(false));
     } else {

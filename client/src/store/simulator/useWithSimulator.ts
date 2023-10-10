@@ -16,6 +16,7 @@ import { CafeSimulator } from "../../games/cafe/simulator";
 import { FruitSimulator } from "../../games/fruit-picker/simulator";
 import { NMTSimulator } from "../../games/neural_machine_translation/simulator";
 import { PlaneSimulator } from "../../games/planes/simulator";
+import { updateLocalNotebook } from "../notebook";
 import { storeNotebookExperimentInGql } from "../../utils";
 
 export function initSimulate(
@@ -120,6 +121,7 @@ export function useWithSimulator() {
         break;
     }
     dispatch(addExperiment({ id: activity.id, experiment }));
+    dispatch(updateLocalNotebook({ id: activity.id, notebook: undefined }));
     storeNotebookExperimentInGql(experiment, uniqueUserId);
     return experiment;
   }

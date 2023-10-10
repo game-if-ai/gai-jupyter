@@ -36,7 +36,6 @@ import {
   EXPERIMENT_HISTORY,
   localStorageGet,
   localStorageStore,
-  NOTEBOOK_HISTORY,
 } from "../../local-storage";
 
 export type SimulationOutput =
@@ -50,6 +49,17 @@ export type SimulationSummary =
   | FruitSimulationsSummary
   | NMTSimulationsSummary
   | PlaneSimulationsSummary;
+
+export interface GameSimulationsSummary {
+  lowAccuracy: number;
+  highAccuracy: number;
+  averageAccuracy: number;
+  averagePrecision: number;
+  averageRecall: number;
+  averageF1Score: number;
+  lowF1Score: number;
+  highF1Score: number;
+}
 
 export interface Simulator {
   play: () => SimulationOutput;
@@ -78,17 +88,6 @@ export enum ActivityID {
   fruit = "fruitpicker",
   nmt = "neural_machine_translation",
   planes = "planes",
-}
-
-export interface GameSimulationsSummary {
-  lowAccuracy: number;
-  highAccuracy: number;
-  averageAccuracy: number;
-  averagePrecision: number;
-  averageRecall: number;
-  averageF1Score: number;
-  lowF1Score: number;
-  highF1Score: number;
 }
 
 export type ActivityType = "GAME" | "NOTEBOOK_ONLY";
@@ -125,11 +124,9 @@ export interface Experiment {
 
 export interface SimulationState {
   experiments: Record<ActivityID, Experiment[]>;
-  localNotebooks: Record<ActivityID, INotebookContent | undefined>;
 }
 const initialState: SimulationState = {
   experiments: getExperimentHistory(),
-  localNotebooks: getNotebookHistory(),
 };
 function getExperimentHistory(): Record<ActivityID, Experiment[]> {
   let experiments = localStorageGet(EXPERIMENT_HISTORY) as Record<
@@ -146,52 +143,26 @@ function getExperimentHistory(): Record<ActivityID, Experiment[]> {
   }
   return experiments;
 }
-function getNotebookHistory(): Record<
-  ActivityID,
-  INotebookContent | undefined
-> {
-  let notebooks = localStorageGet(NOTEBOOK_HISTORY) as Record<
-    ActivityID,
-    INotebookContent | undefined
-  >;
-  if (!notebooks) {
-    notebooks = {
-      cafe: undefined,
-      fruitpicker: undefined,
-      neural_machine_translation: undefined,
-      planes: undefined,
-    };
-  }
-  return notebooks;
-}
 
 export const simulationSlice = createSlice({
   name: "simulation",
   initialState,
   reducers: {
-    updateLocalNotebook: (
-      state,
-      action: PayloadAction<{
-        id: ActivityID;
-        notebook: INotebookContent | undefined;
-      }>
-    ) => {
-      const { id, notebook } = action.payload;
-      state.localNotebooks[id] = notebook;
-      localStorageStore(NOTEBOOK_HISTORY, state.localNotebooks);
-    },
     addExperiment: (
       state,
       action: PayloadAction<{ id: ActivityID; experiment: Experiment }>
     ) => {
       const { id, experiment } = action.payload;
       state.experiments[id].push(experiment);
-      state.localNotebooks[id] = undefined;
+      localStorageStore(EXPERIMENT_HISTORY, state.experiments);
+    },
+    clearExperiments: (state, action: PayloadAction<ActivityID>) => {
+      state.experiments[action.payload] = [];
       localStorageStore(EXPERIMENT_HISTORY, state.experiments);
     },
   },
 });
 
-export const { addExperiment, updateLocalNotebook } = simulationSlice.actions;
+export const { addExperiment, clearExperiments } = simulationSlice.actions;
 
 export default simulationSlice.reducer;

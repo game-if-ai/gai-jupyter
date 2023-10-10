@@ -43,6 +43,11 @@ export default class Game extends Phaser.Scene {
   items: Phaser.GameObjects.Sprite[];
   itemIdx: number;
 
+  yesButton?: Phaser.GameObjects.Image;
+  noButton?: Phaser.GameObjects.Image;
+  yesText?: Phaser.GameObjects.Text;
+  noText?: Phaser.GameObjects.Text;
+
   constructor() {
     super("Game");
     this.speed = 1;
@@ -87,9 +92,6 @@ export default class Game extends Phaser.Scene {
     for (let i = 1; i <= 4; i++) {
       this.load.image(`bin${i}`, `bin${i}.png`);
     }
-    for (let i = 1; i <= 4; i++) {
-      this.load.image(`zap${i}`, `zap${i}.png`);
-    }
     for (let i = 1; i <= 10; i++) {
       this.load.image(`box${i}`, `box${i}.png`);
     }
@@ -101,6 +103,9 @@ export default class Game extends Phaser.Scene {
   create(data: GameParams) {
     this.config = data;
     this.eventSystem = data.eventSystem;
+    this.eventSystem.on("pause", this.pause, this);
+    this.eventSystem.on("mute", this.mute, this);
+    this.eventSystem.on("changeSpeed", this.changeSpeed, this);
     this.mute(data.isMuted);
     this.changeSpeed(data.speed);
     this.createScene();
@@ -161,7 +166,7 @@ export default class Game extends Phaser.Scene {
     });
     // add pal
     this.anims.create({
-      key: "good",
+      key: "match",
       frames: this.anims.generateFrameNumbers("pal", {
         frames: [...Array(12).keys()].map((v) => v + 12 + 7),
       }),
@@ -169,7 +174,7 @@ export default class Game extends Phaser.Scene {
       repeat: 0,
     });
     this.anims.create({
-      key: "bad",
+      key: "wrong",
       frames: this.anims.generateFrameNumbers("pal", {
         frames: [...Array(18).keys()].map(
           (v) => v + 12 + 7 + 12 + 24 + 24 + 14
@@ -236,75 +241,115 @@ export default class Game extends Phaser.Scene {
       maxFontSize: 32,
     });
     // add buttons
+    this.yesButton = addImage(this, "buttonYes", undefined, {
+      bg: isMobile ? this.bg : this.screen,
+      widthRel: 0.3,
+      yAnchor: Anchor.end,
+      xAnchor: Anchor.start,
+    });
+    this.yesButton.setY(this.yesButton.y + this.yesButton.displayHeight);
+    this.yesText = addText(this, "Good", {
+      bg: this.yesButton,
+      heightRel: 0.5,
+    });
+    this.noButton = addImage(this, "buttonNo", undefined, {
+      bg: isMobile ? this.bg : this.screen,
+      widthRel: 0.3,
+      yAnchor: Anchor.end,
+      xAnchor: Anchor.end,
+    });
+    this.noButton.setY(this.noButton.y + this.noButton.displayHeight);
+    this.noText = addText(this, "Bad", {
+      bg: this.noButton,
+      heightRel: 0.5,
+    });
+    this.yesButton.setAlpha(0);
+    this.yesText.setAlpha(0);
+    this.noButton.setAlpha(0);
+    this.noText.setAlpha(0);
     if (this.config?.playManually) {
-      const startButton = addImage(this, "button", undefined, {
+      this.createMenu("Bought or Not?");
+    }
+  }
+
+  async createMenu(title: string, good?: boolean) {
+    const pause = good !== undefined;
+    if (pause) {
+      this.pause(true);
+      if (good) {
+        this.noButton?.setAlpha(0.1);
+        this.noText?.setAlpha(0.1);
+      } else {
+        this.yesButton?.setAlpha(0.1);
+        this.yesText?.setAlpha(0.1);
+      }
+    }
+    scaleText(this, this.screenText!, title);
+    if (this.config?.playManually || pause) {
+      const isMobile =
+        this.cameras.main.displayHeight / 2 >= this.bg!.displayHeight;
+      const button = addImage(this, "button", undefined, {
         bg: isMobile ? this.bg : this.screen,
         yAnchor: Anchor.end,
         widthRel: 0.3,
       });
-      startButton.setY(startButton.y + startButton.displayHeight);
-      const startText = addText(this, "Start!", {
-        bg: startButton,
+      button.setY(button.y + button.displayHeight);
+      const buttonText = addText(this, pause ? "Continue" : "Start!", {
+        bg: button,
         heightRel: 0.5,
       });
-      // add events
-      startButton.setInteractive();
-      startButton.on(
+      button.setInteractive();
+      button.on(
         "pointerdown",
         () => {
-          this.sound.play("match");
-          this.start();
-          startText.destroy();
-          startButton.destroy();
+          if (pause) {
+            this.pause(false);
+          } else {
+            this.sound.play("match");
+            this.start();
+          }
+          buttonText.destroy();
+          button.destroy();
+          this.yesButton?.setAlpha(1);
+          this.yesText?.setAlpha(1);
+          this.noButton?.setAlpha(1);
+          this.noText?.setAlpha(1);
         },
         this
       );
+      if (this.config?.playManually && pause) {
+        await new Promise((res) => setTimeout(res, 1000));
+        this.pause(false);
+        button.destroy();
+        buttonText.destroy();
+        this.yesButton?.setAlpha(1);
+        this.yesText?.setAlpha(1);
+        this.noButton?.setAlpha(1);
+        this.noText?.setAlpha(1);
+      }
     }
   }
 
   start() {
-    if (this.eventSystem) {
-      this.eventSystem.on("pause", this.pause, this);
-      this.eventSystem.on("mute", this.mute, this);
-      this.eventSystem.on("changeSpeed", this.changeSpeed, this);
-    }
-    if (this.config?.playManually) {
-      const isMobile =
-        this.cameras.main.displayHeight / 2 >= this.bg!.displayHeight;
-      this.config.simulation = this.config.simulator.play();
-      const buttonYes = addImage(this, "buttonYes", undefined, {
-        bg: isMobile ? this.bg : this.screen,
-        widthRel: 0.3,
-        yAnchor: Anchor.end,
-        xAnchor: Anchor.start,
-      });
-      buttonYes.setY(buttonYes.y + buttonYes.displayHeight);
-      addText(this, "Yes", {
-        bg: buttonYes,
-        heightRel: 0.5,
-      });
-      buttonYes.setInteractive();
-      buttonYes.on("pointerdown", () => this.selectItem(), this);
-      const buttonNo = addImage(this, "buttonNo", undefined, {
-        bg: isMobile ? this.bg : this.screen,
-        widthRel: 0.3,
-        yAnchor: Anchor.end,
-        xAnchor: Anchor.end,
-      });
-      buttonNo.setY(buttonNo.y + buttonNo.displayHeight);
-      addText(this, "No", {
-        bg: buttonNo,
-        heightRel: 0.5,
-      });
-      buttonNo.setInteractive();
-      buttonNo.on("pointerdown", () => this.trashItem(), this);
-    }
     this.truePositive = 0;
     this.trueNegative = 0;
     this.falsePositive = 0;
     this.falseNegative = 0;
+    this.items.forEach((i) => i.destroy());
     this.items = [];
     this.itemIdx = 0;
+    this.yesButton?.setAlpha(1);
+    this.yesText?.setAlpha(1);
+    this.noButton?.setAlpha(1);
+    this.noText?.setAlpha(1);
+    // enable buttons
+    if (this.config?.playManually) {
+      this.config.simulation = this.config.simulator.play();
+      this.yesButton?.setInteractive();
+      this.yesButton?.on("pointerdown", () => this.selectItem(), this);
+      this.noButton?.setInteractive();
+      this.noButton?.on("pointerdown", () => this.trashItem(), this);
+    }
     // spawn and timer events
     this.timerEvent = this.time.addEvent({
       delay: GAME_TIME * 1000,
@@ -320,6 +365,7 @@ export default class Game extends Phaser.Scene {
       callback: this.spawn,
       callbackScope: this,
     });
+    this.pause(false);
   }
 
   update() {
@@ -358,6 +404,9 @@ export default class Game extends Phaser.Scene {
     }
     const simulation = this.config.simulation as CafeSimulationOutput;
     const spawn = simulation.spawns[this.itemIdx];
+    if (spawn) {
+      scaleText(this, this.screenText!, spawn.review.review);
+    }
     const item = addSprite(this, `box${randomInt(10) + 1}`, undefined, {
       bg: this.bg,
       xAnchor: Anchor.start,
@@ -393,22 +442,17 @@ export default class Game extends Phaser.Scene {
         }
       },
     });
-    if (this.items.length === 0) {
-      scaleText(this, this.screenText!, spawn.review.review);
-    }
-    this.items.push(item);
     this.itemIdx++;
+    this.items.push(item);
   }
 
   selectItem() {
     const item = this.items.find((i) => i.state !== "deleted");
     if (!item) return;
     if (item.data.list["rating"] === 1) {
-      this.truePositive++;
-      this.goodResponse(item, this.trash[0]);
+      this.moveItem(item, "trueP");
     } else {
-      this.falsePositive++;
-      this.badResponse(item, this.trash[1]);
+      this.moveItem(item, "falseP");
     }
   }
 
@@ -416,11 +460,9 @@ export default class Game extends Phaser.Scene {
     const item = this.items.find((i) => i.state !== "deleted");
     if (!item) return;
     if (item.data.list["rating"] === 0) {
-      this.trueNegative++;
-      this.goodResponse(item, this.trash[2]);
+      this.moveItem(item, "trueN");
     } else {
-      this.falseNegative++;
-      this.badResponse(item, this.trash[3]);
+      this.moveItem(item, "falseN");
     }
   }
 
@@ -429,54 +471,41 @@ export default class Game extends Phaser.Scene {
     item.destroy();
   }
 
-  goodResponse(
-    item: Phaser.GameObjects.Sprite,
-    destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite
-  ) {
-    this.sound.play("match");
-    this.pal?.play("good");
-    this.moveItem(item, destination);
-  }
-
-  badResponse(
-    item: Phaser.GameObjects.Sprite,
-    destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite
-  ) {
-    this.sound.play("wrong");
-    this.pal?.play("bad");
-    this.moveItem(item, destination);
-  }
-
   moveItem(
     item: Phaser.GameObjects.Sprite,
-    destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite
+    type: "trueP" | "falseP" | "trueN" | "falseN"
   ) {
-    // item gets zapped
-    const zap = addSprite(this, "zap1", undefined, {
-      bg: item,
-      heightRel: 1,
-    });
-    zap.setY(zap.y - zap.displayHeight * 0.5);
-    let zapFrame = 1;
-    this.time.addEvent({
-      delay: 100,
-      repeat: 4,
-      timeScale: this.speed,
-      callback: () => {
-        if (zapFrame > 4) {
-          zap.destroy();
-        } else {
-          zap.setTexture(`${zap.texture.key.slice(0, -1)}${zapFrame}`);
-          zapFrame++;
-        }
-      },
-      callbackScope: this,
-    });
+    let destination: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite;
+    let response = "";
+    if (type === "trueP") {
+      this.truePositive++;
+      destination = this.trash[0];
+      response = "match";
+    }
+    if (type === "falseP") {
+      this.falsePositive++;
+      destination = this.trash[1];
+      response = "wrong";
+      this.createMenu(item.data.list["review"], false);
+    }
+    if (type === "trueN") {
+      this.trueNegative++;
+      destination = this.trash[2];
+      response = "match";
+    }
+    if (type === "falseN") {
+      this.falseNegative++;
+      destination = this.trash[3];
+      response = "wrong";
+      this.createMenu(item.data.list["review"], true);
+    }
+    this.sound.play(response);
+    this.pal?.play(response);
     // item flys to destination
     this.tweens.add({
       targets: item,
-      x: destination.x,
-      y: destination.y,
+      x: destination!.x,
+      y: destination!.y,
       delay: 50 / this.speed,
       duration: 300 / this.speed,
       ease: "sine.inout",
@@ -495,8 +524,16 @@ export default class Game extends Phaser.Scene {
   }
 
   gameOver() {
+    this.timerEvent?.remove();
     this.spawnEvent?.remove();
     this.eventSystem?.emit("gameOver");
+    this.yesButton?.setAlpha(0);
+    this.yesText?.setAlpha(0);
+    this.noButton?.setAlpha(0);
+    this.noText?.setAlpha(0);
+    this.pause(true);
+    this.items.forEach((i) => i.destroy());
+    this.createMenu("Game Over!");
   }
 
   mute(muted: boolean) {
