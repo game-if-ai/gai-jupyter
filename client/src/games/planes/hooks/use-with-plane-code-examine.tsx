@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 
 type LoadStatus = "LOADING" | "LOADED";
+export type ModelSize = "TINY" | "SMALL" | "MEDIUM" | "LARGE" | "UNDEFINED";
 
 export interface PlaneCodeInfo {
   usingLemmatization: boolean;
@@ -21,6 +22,8 @@ export interface PlaneCodeInfo {
   cleansContractions: boolean;
   classifierModelUsed: ClassifierModel;
   featureExtractionUsed: FeatureExtractionMethods;
+  modelSize: ModelSize;
+  epochs: number;
 }
 
 export interface PlaneCodeInfoLoad extends PlaneCodeInfo {
@@ -43,6 +46,8 @@ export function useWithPlaneCodeExamine(
     removesStopwords: false,
     cleansContractions: false,
     loadStatus: "LOADING",
+    modelSize: "UNDEFINED",
+    epochs: 0,
   });
 
   useEffect(() => {

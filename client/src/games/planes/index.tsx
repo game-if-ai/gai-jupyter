@@ -170,45 +170,45 @@ export const Planes: Game = {
   ],
   improveCodeHints: [
     {
-      message:
-        "You are currently using a dummy classifier model, try a real one! (Naive Bayes, Logistic Regression, etc.)",
+      message: "Seems to still be improving. Maybe try training for 60 epochs.",
+      conditionDescription: "30 epochs",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
-      conditionDescription:
-        "Checks if the user is still using the dummy classifier.",
       active: (codeInfo) => {
-        return (codeInfo as PlaneCodeInfo).classifierModelUsed === "DUMMY";
+        const { epochs } = codeInfo as PlaneCodeInfo;
+        return epochs == 30;
       },
     },
     {
-      message: "Consider giving the Naive Bayes model a try!",
+      message: "Model may be too small for further improvement.",
+      conditionDescription: "tiny or small model 60 epochs",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
-      conditionDescription:
-        "Checks if the user is still using the dummy classifier.",
       active: (codeInfo) => {
-        return (codeInfo as PlaneCodeInfo).classifierModelUsed === "DUMMY";
-      },
-    },
-    {
-      message: "Consider preprocessing your data with stemming!",
-      conditionDescription: "Checks that the user is stemming their data.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
-      active(codeInfo) {
-        const { usingStemming } = codeInfo as PlaneCodeInfo;
-        return !usingStemming;
-      },
-    },
-    {
-      message: "Consider a Logistic Regression model a try!",
-      conditionDescription: "Checks if the user is using a Naive Bayes model",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
-      active(codeInfo) {
-        const { classifierModelUsed } = codeInfo as PlaneCodeInfo;
-        return classifierModelUsed === "NAIVE_BAYES";
+        const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
+        return epochs == 60 && (modelSize == "TINY" || modelSize == "SMALL");
       },
     },
     {
       message:
-        "Your classifier is working very well! Do you want to submit this or keep playing with it?",
+        "Pretty good results. Make sure you've tested the large model as well.",
+      conditionDescription: "medium model 60 epochs",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (codeInfo) => {
+        const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
+        return epochs == 60 && modelSize == "MEDIUM";
+      },
+    },
+    {
+      message: "Model may be too large given the size of the training data.",
+      conditionDescription: "large model 60 epochs",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (codeInfo) => {
+        const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
+        return epochs == 60 && modelSize == "LARGE";
+      },
+    },
+    {
+      message:
+        "Make sure you're using the specified values for the system.",
       conditionDescription: "always true",
 
       visibility: "TRIGGERED_OR_HINT_BUTTON",
