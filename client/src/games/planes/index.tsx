@@ -175,7 +175,7 @@ export const Planes: Game = {
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (codeInfo) => {
         const { epochs } = codeInfo as PlaneCodeInfo;
-        return epochs == 30;
+        return epochs === 30;
       },
     },
     {
@@ -184,7 +184,7 @@ export const Planes: Game = {
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (codeInfo) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
-        return epochs == 60 && (modelSize == "TINY" || modelSize == "SMALL");
+        return epochs === 60 && (modelSize === "TINY" || modelSize === "SMALL");
       },
     },
     {
@@ -194,7 +194,7 @@ export const Planes: Game = {
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (codeInfo) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
-        return epochs == 60 && modelSize == "MEDIUM";
+        return epochs === 60 && modelSize === "MEDIUM";
       },
     },
     {
@@ -203,12 +203,11 @@ export const Planes: Game = {
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (codeInfo) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
-        return epochs == 60 && modelSize == "LARGE";
+        return epochs === 60 && modelSize === "LARGE";
       },
     },
     {
-      message:
-        "Make sure you're using the specified values for the system.",
+      message: "Make sure you're using the specified values for the system.",
       conditionDescription: "always true",
 
       visibility: "TRIGGERED_OR_HINT_BUTTON",
