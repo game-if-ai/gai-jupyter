@@ -20,7 +20,7 @@ export interface DialogueMessage {
 export interface UseWithDialogue {
   messages: DialogueMessage[];
   curMessage: DialogueMessage | undefined;
-  addMessage: (msg: DialogueMessage) => void;
+  addMessage: (msg: DialogueMessage, onlyMessage?: boolean) => void;
   addMessages: (msg: DialogueMessage[]) => void;
   nextMessage: () => void;
   clearMessages: () => void;
@@ -35,7 +35,12 @@ export function useWithDialogue(): UseWithDialogue {
   const curMessage = useAppSelector((s) => s.dialogue.curMessage);
   const dispatch = useAppDispatch();
 
-  function addMessage(msg: DialogueMessage): void {
+  function addMessage(msg: DialogueMessage, onlyMessage?: boolean): void {
+    if (onlyMessage) {
+      dispatch(setMessages([]));
+      dispatch(setCurMessage(msg));
+      return;
+    }
     if (messages.length === 0 && !curMessage) {
       dispatch(setCurMessage(msg));
     } else {

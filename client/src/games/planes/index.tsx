@@ -18,7 +18,7 @@ import { ActivityID } from "../../store/simulator";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
-  title: "Cars, Planes, and Trains",
+  title: "Planes, Tanks, and Automobiles",
   parent: "phaser-container",
   backgroundColor: "#282c34",
   physics: {
@@ -32,12 +32,12 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
 
 export const Planes: Game = {
   id: ActivityID.planes,
-  title: "Cars, Planes, and Trains",
+  title: "Planes, Tanks, and Automobiles",
   activityType: "GAME",
   gameDescription:
     "PAL the robot needs help sorting all the incoming vehicles.",
   notebookDescription:
-    "Please complete this notebook to build a sentiment classifier. You will receive hints on how to improve its performance as you go.",
+    "Try different parameter settings for this CNN for image classification. You will receive hints on how to improve its performance as you go.",
   config: GameConfig,
   autocompletion: [
     // NAIVE BAYES
@@ -208,8 +208,24 @@ export const Planes: Game = {
     },
     {
       message: "Make sure you're using the specified values for the system.",
-      conditionDescription: "always true",
+      conditionDescription: "ensure correct values",
 
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (codeInfo) => {
+        const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
+        return (
+          (epochs !== 30 && epochs !== 60) ||
+          (modelSize !== "TINY" &&
+            modelSize !== "SMALL" &&
+            modelSize !== "MEDIUM" &&
+            modelSize !== "LARGE")
+        );
+      },
+    },
+    {
+      message:
+        "That was a good run! Do you want to submit this or tune it more?",
+      conditionDescription: "always true",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: () => {
         return true;
