@@ -20,7 +20,7 @@ import {
 import { initSimulate } from "../../store/simulator/useWithSimulator";
 
 export const GAME_TIME = 60; // time the game lasts in seconds
-export const SPAWN_TIME = 2000;
+export const SPAWN_TIME = 1000;
 export const CLASSIFIER_DELAY = 1000; // delay in ms for classifier catch speed at 0 confidence
 
 export type VehicleType = "car" | "plane" | "tank";

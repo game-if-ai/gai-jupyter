@@ -24,19 +24,22 @@ import {
   DialogueMessage,
   useWithDialogue,
 } from "../store/dialogue/useWithDialogue";
+import { PlaneCodeInfo } from "games/planes/hooks/use-with-plane-code-examine";
+import Planes from "../games/planes";
 
 function Summary(props: { onSubmit: () => void }): JSX.Element {
   const { loadExperiment } = useWithState();
   const activity = useAppSelector((s) => s.state.activity!);
-  const experiment = useAppSelector((s) => s.state.experiment!);
+  const experiment: Experiment = useAppSelector((s) => s.state.experiment!);
   const previousExperiments = useAppSelector(
     (s) => s.simulator.experiments[activity.id]
   );
+  const numRuns = previousExperiments.length;
   const summary = experiment.summary;
 
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
-  const { addMessages } = useWithDialogue();
+  const { addMessages, addMessage } = useWithDialogue();
 
   function _setExperiment(experiment: Experiment) {
     loadExperiment(experiment);
@@ -60,6 +63,23 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
           text: "Congratulations! You have completed all the requirements for this experiment.",
           noSave: true,
         });
+      }
+    } else if (experiment.activityId === ActivityID.planes) {
+      const codeInfo = experiment.codeInfo as PlaneCodeInfo;
+      const firstActiveHint = Planes.improveCodeHints.find((hint) =>
+        hint.active(codeInfo, numRuns)
+      );
+      if (firstActiveHint) {
+        addMessage(
+          {
+            id: "notebook",
+            title: "Feedback",
+            text: firstActiveHint.message,
+            noSave: true,
+          },
+          true
+        );
+        return;
       }
     } else {
       if (experiment.evaluationScore <= 0.6) {
