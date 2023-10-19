@@ -39,7 +39,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
 
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
-  const { addMessages, addMessage } = useWithDialogue();
+  const { addMessage } = useWithDialogue();
 
   function _setExperiment(experiment: Experiment) {
     loadExperiment(experiment);
@@ -50,19 +50,25 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
     const msgs: DialogueMessage[] = [];
     if (experiment.activityId === ActivityID.nmt) {
       if (experiment.evaluationScore < 1) {
-        msgs.push({
-          id: "notebook",
-          title: "Incomplete",
-          text: "You have not completed all the tasks for this experiment.",
-          noSave: true,
-        });
+        addMessage(
+          {
+            id: "notebook",
+            title: "Incomplete",
+            text: "You have not completed all the tasks for this experiment.",
+            noSave: true,
+          },
+          true
+        );
       } else {
-        msgs.push({
-          id: "submit",
-          title: "Experiment Complete",
-          text: "Congratulations! You have completed all the requirements for this experiment.",
-          noSave: true,
-        });
+        addMessage(
+          {
+            id: "submit",
+            title: "Experiment Complete",
+            text: "Congratulations! You have completed all the requirements for this experiment.",
+            noSave: true,
+          },
+          true
+        );
       }
     } else if (experiment.activityId === ActivityID.planes) {
       const codeInfo = experiment.codeInfo as PlaneCodeInfo;
@@ -83,29 +89,37 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
       }
     } else {
       if (experiment.evaluationScore <= 0.6) {
-        msgs.push({
-          id: "notebook",
-          title: "Results Very Bad",
-          text: "Something seems wrong, barely better than random. Maybe check the model training.",
-          noSave: true,
-        });
+        addMessage(
+          {
+            id: "notebook",
+            title: "Results Very Bad",
+            text: "Something seems wrong, barely better than random. Maybe check the model training.",
+            noSave: true,
+          },
+          true
+        );
       } else if (experiment.evaluationScore <= 0.9) {
-        msgs.push({
-          id: "notebook",
-          title: "Results Okay",
-          text: "The classifier works! But can we do better?",
-          noSave: true,
-        });
+        addMessage(
+          {
+            id: "notebook",
+            title: "Results Okay",
+            text: "The classifier works! But can we do better?",
+            noSave: true,
+          },
+          true
+        );
       } else {
-        msgs.push({
-          id: "submit",
-          title: "Results Very Good",
-          text: "That was a good run! Do you want to submit this or tune it more?",
-          noSave: true,
-        });
+        addMessage(
+          {
+            id: "submit",
+            title: "Results Very Good",
+            text: "That was a good run! Do you want to submit this or tune it more?",
+            noSave: true,
+          },
+          true
+        );
       }
     }
-    addMessages(msgs);
   }, [summary]);
 
   function curExperimentView() {
