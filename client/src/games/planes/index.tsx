@@ -188,16 +188,6 @@ export const Planes: Game = {
       },
     },
     {
-      message:
-        "Pretty good results. Make sure you've tested the large model as well.",
-      conditionDescription: "medium model 60 epochs",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
-      active: (codeInfo) => {
-        const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
-        return epochs === 60 && modelSize === "MEDIUM";
-      },
-    },
-    {
       message: "Model may be too large given the size of the training data.",
       conditionDescription: "large model 60 epochs",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
@@ -206,6 +196,70 @@ export const Planes: Game = {
         return epochs === 60 && modelSize === "LARGE";
       },
     },
+
+    {
+      message:
+        "This model seems the best fit given the size of the training set. You should submit your results.",
+      conditionDescription: "large model 60 epochs",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (codeInfo, numRuns, previousExperiments) => {
+        const curCodeInfo = codeInfo as PlaneCodeInfo;
+        const { modelSize, epochs } = curCodeInfo;
+        const triedLargeSixty = previousExperiments.some((exp) => {
+          return (
+            (exp.codeInfo as PlaneCodeInfo).epochs === 60 &&
+            (exp.codeInfo as PlaneCodeInfo).modelSize === "LARGE"
+          );
+        });
+        const triedSmallSixty = previousExperiments.some((exp) => {
+          return (
+            (exp.codeInfo as PlaneCodeInfo).epochs === 60 &&
+            (exp.codeInfo as PlaneCodeInfo).modelSize === "SMALL"
+          );
+        });
+        return (
+          epochs === 60 &&
+          modelSize === "MEDIUM" &&
+          triedLargeSixty &&
+          triedSmallSixty
+        );
+      },
+    },
+    {
+      message:
+        "Pretty good results. You should try the large model to see if you can get better.",
+      conditionDescription: "large model 60 epochs",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (codeInfo, numRuns, previousExperiments) => {
+        const curCodeInfo = codeInfo as PlaneCodeInfo;
+        const { modelSize, epochs } = curCodeInfo;
+        const triedLargeSixty = previousExperiments.some((exp) => {
+          return (
+            (exp.codeInfo as PlaneCodeInfo).epochs === 60 &&
+            (exp.codeInfo as PlaneCodeInfo).modelSize === "LARGE"
+          );
+        });
+        return epochs === 60 && modelSize === "MEDIUM" && !triedLargeSixty;
+      },
+    },
+    {
+      message:
+        "Pretty good results. You should try the small model to see if it generalizes better.",
+      conditionDescription: "large model 60 epochs",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (codeInfo, numRuns, previousExperiments) => {
+        const curCodeInfo = codeInfo as PlaneCodeInfo;
+        const { modelSize, epochs } = curCodeInfo;
+        const triedSmallSixty = previousExperiments.some((exp) => {
+          return (
+            (exp.codeInfo as PlaneCodeInfo).epochs === 60 &&
+            (exp.codeInfo as PlaneCodeInfo).modelSize === "SMALL"
+          );
+        });
+        return epochs === 60 && modelSize === "MEDIUM" && !triedSmallSixty;
+      },
+    },
+
     {
       message: "Make sure you're using the specified values for the system.",
       conditionDescription: "ensure correct values",

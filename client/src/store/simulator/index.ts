@@ -122,17 +122,16 @@ export interface Experiment {
   displayedHints: ImproveCodeHint[];
 }
 
+export type ExperimentHistory = Record<ActivityID, Experiment[]>;
+
 export interface SimulationState {
-  experiments: Record<ActivityID, Experiment[]>;
+  experiments: ExperimentHistory;
 }
 const initialState: SimulationState = {
   experiments: getExperimentHistory(),
 };
-function getExperimentHistory(): Record<ActivityID, Experiment[]> {
-  let experiments = localStorageGet(EXPERIMENT_HISTORY) as Record<
-    ActivityID,
-    Experiment[]
-  >;
+function getExperimentHistory(): ExperimentHistory {
+  let experiments = localStorageGet(EXPERIMENT_HISTORY) as ExperimentHistory;
   if (!experiments) {
     experiments = {
       cafe: [],

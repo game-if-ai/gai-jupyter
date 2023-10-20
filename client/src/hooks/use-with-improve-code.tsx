@@ -7,13 +7,16 @@ The full terms of this copyright and license should always be found in the root 
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppSelector } from "../store";
-import { Activity, CodeInfo } from "store/simulator";
-
+import { Activity, CodeInfo, Experiment } from "store/simulator";
 type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
 
 export interface ImproveCodeHint {
   message: string;
-  active: (codeInfo: CodeInfo, numRuns: number) => boolean;
+  active: (
+    codeInfo: CodeInfo,
+    numRuns: number,
+    previousExperiments: Experiment[]
+  ) => boolean;
   conditionDescription: string;
   visibility: HintVisibilityType;
 }
@@ -31,6 +34,10 @@ export function useWithImproveCode(props: {
   notebookIsRunning: boolean;
   notebookRunCount: number;
 }): UseWithImproveCode {
+  const activity = useAppSelector((s) => s.state.activity!);
+  const previousExperiments = useAppSelector(
+    (state) => state.simulator.experiments[activity.id]
+  );
   const {
     activeActivity,
     notebookIsRunning,
@@ -88,10 +95,10 @@ export function useWithImproveCode(props: {
 
   function getDisplayedHints() {
     const displayedHints = improveCodeHints.filter(
-      (hint) => !hint.active(codeInfo, 0)
+      (hint) => !hint.active(codeInfo, 0, previousExperiments)
     ); //inactive hints mean they are already satisfied
     const currentlyActiveHint = improveCodeHints.find((hint) =>
-      hint.active(codeInfo, 0)
+      hint.active(codeInfo, 0, previousExperiments)
     );
     return [
       ...displayedHints,
@@ -104,7 +111,7 @@ export function useWithImproveCode(props: {
       return;
     }
     const firstActiveHintIndex = improveCodeHints.findIndex((hint) =>
-      hint.active(codeInfo, 0)
+      hint.active(codeInfo, 0, previousExperiments)
     );
     setActiveHintIndex(firstActiveHintIndex);
     if (hintDisplayed) {
@@ -134,6 +141,7 @@ export function useWithImproveCode(props: {
     activeActivity.id,
     improveCodeHints,
     notebookIsRunning,
+    previousExperiments,
   ]);
 
   return {
