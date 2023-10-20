@@ -60,8 +60,6 @@ export function PlanePreviousExperimentsView(props: {
             <TableCell align="right">Train</TableCell>
             <TableCell align="right">Test</TableCell>
             <TableCell align="right">Accuracy</TableCell>
-            <TableCell align="right">Precision</TableCell>
-            <TableCell align="right">Recall</TableCell>
             <TableCell align="right">F1 Score</TableCell>
             <TableCell align="right" className={classes.sticky}>
               View
@@ -114,12 +112,6 @@ export function PlanePreviousExperimentsView(props: {
                   </TableCell>
                   <TableCell align="center">
                     {round(summary.averageAccuracy)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {round(summary.averagePrecision)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {round(summary.averageRecall)}
                   </TableCell>
                   <TableCell align="center">
                     {round(summary.averageF1Score)}

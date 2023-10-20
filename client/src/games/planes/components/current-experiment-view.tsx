@@ -51,14 +51,6 @@ export function PlaneCurrentExperimentView(props: {
         metricValue: round(summary.averageAccuracy),
       },
       {
-        metricName: "Precision",
-        metricValue: round(summary.averagePrecision),
-      },
-      {
-        metricName: "Recall",
-        metricValue: round(summary.averageRecall),
-      },
-      {
         metricName: "F1 Score",
         metricValue: round(summary.averageF1Score),
       },
@@ -111,8 +103,6 @@ export function PlaneCurrentExperimentView(props: {
           <TableRow>
             <TableCell>Run #</TableCell>
             <TableCell align="right">Accuracy</TableCell>
-            <TableCell align="right">Precision</TableCell>
-            <TableCell align="right">Recall</TableCell>
             <TableCell align="right">F1 Score</TableCell>
             <TableCell align="right" className={classes.sticky}>
               View
@@ -129,8 +119,6 @@ export function PlaneCurrentExperimentView(props: {
                 {i + 1}
               </TableCell>
               <TableCell align="center">{round(s.accuracy)}</TableCell>
-              <TableCell align="center">{round(s.precision)}</TableCell>
-              <TableCell align="center">{round(s.recall)}</TableCell>
               <TableCell align="center">{round(s.f1Score)}</TableCell>
               <TableCell align="center" className={classes.sticky}>
                 <IconButton size="small" onClick={() => loadSimulation(i)}>
