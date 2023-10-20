@@ -282,24 +282,27 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     if (!notebook) {
       return;
     }
-    runNotebook().then((ranNotebook) => {
-      if (!ranNotebook) {
-        return;
-      }
-      const [setupCellOutput, validationCellOutput] =
-        extractSetupAndValidationCellOutputs(ranNotebook, activity!);
-      const experiment = simulator.simulate(
-        setupCellOutput,
-        validationCellOutput,
-        ranNotebook,
-        hints.getDisplayedHints()
-      );
-      dispatch(updateLocalNotebook({ id: activity.id, notebook: undefined }));
-      loadExperiment(experiment);
-      setShowResults(true);
-    });
+    runNotebook()
+      .then((ranNotebook) => {
+        if (!ranNotebook) {
+          return;
+        }
+        const [setupCellOutput, validationCellOutput] =
+          extractSetupAndValidationCellOutputs(ranNotebook, activity!);
+        const experiment = simulator.simulate(
+          setupCellOutput,
+          validationCellOutput,
+          ranNotebook,
+          hints.getDisplayedHints()
+        );
+        dispatch(updateLocalNotebook({ id: activity.id, notebook: undefined }));
+        loadExperiment(experiment);
+        setShowResults(true);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   }
-
   function onReset(event: React.MouseEvent<HTMLButtonElement>): void {
     setHistoryPopup(event.currentTarget);
   }

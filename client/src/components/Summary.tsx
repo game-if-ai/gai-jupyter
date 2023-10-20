@@ -73,7 +73,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
     } else if (experiment.activityId === ActivityID.planes) {
       const codeInfo = experiment.codeInfo as PlaneCodeInfo;
       const firstActiveHint = Planes.improveCodeHints.find((hint) =>
-        hint.active(codeInfo, numRuns)
+        hint.active(codeInfo, numRuns, previousExperiments)
       );
       if (firstActiveHint) {
         addMessage(
