@@ -200,7 +200,7 @@ export const Planes: Game = {
     {
       message:
         "This model seems the best fit given the size of the training set. You should submit your results.",
-      conditionDescription: "large model 60 epochs",
+      conditionDescription: "medium 60, has not tried large or small 60",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (codeInfo, numRuns, previousExperiments) => {
         const curCodeInfo = codeInfo as PlaneCodeInfo;
@@ -228,7 +228,7 @@ export const Planes: Game = {
     {
       message:
         "Pretty good results. You should try the large model to see if you can get better.",
-      conditionDescription: "large model 60 epochs",
+      conditionDescription: "medium 60, has not tried large 60",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (codeInfo, numRuns, previousExperiments) => {
         const curCodeInfo = codeInfo as PlaneCodeInfo;
@@ -245,7 +245,7 @@ export const Planes: Game = {
     {
       message:
         "Pretty good results. You should try the small model to see if it generalizes better.",
-      conditionDescription: "large model 60 epochs",
+      conditionDescription: "medium 60, has not tried small 60",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (codeInfo, numRuns, previousExperiments) => {
         const curCodeInfo = codeInfo as PlaneCodeInfo;
