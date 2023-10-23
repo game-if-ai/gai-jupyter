@@ -198,7 +198,7 @@ export const Cafe: Game = {
       },
     },
     {
-      message: "Consider a Logistic Regression model a try!",
+      message: "Consider giving a Logistic Regression model a try!",
       conditionDescription: "Checks if the user is using a Naive Bayes model",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active(cafeCodeInfo) {
@@ -206,6 +206,22 @@ export const Cafe: Game = {
         return classifierModelUsed === "NAIVE_BAYES";
       },
     },
+
+    {
+      message: "Try removing stopwords.",
+      conditionDescription: "Check if the user is removing stopwords",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active(cafeCodeInfo) {
+        const { classifierModelUsed, usingStemming, removesStopwords } =
+          cafeCodeInfo as CafeCodeInfo;
+        return (
+          classifierModelUsed === "LOGISTIC_REGRESSION" &&
+          usingStemming &&
+          !removesStopwords
+        );
+      },
+    },
+
     {
       message:
         "Your classifier is working very well! Do you want to submit this or keep playing with it?",

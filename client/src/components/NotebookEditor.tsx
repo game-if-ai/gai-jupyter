@@ -44,13 +44,63 @@ import { TooltipMsg } from "./Dialogue";
 import { Output } from "./Output";
 
 import "../codemirror.css";
+import { ActivityID } from "../store/simulator";
 
 interface CustomErrorMessage {
-  condition: (errorOutput: IError) => boolean;
+  condition: (errorOutput: IError, activityId: ActivityID) => boolean;
   message: string;
 }
 
 const customErrorMessages: CustomErrorMessage[] = [
+  {
+    condition: (errorOutput, activityId) => {
+      return (
+        activityId === ActivityID.nmt &&
+        errorOutput.ename === "AttributeError" &&
+        errorOutput.evalue.includes(
+          "'NoneType' object has no attribute 'texts_to_sequences'"
+        )
+      );
+    },
+    message: "fit_on_texts does not have a return value. Delete 'tokenizer='",
+  },
+
+  {
+    condition: (errorOutput, activityId) => {
+      return (
+        activityId === ActivityID.cafe &&
+        errorOutput.ename === "AttributeError" &&
+        errorOutput.evalue.includes("'list' object has no attribute 'lower'")
+      );
+    },
+    message:
+      "The output of the function, preprocess, should be a string but you are outputting a list.",
+  },
+
+  {
+    condition: (errorOutput, activityId) => {
+      return (
+        activityId === ActivityID.cafe &&
+        errorOutput.ename === "TypeError" &&
+        errorOutput.evalue.includes(
+          "PorterStemmer.stem() missing 1 required positional argument: 'word'"
+        )
+      );
+    },
+    message: "You need to create a stemmer object by typing PorterStemmer().",
+  },
+
+  {
+    condition: (errorOutput, activityId) => {
+      return (
+        activityId === ActivityID.cafe &&
+        errorOutput.ename === "NameError" &&
+        errorOutput.evalue.includes("name 'PorterStemmer' is not defined")
+      );
+    },
+    message: "You need to import the PorterStemmer from the nltk.stem package.",
+  },
+
   {
     condition: (errorOutput) => {
       return errorOutput.ename === "SyntaxError";
@@ -242,16 +292,19 @@ export function NotebookEditor(props: {
       const o = output[0];
       if (o && isError(o)) {
         const customErrorMessage = customErrorMessages.find((customError) =>
-          customError.condition(o)
+          customError.condition(o, activity.id)
         );
-        addMessage({
-          id: `output-${cellId}`,
-          text:
-            customErrorMessage?.message ||
-            "There was an error while running this cell. Please review and make changes before re-running.",
-          noSave: true,
-          timer: 5000,
-        });
+        addMessage(
+          {
+            id: `output-${cellId}`,
+            text:
+              customErrorMessage?.message ||
+              "There was an error while running this cell. Please review and make changes before re-running.",
+            noSave: true,
+            timer: 5000,
+          },
+          true
+        );
         setHasError(true);
       } else {
         setHasError(false);
