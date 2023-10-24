@@ -5,23 +5,13 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 
-import {
-  ClassifierModel,
-  FeatureExtractionMethods,
-  getAllPlaneCodeInfo,
-} from "./examine-plane-code-helpers";
+import { getAllPlaneCodeInfo } from "./examine-plane-code-helpers";
 import { useEffect, useState } from "react";
 
 type LoadStatus = "LOADING" | "LOADED";
 export type ModelSize = "TINY" | "SMALL" | "MEDIUM" | "LARGE" | "UNDEFINED";
 
 export interface PlaneCodeInfo {
-  usingLemmatization: boolean;
-  usingStemming: boolean;
-  removesStopwords: boolean;
-  cleansContractions: boolean;
-  classifierModelUsed: ClassifierModel;
-  featureExtractionUsed: FeatureExtractionMethods;
   modelSize: ModelSize;
   epochs: number;
 }
@@ -39,12 +29,6 @@ export function useWithPlaneCodeExamine(
   userCode: Record<string, string[]>
 ): UseWithPlaneCodeExamine {
   const [planeCodeInfo, setPlaneCodeInfo] = useState<PlaneCodeInfoLoad>({
-    usingLemmatization: false,
-    usingStemming: false,
-    classifierModelUsed: "NONE",
-    featureExtractionUsed: "NONE",
-    removesStopwords: false,
-    cleansContractions: false,
     loadStatus: "LOADING",
     modelSize: "UNDEFINED",
     epochs: 0,
