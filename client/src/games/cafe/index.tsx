@@ -167,6 +167,12 @@ export const Cafe: Game = {
       apply,
       detail: "",
     },
+    {
+      label: "from nltk.corpus import stopwords",
+      type: "text",
+      apply,
+      detail: "",
+    },
   ],
   improveCodeHints: [
     {
