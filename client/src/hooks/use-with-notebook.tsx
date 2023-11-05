@@ -19,17 +19,21 @@ import {
 } from "@jupyterlab/nbformat";
 import { useEffect, useState } from "react";
 
+import { KernelConnectionStatus } from "../components/Notebook";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
+import { useAppDispatch, useAppSelector } from "../store";
+import { Activity, Experiment } from "../store/simulator";
+import {
+  setIsRunning,
+  setIsSaving,
+  updateLocalNotebook,
+} from "../store/notebook";
 import {
   extractSetupCellOutput,
   extractValidationCellOutput,
   extractCellCode,
   formatCellCode,
 } from "../utils";
-import { KernelConnectionStatus } from "../components/Notebook";
-import { useAppDispatch } from "../store";
-import { Activity, Experiment } from "../store/simulator";
-import { updateLocalNotebook } from "../store/notebook";
 
 export interface CellState {
   cell: ICellModel;
@@ -50,24 +54,22 @@ export function useWithNotebook(props: {
   kernelStatus: KernelConnectionStatus;
 }) {
   const { curActivity, curExperiment, kernelStatus } = props;
+  const dispatch = useAppDispatch();
+  const { isSaving } = useAppSelector((s) => s.notebookState);
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
   const [curExperimentLoaded, setCurExperimentLoaded] = useState(false);
-
-  const dispatch = useAppDispatch();
+  const [initialConnectionMade, setInitialConnectionMade] = useState(false);
   const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
   const [validationCellOutput, setValidationCellOutput] = useState<any[]>([]);
   const [cells, setCells] = useState<CellsStates>({});
   const [notebookConnected, setNotebookConnected] = useState(false);
   const [hasError, setHasError] = useState<boolean>(false);
-  const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isEdited, setIsEdited] = useState<boolean>(false);
-  const [notebookIsRunning, setNotebookIsRunning] = useState(false);
   const [notebookRunCount, setNotebookRuns] = useState(0);
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
-  const [initialConnectionMade, setInitialConnectionMade] = useState(false);
 
   useEffect(() => {
     if (
@@ -168,7 +170,7 @@ export function useWithNotebook(props: {
     setNotebookConnected(true);
     setInitialConnectionMade(true);
     setIsEdited(false);
-    setIsSaving(false);
+    dispatch(setIsSaving(false));
   }
 
   function getValidationCellOutput(changedCell: ICellModel) {
@@ -182,14 +184,14 @@ export function useWithNotebook(props: {
     if (!notebook) {
       return;
     }
-    setNotebookIsRunning(true);
+    dispatch(setIsRunning(true));
     try {
       await notebook.adapter?.commands.execute("notebook:save");
       await notebook.adapter?.commands.execute("notebook:run-all");
     } catch (err) {
       console.error(err);
     } finally {
-      setNotebookIsRunning(false);
+      dispatch(setIsRunning(false));
       setNotebookRuns((prevValue) => prevValue + 1);
       console.log(notebook);
       return notebook;
@@ -279,7 +281,7 @@ export function useWithNotebook(props: {
     if (isSaving || !notebook || !notebook.model || !notebook.adapter) {
       return;
     }
-    setIsSaving(true);
+    dispatch(setIsSaving(true));
     setSetupCellOutput([]);
     setValidationCellOutput([]);
     const source = notebook.model.toJSON() as INotebookContent;
@@ -301,8 +303,6 @@ export function useWithNotebook(props: {
     userInputCellsCode,
     hasError,
     isEdited,
-    isSaving,
-    notebookIsRunning,
     notebookRunCount,
     notebookInitialRunComplete: notebookRunCount > 0,
     saveNotebook,

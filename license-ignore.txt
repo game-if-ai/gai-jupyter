@@ -1,29 +1,13 @@
-# Ignore everything
+# Ignore everything...
 *
 
-# But not these files...
-!src/*.js
-!src/*.ts
-!src/*.jsx
-!src/*.tsx
-!src/*/*.js
-!src/*/*.ts
-!src/*/*.jsx
-!src/*/*.tsx
-!src/*/*/*.js
-!src/*/*/*.ts
-!src/*/*/*.jsx
-!src/*/*/*.tsx
+# Except these folders
+!src/*
+!cypress/*
 
-!cypress/*.js
-!cypress/*.ts
-!cypress/*.jsx
-!cypress/*.tsx
-!cypress/*/*.js
-!cypress/*/*.ts
-!cypress/*/*.jsx
-!cypress/*/*.tsx
-!cypress/*/*/*.js
-!cypress/*/*/*.ts
-!cypress/*/*/*.jsx
-!cypress/*/*/*.tsx
+# But ignore these, if inside those folders ^
+node_modules
+build
+Dockerfile
+*.png
+*.css

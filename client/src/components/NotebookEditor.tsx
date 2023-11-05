@@ -16,6 +16,7 @@ import {
   Undo,
   Visibility,
   VisibilityOff,
+  WrapText,
 } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { minimalSetup, EditorView, basicSetup } from "codemirror";
@@ -35,7 +36,9 @@ import { keymap } from "@codemirror/view";
 
 import { pythonLibs } from "../python-autocomplete-libs";
 import { capitalizeFirst } from "../utils";
-import { useAppSelector } from "../store";
+import { useAppDispatch, useAppSelector } from "../store";
+import { ActivityID } from "../store/simulator";
+import { setWrapText } from "../store/notebook";
 import { useWithDialogue } from "../store/dialogue/useWithDialogue";
 import { useWithShortcutKeys } from "../store/keyboard/useWithKeyboard";
 import { UseWithImproveCode } from "../hooks/use-with-improve-code";
@@ -44,7 +47,6 @@ import { TooltipMsg } from "./Dialogue";
 import { Output } from "./Output";
 
 import "../codemirror.css";
-import { ActivityID } from "../store/simulator";
 
 interface CustomErrorMessage {
   condition: (errorOutput: IError, activityId: ActivityID) => boolean;
@@ -125,16 +127,14 @@ const customErrorMessages: CustomErrorMessage[] = [
 ];
 
 export function NotebookEditor(props: {
-  curCell: string;
   cellState: CellState;
   hints: UseWithImproveCode;
-  isSaving: boolean;
   editCode: (cell: string, code: string) => void;
   saveLocalChanges: () => void;
   onChangeCell: (direction: number) => void;
 }): JSX.Element {
   const classes = useStyles();
-  const { cellState, hints, isSaving } = props;
+  const { cellState, hints } = props;
   const { cell, output, errorOutput, lintOutput } = cellState;
   const cellId = cell.id;
   const [cellType] = useState(cell.getMetadata("gai_cell_type") || "");
@@ -143,10 +143,15 @@ export function NotebookEditor(props: {
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
   const [editor, setEditor] = useState<EditorView>();
   const [lintCompartment] = useState(new Compartment());
+  const [wrapCompartment] = useState(new Compartment());
   const [hasError, setHasError] = useState<boolean>(false);
 
+  const dispatch = useAppDispatch();
   const key = useAppSelector((s) => s.keyboard.key);
   const activity = useAppSelector((s) => s.state.activity!);
+  const { curCell, wrapText, isSaving } = useAppSelector(
+    (s) => s.notebookState
+  );
   const { selectCell, selectKey } = useWithShortcutKeys();
   const { addMessage } = useWithDialogue();
 
@@ -207,6 +212,7 @@ export function NotebookEditor(props: {
       }),
       autocompletion({ optionClass: () => "autocompleteOption" }),
       lintCompartment.of(linter(() => [])),
+      wrapCompartment.of(wrapText ? EditorView.lineWrapping : []),
       isDisabled ? minimalSetup : basicSetup,
     ];
     if (!isDisabled) {
@@ -241,12 +247,12 @@ export function NotebookEditor(props: {
   }, [cell]);
 
   useEffect(() => {
-    if (!editor || props.curCell !== cellId) {
+    if (!editor || curCell !== cellId) {
       return;
     }
     editor.focus();
     editor.dispatch({ selection: { anchor: 0 } });
-  }, [props.curCell]);
+  }, [curCell]);
 
   useEffect(() => {
     if (isDisabled) {
@@ -361,6 +367,14 @@ export function NotebookEditor(props: {
     });
   }, [lintOutput, errorOutput]);
 
+  useEffect(() => {
+    editor?.dispatch({
+      effects: wrapCompartment.reconfigure(
+        wrapText ? EditorView.lineWrapping : []
+      ),
+    });
+  }, [wrapText]);
+
   return (
     <div
       data-cy="cell"
@@ -397,6 +411,12 @@ export function NotebookEditor(props: {
               }
             >
               <Redo />
+            </IconButton>
+            <IconButton
+              data-cy="wrap-btn"
+              onClick={() => dispatch(setWrapText(!wrapText))}
+            >
+              <WrapText />
             </IconButton>
           </div>
         )}
