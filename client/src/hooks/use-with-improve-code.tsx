@@ -31,20 +31,15 @@ export function useWithImproveCode(props: {
   userCode: Record<string, string[]>;
   validationCellOutput: any[];
   activeActivity: Activity;
-  notebookIsRunning: boolean;
   notebookRunCount: number;
 }): UseWithImproveCode {
   const activity = useAppSelector((s) => s.state.activity!);
   const previousExperiments = useAppSelector(
     (state) => state.simulator.experiments[activity.id]
   );
-  const {
-    activeActivity,
-    notebookIsRunning,
-    userCode,
-    validationCellOutput,
-    notebookRunCount,
-  } = props;
+  const isRunning = useAppSelector((s) => s.notebookState.isRunning);
+  const { activeActivity, userCode, validationCellOutput, notebookRunCount } =
+    props;
   const timesNotebookVisited = useAppSelector(
     (s) => s.state.timesNotebookVisited
   );
@@ -107,7 +102,7 @@ export function useWithImproveCode(props: {
   }
 
   useEffect(() => {
-    if (codeInfoLoadStatus === "LOADING" || notebookIsRunning) {
+    if (codeInfoLoadStatus === "LOADING" || isRunning) {
       return;
     }
     const firstActiveHintIndex = improveCodeHints.findIndex((hint) =>
@@ -140,7 +135,7 @@ export function useWithImproveCode(props: {
     timesNotebookVisited,
     activeActivity.id,
     improveCodeHints,
-    notebookIsRunning,
+    isRunning,
     previousExperiments,
   ]);
 

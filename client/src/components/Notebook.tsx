@@ -76,7 +76,9 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const pastExperiments = useAppSelector(
     (s) => s.simulator.experiments[activity.id]
   );
-  const curCell = useAppSelector((s) => s.notebookState.curCell);
+  const { curCell, isSaving, isRunning } = useAppSelector(
+    (s) => s.notebookState
+  );
 
   const classes = useStyles();
   const { loadSimulation, loadExperiment, toStep } = useWithState();
@@ -91,8 +93,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     userInputCellsCode,
     hasError,
     isEdited,
-    isSaving,
-    notebookIsRunning,
     initialConnectionMade: notebookInitialized,
     notebookRunCount,
     editCode,
@@ -109,7 +109,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     userCode: userInputCellsCode,
     validationCellOutput: validationCellOutput,
     activeActivity: activity!,
-    notebookIsRunning: notebookIsRunning,
     notebookRunCount,
   });
   const showTutorial = Boolean(sessionStorageGet("show_walkthrough"));
@@ -220,7 +219,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   }, [showDescription, sawTutorial, messages, curMessage, cells]);
 
   useEffect(() => {
-    if (!isSaving && !notebookIsRunning && saveRun) {
+    if (!isSaving && !isRunning && saveRun) {
       setSaveRun(false);
       simulate();
     }
@@ -263,7 +262,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
 
   function saveAndRun(): void {
     if (isEdited) {
-      if (isSaving || notebookIsRunning) return;
+      if (isSaving || isRunning) return;
       setSaveRun(true);
       saveNotebook();
     } else {
@@ -363,7 +362,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         </div>
       );
     }
-    if (notebookIsRunning) {
+    if (isRunning) {
       return (
         <div style={{ color: "#90EE90", fontWeight: "bold" }}>
           Kernel Executing Code...
@@ -462,7 +461,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
                 justifyContent: "center",
               }}
             >
-              {isSaving || notebookIsRunning ? (
+              {isSaving || isRunning ? (
                 <CircularProgress
                   style={{ color: "white", position: "absolute" }}
                   size={28}
@@ -482,7 +481,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
                   disabled={
                     hasError ||
                     isSaving ||
-                    notebookIsRunning ||
+                    isRunning ||
                     kernelStatus !== KernelConnectionStatus.FINE
                   }
                   onClick={saveAndRun}
@@ -522,12 +521,10 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           {visibleCells.map((v, i) => (
             <NotebookEditor
               key={v[0]}
-              isSaving={isSaving}
               cellState={v[1]}
               hints={hints}
               editCode={editCode}
               saveLocalChanges={saveLocalChanges}
-              curCell={curCell}
               onChangeCell={(direction: number) => {
                 const newCell = visibleCells[i + direction];
                 if (newCell) {
