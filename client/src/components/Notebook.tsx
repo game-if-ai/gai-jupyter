@@ -302,6 +302,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         console.log(e);
       });
   }
+
   function onReset(event: React.MouseEvent<HTMLButtonElement>): void {
     setHistoryPopup(event.currentTarget);
   }

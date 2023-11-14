@@ -247,14 +247,6 @@ export function NotebookEditor(props: {
   }, [cell]);
 
   useEffect(() => {
-    if (!editor || curCell !== cellId) {
-      return;
-    }
-    editor.focus();
-    editor.dispatch({ selection: { anchor: 0 } });
-  }, [curCell]);
-
-  useEffect(() => {
     if (isDisabled) {
       return;
     }
