@@ -36,7 +36,7 @@ function App(): JSX.Element {
     try {
       const removeOldFiles = Activities.map((activity) => {
         return cm.delete(
-          `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${activity.id}/test.ipynb`
+          `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${activity.id}/test2.ipynb`
         );
       });
       Promise.all(removeOldFiles);
@@ -57,8 +57,8 @@ function App(): JSX.Element {
             // Copy files into directories
             ...Activities.map(async (activity) => {
               return await cm.copy(
-                `/${activity.id}/test.ipynb`,
-                `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${activity.id}/test.ipynb`
+                `/${activity.id}/test2.ipynb`,
+                `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${activity.id}/test2.ipynb`
               );
             }),
           ];
