@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     STAGE: 'qa'
-    REACT_APP_GRAPHQL_ENDPOINT: "https://api.gameifai.org/graphql/graphql"
+    REACT_APP_GRAPHQL_ENDPOINT: "https://api-qa.gameifai.org/graphql/graphql"
   parameter-store:
     S3_DEPLOY_BUCKET_QA: "/gameifai/qa/s3-websites/NAME"
     CDN_ID_QA: "/gameifai/qa/CLOUDFRONT_DISTRIBUTION_ID"
