@@ -3,7 +3,8 @@ version: 0.2
 env:
   variables:
     STAGE: 'prod'
-    REACT_APP_GRAPHQL_ENDPOINT: "https://api-qa.gameifai.org/graphql/graphql"
+    REACT_APP_GRAPHQL_ENDPOINT: "https://api.gameifai.org/graphql/graphql"
+    REACT_APP_CODE_EXECUTOR_ENDPOINT: "https://api.gamifai.org/executor"
   parameter-store:
     S3_DEPLOY_BUCKET_PROD: "/gameifai/prod/s3-websites/NAME"
     CDN_ID_PROD: "/gameifai/prod/CLOUDFRONT_DISTRIBUTION_ID"
