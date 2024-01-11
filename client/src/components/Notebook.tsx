@@ -283,17 +283,12 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
     runNotebook()
       .then((ranNotebook) => {
-        if (
-          !ranNotebook ||
-          !ranNotebook.result ||
-          !ranNotebook.console ||
-          !ranNotebook.success
-        ) {
+        if (!ranNotebook || !ranNotebook.result || !ranNotebook.success) {
           return;
         }
         const [setupCellOutput, validationCellOutput] = [
-          JSON.parse(ranNotebook.result),
-          ranNotebook.console,
+          JSON.parse(ranNotebook.result[0]),
+          JSON.parse(ranNotebook.result[1]),
         ];
         extractSetupAndValidationCellOutputs(ranNotebook.notebook, activity!);
         const experiment = simulator.simulate(

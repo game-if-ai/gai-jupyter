@@ -20,11 +20,11 @@ const REQUEST_EXECUTION_ENPOINT = `${CODE_EXECUTOR_ENDPOINT}/execute`;
 export const SUCCESS_STATUS = "SUCCESS";
 export const FAILURE_STATUS = "FAILURE";
 
-export interface CodeExecutorResponse {
+export interface CodeExecutorResponseData {
   id: string;
   status: string;
   state: string;
-  result?: string;
+  result?: string[];
   console?: string;
   statusUrl: string;
   error?: string;
@@ -47,6 +47,10 @@ interface SubmitNotebookExperimentGQL {
 interface GraphQLResponse<T> {
   errors?: { message: string }[];
   data?: T;
+}
+
+interface CodeExecutorResponse {
+  data: CodeExecutorResponseData;
 }
 
 const planeNotebookMutation = `
@@ -220,13 +224,13 @@ export async function submitNotebookExperimentGQL(
 export async function requestCodeExecution(
   code: string,
   lesson: ActivityID
-): Promise<CodeExecutorResponse> {
+): Promise<CodeExecutorResponseData> {
   const reqBody = { code: code, lesson: lesson.toString() };
   const response = await axios.post<CodeExecutorResponse>(
     REQUEST_EXECUTION_ENPOINT,
     reqBody
   );
-  return response.data;
+  return response.data.data;
 }
 
 const sleepNow = (delay: number) =>
@@ -234,16 +238,20 @@ const sleepNow = (delay: number) =>
 
 export async function pollCodeExecutionStatus(
   statusUrl: string
-): Promise<CodeExecutorResponse> {
-  let response = await axios.get<CodeExecutorResponse>(statusUrl);
+): Promise<CodeExecutorResponseData> {
+  let response = await axios.get<CodeExecutorResponse>(
+    `${CODE_EXECUTOR_ENDPOINT}${statusUrl}`
+  );
 
   while (
-    response.data.status !== SUCCESS_STATUS &&
-    response.data.status !== FAILURE_STATUS
+    response.data.data.status !== SUCCESS_STATUS &&
+    response.data.data.status !== FAILURE_STATUS
   ) {
     await sleepNow(1000);
-    response = await axios.get<CodeExecutorResponse>(statusUrl);
+    response = await axios.get<CodeExecutorResponse>(
+      `${CODE_EXECUTOR_ENDPOINT}${statusUrl}`
+    );
   }
 
-  return response.data;
+  return response.data.data;
 }

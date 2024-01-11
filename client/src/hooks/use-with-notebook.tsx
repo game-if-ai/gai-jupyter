@@ -55,9 +55,10 @@ export interface CellState {
 
 export interface ExecutionResult {
   notebook: INotebookState;
-  result: string | undefined;
+  result?: string[];
   console: string | undefined;
   success: boolean;
+  error?: string;
 }
 
 export type CellsStates = Record<string, CellState>;
@@ -203,7 +204,7 @@ export function useWithNotebook(props: {
     dispatch(setIsRunning(true));
     let result: ExecutionResult = {
       console: "",
-      result: "",
+      result: [],
       notebook: notebook,
       success: false,
     };
@@ -211,7 +212,7 @@ export function useWithNotebook(props: {
       let code = "";
       const notebookCells = activeNotebookModel?.model?.cells;
       if (notebookCells) {
-        for (let ii = 0; ii < notebookCells.length; ii++) {
+        for (let ii = 1; ii < notebookCells.length; ii++) {
           const currentCell = notebookCells.get(ii);
           code = code
             .concat(currentCell.toJSON().source.toString())
@@ -233,7 +234,7 @@ export function useWithNotebook(props: {
       } else {
         result = {
           notebook: notebook,
-          result: actualResponse.error,
+          error: actualResponse.error,
           console: actualResponse.message,
           success: false,
         };
