@@ -6,7 +6,11 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import { selectNotebook, selectNotebookModel } from "@datalayer/jupyter-react";
+import {
+  INotebookState,
+  selectNotebook,
+  selectNotebookModel,
+} from "@datalayer/jupyter-react";
 import { INotebookModel } from "@jupyterlab/notebook";
 import { CellList } from "@jupyterlab/notebook/lib/celllist";
 import { ICellModel } from "@jupyterlab/cells";
@@ -34,6 +38,11 @@ import {
   extractCellCode,
   formatCellCode,
 } from "../utils";
+import {
+  requestCodeExecution,
+  pollCodeExecutionStatus,
+  SUCCESS_STATUS,
+} from "../api";
 
 export interface CellState {
   cell: ICellModel;
@@ -42,6 +51,14 @@ export interface CellState {
   hiddenCell: boolean;
   errorOutput?: IError;
   lintOutput?: string;
+}
+
+export interface ExecutionResult {
+  notebook: INotebookState;
+  result?: string[];
+  console: string | undefined;
+  success: boolean;
+  error?: string;
 }
 
 export type CellsStates = Record<string, CellState>;
@@ -185,16 +202,52 @@ export function useWithNotebook(props: {
       return;
     }
     dispatch(setIsRunning(true));
+    let result: ExecutionResult = {
+      console: "",
+      result: [],
+      notebook: notebook,
+      success: false,
+    };
     try {
-      await notebook.adapter?.commands.execute("notebook:save");
-      await notebook.adapter?.commands.execute("notebook:run-all");
+      let code = "";
+      const notebookCells = activeNotebookModel?.model?.cells;
+      if (notebookCells) {
+        for (let ii = 1; ii < notebookCells.length; ii++) {
+          const currentCell = notebookCells.get(ii);
+          code = code
+            .concat(currentCell.toJSON().source.toString())
+            .concat("\n");
+        }
+      }
+
+      const holdingResponse = await requestCodeExecution(code, curActivity.id);
+      const actualResponse = await pollCodeExecutionStatus(
+        holdingResponse.statusUrl
+      );
+      if (actualResponse.state == SUCCESS_STATUS) {
+        result = {
+          notebook: notebook,
+          result: actualResponse.result,
+          console: actualResponse.console,
+          success: true,
+        };
+      } else {
+        result = {
+          notebook: notebook,
+          error: actualResponse.error,
+          console: actualResponse.message,
+          success: false,
+        };
+      }
+      //await notebook.adapter?.commands.execute("notebook:save");
+      //await notebook.adapter?.commands.execute("notebook:run-all");
     } catch (err) {
       console.error(err);
     } finally {
       dispatch(setIsRunning(false));
       setNotebookRuns((prevValue) => prevValue + 1);
       console.log(notebook);
-      return notebook;
+      return result;
     }
   }
 

@@ -283,15 +283,18 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
     runNotebook()
       .then((ranNotebook) => {
-        if (!ranNotebook) {
+        if (!ranNotebook || !ranNotebook.result || !ranNotebook.success) {
           return;
         }
-        const [setupCellOutput, validationCellOutput] =
-          extractSetupAndValidationCellOutputs(ranNotebook, activity!);
+        const [setupCellOutput, validationCellOutput] = [
+          JSON.parse(ranNotebook.result[0]),
+          JSON.parse(ranNotebook.result[1]),
+        ];
+        extractSetupAndValidationCellOutputs(ranNotebook.notebook, activity!);
         const experiment = simulator.simulate(
           setupCellOutput,
           validationCellOutput,
-          ranNotebook,
+          ranNotebook.notebook,
           hints.getDisplayedHints()
         );
         dispatch(updateLocalNotebook({ id: activity.id, notebook: undefined }));
@@ -541,7 +544,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           kernel={kernel}
           path={`/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${
             activity!.id
-          }/test.ipynb`}
+          }/test2.ipynb`}
           uid={NOTEBOOK_UID}
         />
       </div>

@@ -4,6 +4,7 @@ env:
   variables:
     STAGE: 'dev'
     REACT_APP_GRAPHQL_ENDPOINT: "https://api-dev.gameifai.org/graphql/graphql"
+    REACT_APP_CODE_EXECUTOR_ENDPOINT: "https://api-dev.gameifai.org/executor"
   parameter-store:
     S3_DEPLOY_BUCKET_DEV: "/gameifai/dev/s3-websites/NAME"
     CDN_ID_DEV: "/gameifai/dev/CLOUDFRONT_DISTRIBUTION_ID"
