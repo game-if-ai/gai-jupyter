@@ -58,7 +58,7 @@ export interface ExecutionResult {
   result?: string[];
   console: string | undefined;
   success: boolean;
-  error?: string;
+  error?: any;
 }
 
 export type CellsStates = Record<string, CellState>;
@@ -234,7 +234,7 @@ export function useWithNotebook(props: {
       } else {
         result = {
           notebook: notebook,
-          error: actualResponse.error,
+          error: actualResponse.result,
           console: actualResponse.message,
           success: false,
         };

@@ -283,7 +283,15 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
     runNotebook()
       .then((ranNotebook) => {
-        if (!ranNotebook || !ranNotebook.result || !ranNotebook.success) {
+        if (!ranNotebook) {
+          return;
+        }
+        if (!ranNotebook.success && ranNotebook.error) {
+          //TODO: find some way to display this error message
+          console.log(ranNotebook.error);
+          return;
+        }
+        if (!ranNotebook.result) {
           return;
         }
         const [setupCellOutput, validationCellOutput] = [
