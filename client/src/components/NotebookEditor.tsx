@@ -307,13 +307,13 @@ export function NotebookEditor(props: {
       } else {
         setHasError(false);
       }
-      setOutputElement(<Output outputs={output} />);
+      setOutputElement(<Output outputs={output} errorOutput={errorOutput} />);
     }
-  }, [output]);
+  }, [output, errorOutput]);
 
   useEffect(() => {
     if (!outputElement && output.length) {
-      setOutputElement(<Output outputs={output} />);
+      setOutputElement(<Output outputs={output} errorOutput={errorOutput} />);
     }
   }, [outputElement]);
 
@@ -336,23 +336,25 @@ export function NotebookEditor(props: {
               message: l,
             });
           }
-          if (errorOutput) {
-            const traceback = errorOutput.traceback?.toString();
-            let line;
-            if (traceback?.indexOf("----> ") !== -1) {
-              const lineNum = traceback!.split("----> ")[1].split(" ")[0];
-              line = view.state.doc.line(Number.parseInt(lineNum));
-            } else if (traceback?.indexOf(", line ") !== -1) {
-              const lineNum = traceback!.split(", line ")[1].split(")")[0];
-              line = view.state.doc.line(Number.parseInt(lineNum));
-            }
-            diagnostics.push({
-              from: line?.from || 0,
-              to: line?.to || 0,
-              severity: "error",
-              message: `${errorOutput.ename}: ${errorOutput.evalue}`,
-            });
-          }
+          // // Note: Since all code is now executed together, we don't know where to place this error
+          // // TODO: Re-enable once cells are executed separately
+          // if (errorOutput) {
+          //   const traceback = errorOutput.traceback?.toString();
+          //   let line;
+          //   if (traceback?.indexOf("----> ") !== -1) {
+          //     const lineNum = traceback!.split("----> ")[1].split(" ")[0];
+          //     line = view.state.doc.line(Number.parseInt(lineNum));
+          //   } else if (traceback?.indexOf(", line ") !== -1) {
+          //     const lineNum = traceback!.split(", line ")[1].split(")")[0];
+          //     line = view.state.doc.line(Number.parseInt(lineNum));
+          //   }
+          //   diagnostics.push({
+          //     from: line?.from || 0,
+          //     to: line?.to || 0,
+          //     severity: "error",
+          //     message: `${errorOutput.ename}: ${errorOutput.evalue}`,
+          //   });
+          // }
           return diagnostics;
         })
       ),

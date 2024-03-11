@@ -5,7 +5,6 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import { Completion } from "@codemirror/autocomplete";
-import { INotebookState } from "@datalayer/jupyter-react";
 import { ICellModel } from "@jupyterlab/cells";
 import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
@@ -16,7 +15,7 @@ import { GaiCellTypes } from "./local-constants";
 import { submitNotebookExperimentGQL } from "./api";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
 import { UserInputCellsCode } from "hooks/use-with-notebook";
-import { Activity, ActivityID, Experiment } from "store/simulator";
+import { ActivityID, Experiment } from "store/simulator";
 
 export function waitMs(ms: number) {
   return new Promise((resolve) => {
@@ -81,23 +80,6 @@ export function formatDateTime(now: Date) {
   return dateTimeString;
 }
 
-export function extractNotebookCellCode(notebook: INotebookState): string[][] {
-  if (!notebook || !notebook.model || !notebook.adapter) {
-    return [];
-  }
-  let cellSources: string[][] = [];
-  for (let i = 0; i < notebook.model.cells.length; i++) {
-    const cell = notebook.model.cells.get(i);
-    const cellSource = cell.toJSON().source;
-    if (typeof cellSource == "string") {
-      cellSources.push([cellSource]);
-    } else {
-      cellSources.push(cellSource);
-    }
-  }
-  return cellSources;
-}
-
 export function extractAllNotebookEditableCode(
   notebookContent: INotebookContent
 ): UserInputCellsCode {
@@ -138,55 +120,6 @@ export function formatCellCode(code: string | string[]): string[] {
         .filter(
           (codeLine) => !codeLine.trim().startsWith("#") && codeLine.length > 0
         );
-}
-
-export function extractSetupCellOutput(cell: ICellModel): number[] {
-  const cellData = cell.toJSON();
-  const outputs = cellData.outputs as IOutput[];
-  if (!outputs || outputs.length === 0) {
-    return [0, 0];
-  }
-  const cellOutput = outputs[outputs.length - 1] as IOutput;
-  const data = (cellOutput?.data &&
-    ((cellOutput?.data as PartialJSONObject)["application/json"] as any)) || [
-    0, 0,
-  ];
-  return data;
-}
-
-export function extractSetupAndValidationCellOutputs(
-  notebook: INotebookState,
-  curActivity: Activity
-) {
-  let setupCellOutput: number[] = [];
-  let validationCellOutput: any[] = [];
-  if (!notebook.model) {
-    return [setupCellOutput, validationCellOutput];
-  }
-  const notebookCells = notebook.model.cells;
-  for (let i = 0; i < notebookCells.length; i++) {
-    const curCell = notebookCells.get(i);
-    const cellType = curCell.getMetadata("gai_cell_type") as string;
-    if (cellType === GaiCellTypes.SETUP) {
-      setupCellOutput = extractSetupCellOutput(curCell);
-    }
-    if (cellType === GaiCellTypes.VALIDATION) {
-      validationCellOutput = curActivity.extractValidationCellOutput
-        ? curActivity.extractValidationCellOutput(curCell)
-        : extractValidationCellOutput(curCell);
-    }
-  }
-  return [setupCellOutput, validationCellOutput];
-}
-
-export function extractValidationCellOutput<T>(cell: ICellModel): T[][] {
-  const cellData = cell.toJSON();
-  const cellOutput = (cellData.outputs as IOutput[])[0] as IOutput;
-  const data: T[][] =
-    (cellOutput?.data &&
-      ((cellOutput?.data as PartialJSONObject)["application/json"] as any)) ||
-    [];
-  return data;
 }
 
 export function splitListOfStringsBy(strings: string[], delimiter: string) {
@@ -384,4 +317,13 @@ export function hintDisplayedCmi5(
       objectType: "Activity",
     },
   });
+}
+
+export function isValidJSON(str: any) {
+  try {
+    JSON.stringify(JSON.parse(str));
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
