@@ -17,6 +17,7 @@ import { FruitPickerPreviousExperimentsView } from "../games/fruit-picker/compon
 import { NMTCurrentExperimentView } from "../games/neural_machine_translation/components/current-experiment-view";
 import { PlaneCurrentExperimentView } from "../games/planes/components/current-experiment-view";
 import { PlanePreviousExperimentsView } from "../games/planes/components/previous-experiment-view";
+import { WineCurrentExperimentView } from "../games/wine/components/current-experiment-view";
 import { useAppSelector } from "../store";
 import { ActivityID, Experiment } from "../store/simulator";
 import { useWithState } from "../store/state/useWithState";
@@ -151,6 +152,13 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
             classes={classes}
             onSubmit={props.onSubmit}
           />
+        );
+      case ActivityID.wine:
+        return (
+          <WineCurrentExperimentView
+            classes={classes}
+            onSubmit={props.onSubmit}
+            />
         );
       default:
         return <div />;

@@ -16,6 +16,7 @@ import { CafeSimulator } from "../../games/cafe/simulator";
 import { FruitSimulator } from "../../games/fruit-picker/simulator";
 import { NMTSimulator } from "../../games/neural_machine_translation/simulator";
 import { PlaneSimulator } from "../../games/planes/simulator";
+import { WineSimulator } from "../../games/wine/simulator";
 import { updateLocalNotebook } from "../notebook";
 import { storeNotebookExperimentInGql } from "../../utils";
 
@@ -52,6 +53,7 @@ export function useWithSimulator() {
   const fruitSimulator = FruitSimulator();
   const nmtSimulator = NMTSimulator();
   const planeSimulator = PlaneSimulator();
+  const wineSimulator = WineSimulator();
 
   function play(): SimulationOutput {
     if (!activity) {
@@ -66,6 +68,8 @@ export function useWithSimulator() {
         return nmtSimulator.play();
       case ActivityID.planes:
         return planeSimulator.play();
+      case ActivityID.wine:
+        return wineSimulator.play();
       default:
         return {};
     }
@@ -113,6 +117,14 @@ export function useWithSimulator() {
         break;
       case ActivityID.planes:
         experiment = planeSimulator.simulate(
+          inputs,
+          outputs,
+          notebook,
+          displayedHints
+        );
+        break;
+      case ActivityID.wine:
+        experiment = wineSimulator.simulate(
           inputs,
           outputs,
           notebook,
