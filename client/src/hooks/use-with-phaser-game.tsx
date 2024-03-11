@@ -72,7 +72,14 @@ export function useWithPhaserGame(
     setSimulation(undefined);
     setGame(undefined);
     phaserGame.destroy(false);
-    gameContainerRef.current?.removeChild(gameContainerRef.current.children[0]);
+    if (
+      gameContainerRef.current &&
+      gameContainerRef.current.children.length > 0
+    ) {
+      gameContainerRef.current.removeChild(
+        gameContainerRef.current.children[0]
+      );
+    }
     setPhaserGame(undefined);
   }
 

@@ -19,6 +19,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Launch } from "@mui/icons-material";
+import Cmi5 from "@xapi/cmi5";
 import { TooltipMsg } from "../../../components/Dialogue";
 import { formatDateTime, round } from "../../../utils";
 import { useAppSelector } from "../../../store";
@@ -169,16 +170,18 @@ export function FruitPickerCurrentExperimentView(props: {
           >
             Simulator
           </Button>
-          <TooltipMsg elemId="submit">
-            <Button
-              data-elemid="submit"
-              variant="contained"
-              style={{ margin: 10 }}
-              onClick={props.onSubmit}
-            >
-              Submit
-            </Button>
-          </TooltipMsg>
+          {Cmi5.isCmiAvailable ? (
+            <TooltipMsg elemId="submit">
+              <Button
+                data-elemid="submit"
+                variant="contained"
+                style={{ margin: 10 }}
+                onClick={props.onSubmit}
+              >
+                Submit
+              </Button>
+            </TooltipMsg>
+          ) : undefined}
         </BottomNavigation>
       </Paper>
     </div>
