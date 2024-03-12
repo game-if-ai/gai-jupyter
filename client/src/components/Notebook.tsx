@@ -35,7 +35,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
 
 import { isGameActivity } from "../games";
-import { ExecutionResult, useWithNotebook } from "../hooks/use-with-notebook";
+import { useWithNotebook } from "../hooks/use-with-notebook";
 import { useWithDialogue } from "../store/dialogue/useWithDialogue";
 import {
   GaiCellTypes,

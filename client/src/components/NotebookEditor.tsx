@@ -71,7 +71,6 @@ const customErrorMessages: CustomErrorMessage[] = [
     condition: (errorOutput, activityId) => {
       return (
         activityId === ActivityID.cafe &&
-        errorOutput.ename === "AttributeError" &&
         errorOutput.evalue.includes("'list' object has no attribute 'lower'")
       );
     },
@@ -83,7 +82,6 @@ const customErrorMessages: CustomErrorMessage[] = [
     condition: (errorOutput, activityId) => {
       return (
         activityId === ActivityID.cafe &&
-        errorOutput.ename === "TypeError" &&
         errorOutput.evalue.includes(
           "PorterStemmer.stem() missing 1 required positional argument: 'word'"
         )
@@ -96,7 +94,6 @@ const customErrorMessages: CustomErrorMessage[] = [
     condition: (errorOutput, activityId) => {
       return (
         activityId === ActivityID.cafe &&
-        errorOutput.ename === "NameError" &&
         errorOutput.evalue.includes("name 'PorterStemmer' is not defined")
       );
     },
@@ -105,21 +102,30 @@ const customErrorMessages: CustomErrorMessage[] = [
 
   {
     condition: (errorOutput) => {
-      return errorOutput.ename === "SyntaxError";
+      return (
+        errorOutput.ename === "SyntaxError" ||
+        errorOutput.evalue.includes("expected an indented block")
+      );
     },
     message:
       "Your code contains syntax errors. Please review your code and address these errors.",
   },
   {
     condition: (errorOutput) => {
-      return errorOutput.ename === "ImportError";
+      return (
+        errorOutput.evalue.includes("No module named") ||
+        errorOutput.evalue.includes("cannot import name")
+      );
     },
     message:
       "Your code contains import errors. This may be due to incorrect spelling or importing a library or module that does not exist.",
   },
   {
     condition: (errorOutput) => {
-      return errorOutput.ename === "NameError";
+      return (
+        errorOutput.evalue.includes("is not defined") &&
+        errorOutput.evalue.includes("name")
+      );
     },
     message:
       "Your code contains a naming error. You may be trying to use an undeclared variable or function.",
@@ -283,30 +289,27 @@ export function NotebookEditor(props: {
   }, [key]);
 
   useEffect(() => {
-    if (outputElement && !output.length) {
+    if (!errorOutput && !output) {
       setOutputElement(undefined);
       setHasError(false);
+    } else if (errorOutput) {
+      const customErrorMessage = customErrorMessages.find((customError) =>
+        customError.condition(errorOutput, activity.id)
+      );
+      addMessage(
+        {
+          id: `output-${cellId}`,
+          text:
+            customErrorMessage?.message ||
+            "There was an error while running this cell. Please review and make changes before re-running.",
+          noSave: true,
+          timer: 5000,
+        },
+        true
+      );
+      setHasError(true);
+      setOutputElement(<Output outputs={output} errorOutput={errorOutput} />);
     } else if (output.length) {
-      const o = output[0];
-      if (o && isError(o)) {
-        const customErrorMessage = customErrorMessages.find((customError) =>
-          customError.condition(o, activity.id)
-        );
-        addMessage(
-          {
-            id: `output-${cellId}`,
-            text:
-              customErrorMessage?.message ||
-              "There was an error while running this cell. Please review and make changes before re-running.",
-            noSave: true,
-            timer: 5000,
-          },
-          true
-        );
-        setHasError(true);
-      } else {
-        setHasError(false);
-      }
       setOutputElement(<Output outputs={output} errorOutput={errorOutput} />);
     }
   }, [output, errorOutput]);

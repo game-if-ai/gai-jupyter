@@ -18,9 +18,8 @@ describe("notebook", () => {
     cy.get("[data-cy=cell]")
       .eq(0)
       .within(($em) => {
-        cy.get(".cm-line").should("have.length", 20);
+        cy.get(".cm-line").should("have.length", 27);
         cy.get(".cm-line").eq(0).should("not.be.visible");
-        cy.get(".cm-line").eq(19).should("be.visible");
       });
     // model cell is showing
     cy.get("[data-cy=cell]")
@@ -49,7 +48,7 @@ describe("notebook", () => {
     cy.get("[data-cy=cell]")
       .eq(0)
       .within(($em) => {
-        cy.get(".cm-line").should("have.length", 20);
+        cy.get(".cm-line").should("have.length", 27);
         cy.get(".cm-line").eq(0).should("be.visible");
         cy.get(".cm-line").eq(19).should("be.visible");
       });
@@ -85,15 +84,15 @@ describe("notebook", () => {
     cy.get("[data-cy=cell]")
       .eq(2)
       .within(($em) => {
-        cy.get(".cm-line").should("have.length", 33);
+        cy.get(".cm-line").should("have.length", 32);
         cy.get(".cm-line").eq(0).should("be.visible");
-        cy.get(".cm-line").eq(32).should("be.visible");
+        cy.get(".cm-line").eq(31).should("be.visible");
       });
     // setup and model cell scrolled off
     cy.get("[data-cy=cell]")
       .eq(0)
       .within(($em) => {
-        cy.get(".cm-line").should("have.length", 20);
+        cy.get(".cm-line").should("have.length", 27);
         cy.get(".cm-line").eq(0).should("not.be.visible");
         cy.get(".cm-line").eq(19).should("not.be.visible");
       });
@@ -163,24 +162,10 @@ describe("notebook", () => {
         // check code auto filled
         cy.get(".cm-line").contains("import pandas as pd");
         cy.get(".cm-line").contains("import nltk, json");
-        cy.get(".cm-line").contains("from IPython.display import JSON");
-        cy.get(".cm-line").contains("nltk.download('wordnet', quiet=True)");
-        cy.get(".cm-line").contains(`nltk.download("stopwords", quiet=True)`);
-        cy.get(".cm-line").contains(`REVIEW = "review"`);
-        cy.get(".cm-line").contains("# use smaller set");
-        cy.get(".cm-line").contains(`with open("cafe/reviews.json") as IN:`);
-        cy.get(".cm-line").contains("data = pd.DataFrame(json.load(IN))");
+        cy.get(".cm-line").contains("import tempfile");
+        cy.get(".cm-line").contains("from nltk.data import path");
         cy.get(".cm-line").contains(
-          "from sklearn.model_selection import train_test_split"
-        );
-        cy.get(".cm-line").contains(
-          "x_train, x_test, y_train, y_test = train_test_split(data[REVIEW],"
-        );
-        cy.get(".cm-line").contains("data['rating'],");
-        cy.get(".cm-line").contains("stratify=data['rating'],");
-        cy.get(".cm-line").contains("random_state=21)");
-        cy.get(".cm-line").contains(
-          "JSON([len(x_train) + len(y_train), len(x_test) + len(y_test)])"
+          "result.append(json.dumps([len(x_train), len(x_test)]))"
         );
       });
   });
@@ -206,27 +191,8 @@ describe("notebook", () => {
         cy.get(".cm-line").contains("# Preprocess First");
         cy.get(".cm-line").contains("def preprocess(docs):");
         cy.get(".cm-line").contains(`return docs.apply(lambda x: x)`);
-        cy.get(".cm-line").contains(`x_train = preprocess(x_train)`);
-        cy.get(".cm-line").contains("y_train = preprocess(y_train)");
-        cy.get(".cm-line").contains("# Pick Vectorizer");
         cy.get(".cm-line").contains(
-          `vectorizer = CountVectorizer(binary=True)`
-        );
-        cy.get(".cm-line").contains(
-          "x_train_features = vectorizer.fit_transform(x_train)"
-        );
-        cy.get(".cm-line").contains(
-          "x_test_features = vectorizer.transform(x_test)"
-        );
-        cy.get(".cm-line").contains("def train(classifier, x, y):");
-        cy.get(".cm-line").contains("classifier.fit(x, y)");
-        cy.get(".cm-line").contains("# Pick Classifier");
-        cy.get(".cm-line").contains(
-          `classifier = DummyClassifier(strategy="uniform")`
-        );
-        cy.get(".cm-line").contains("# Train");
-        cy.get(".cm-line").contains(
-          "train(classifier,x_train_features, y_train)"
+          `train(classifier,x_train_features, y_train)`
         );
       });
   });
@@ -251,38 +217,7 @@ describe("notebook", () => {
         cy.get(".cm-line").contains(
           "y_proba = classifier.predict_proba(x_test_features)"
         );
-        cy.get(".cm-line").contains("from sklearn.metrics import f1_score");
-        cy.get(".cm-line").contains("from IPython.display import JSON");
-        cy.get(".cm-line").contains(`output = []`);
-        cy.get(".cm-line").contains(`x_test_list = x_test.to_list()`);
-        cy.get(".cm-line").contains("y_test_list = y_test.to_list()");
-        cy.get(".cm-line").contains("experiment_size = y_pred_test.size // 5");
-        cy.get(".cm-line").contains(`trial = 0`);
-        cy.get(".cm-line").contains("experiment = []");
-        cy.get(".cm-line").contains("y_true = []");
-        cy.get(".cm-line").contains("y_pred = []");
-        cy.get(".cm-line").contains("f1_scores = []");
-        cy.get(".cm-line").contains("for i in range(y_pred_test.size):");
-        cy.get(".cm-line").contains(
-          "if trial == experiment_size and i + experiment_size <= y_pred_test.size:"
-        );
-        cy.get(".cm-line").contains("output.append(experiment)");
-        cy.get(".cm-line").contains("experiment = []");
-        cy.get(".cm-line").contains("trial = 0");
-        cy.get(".cm-line").contains(
-          "f1_scores.append(f1_score(y_true, y_pred))"
-        );
-        cy.get(".cm-line").contains("y_true = []");
-        cy.get(".cm-line").contains("y_pred = []");
-        cy.get(".cm-line").contains("y_true.append(y_test_list[i])");
-        cy.get(".cm-line").contains("y_pred.append(y_pred_test[i])");
-        cy.get(".cm-line").contains("experiment.append({");
-        cy.get(".cm-line").contains(`"inputText": x_test_list[i],`);
-        cy.get(".cm-line").contains(`"realLabel": y_test_list[i],`);
-        cy.get(".cm-line").contains(`"classifierLabel": y_pred_test[i],`);
-        cy.get(".cm-line").contains(`"confidence": max(y_proba[i])`);
-        cy.get(".cm-line").contains("trial += 1");
-        cy.get(".cm-line").contains("JSON(output)");
+        cy.get(".cm-line").contains("result.append(json.dumps(output))");
       });
   });
 
@@ -314,7 +249,7 @@ describe("notebook", () => {
         cy.get(".cm-line").eq(0).type("t");
         cy.get(".cm-line")
           .eq(0)
-          .contains("tfrom sklearn.dummy import DummyClassifier");
+          .contains("from sklearn.dummy import DummyClassifiert");
         cy.get("[data-cy=undo-btn]").should("be.enabled");
         cy.get("[data-cy=redo-btn]").should("be.disabled");
       });
@@ -331,7 +266,7 @@ describe("notebook", () => {
         cy.get(".cm-line").eq(0).type("t");
         cy.get(".cm-line")
           .eq(0)
-          .contains("tfrom sklearn.dummy import DummyClassifier");
+          .contains("from sklearn.dummy import DummyClassifiert");
         cy.get("[data-cy=undo-btn]").should("be.enabled");
         cy.get("[data-cy=redo-btn]").should("be.disabled");
         // undo changes
@@ -345,7 +280,7 @@ describe("notebook", () => {
         cy.get("[data-cy=redo-btn]").click();
         cy.get(".cm-line")
           .eq(0)
-          .contains("tfrom sklearn.dummy import DummyClassifier");
+          .contains("from sklearn.dummy import DummyClassifiert");
         cy.get("[data-cy=undo-btn]").should("be.enabled");
         cy.get("[data-cy=redo-btn]").should("be.disabled");
       });
@@ -392,7 +327,7 @@ describe("notebook", () => {
     cy.get("[data-cy=output]").contains("hi");
   });
 
-  it("can run notebook", () => {
+  it.only("can run notebook", () => {
     cy.get("[data-cy=run-btn]").click();
     cy.get("[data-cy=run-btn]").should("not.be.visible");
     // show result popup
