@@ -4,18 +4,37 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { IOutput, isError, isStream } from "@jupyterlab/nbformat";
+import {
+  IOutput,
+  isError,
+  isStream,
+  IError,
+  isDisplayData,
+} from "@jupyterlab/nbformat";
 import { JsonView, defaultStyles } from "react-json-view-lite";
-import { splitListOfStringsBy } from "../utils";
+import { isValidJSON, splitListOfStringsBy } from "../utils";
 import "react-json-view-lite/dist/index.css";
 
-export function Output(props: { outputs: IOutput[] }): JSX.Element {
-  const { outputs } = props;
+export function Output(props: {
+  outputs: IOutput[];
+  errorOutput?: IError;
+}): JSX.Element {
+  const { outputs, errorOutput } = props;
+
+  if (errorOutput) {
+    return (
+      <div style={{ backgroundColor: "#FFCCCB", height: "fit-content" }}>
+        {`${errorOutput.ename}`}
+        <br />
+        {`${errorOutput.evalue}`}
+      </div>
+    );
+  }
 
   return (
     <div>
       {outputs.map((output, i) => {
-        if (!output) {
+        if (!output && !errorOutput) {
           return <div key={i}></div>;
         }
         if (
@@ -49,11 +68,12 @@ export function Output(props: { outputs: IOutput[] }): JSX.Element {
               {`${output.evalue}`}
             </div>
           );
-        } else {
+        } else if (isDisplayData(output)) {
           try {
-            const data = JSON.parse(
-              JSON.stringify((output.data as any)["application/json"])
-            );
+            const data =
+              typeof output.text === "string" && isValidJSON(output.text)
+                ? JSON.parse(output.text)
+                : output.data;
             return (
               <div
                 key={i}
@@ -64,12 +84,13 @@ export function Output(props: { outputs: IOutput[] }): JSX.Element {
               >
                 <JsonView
                   data={data}
-                  shouldInitiallyExpand={(level) => true}
+                  shouldExpandNode={() => true}
                   style={defaultStyles}
                 />
               </div>
             );
           } catch (err) {
+            console.log(err);
             return (
               <div
                 key={i}
@@ -79,6 +100,15 @@ export function Output(props: { outputs: IOutput[] }): JSX.Element {
                 }}
               ></div>
             );
+          }
+        } else {
+          try {
+            const data = JSON.parse(
+              JSON.stringify((output.data as any)["application/json"])
+            );
+            return <div key={i}>{data}</div>;
+          } catch (err) {
+            return <div key={i}></div>;
           }
         }
       })}

@@ -57,55 +57,58 @@ function callsPadSequencesTwiceWithPaddingPost(userCode: string[]): boolean {
   );
 }
 
-function outputCorrectlyFormatted(validationCellOutput: string[]): boolean {
+function validationCellOutputMatch(
+  validationCellOutput: string[] | string,
+  regex: RegExp
+): boolean {
   return Boolean(
-    validationCellOutput.find((outputLine) =>
-      outputLine.match(/Predicted translation:.*new jersey/)
-    )
+    (typeof validationCellOutput === "string" &&
+      validationCellOutput.match(regex)) ||
+      (Array.isArray(validationCellOutput) &&
+        validationCellOutput.find((outputLine) => outputLine.match(regex)))
   );
 }
 
-function keywordZeroLookup(validationCellOutput: string[]): boolean {
+function outputCorrectlyFormatted(
+  validationCellOutput: string[] | string
+): boolean {
+  return validationCellOutputMatch(
+    validationCellOutput,
+    /Predicted translation:.*new jersey/
+  );
+}
+
+function keywordZeroLookup(validationCellOutput: string[] | string): boolean {
   return (
-    Boolean(
-      validationCellOutput.find((outputLine) => outputLine.match(/KeyError/))
-    ) &&
-    Boolean(validationCellOutput.find((outputLine) => outputLine.match(/0/)))
+    validationCellOutputMatch(validationCellOutput, /KeyError/) &&
+    validationCellOutputMatch(validationCellOutput, /0/)
   );
 }
 
 function preprocessedDataCorrectDimensions(
-  validationCellOutput: string[]
+  validationCellOutput: string[] | string
 ): boolean {
   return (
-    Boolean(
-      validationCellOutput.find((outputLine) =>
-        outputLine.match(/preproc_english_sentences_shape.*(137861,.*21,.*1)/)
-      )
+    validationCellOutputMatch(
+      validationCellOutput,
+      /preproc_english_sentences_shape.*(137861,.*21,.*1)/
     ) &&
-    Boolean(
-      validationCellOutput.find((outputLine) =>
-        outputLine.match(/preproc_french_sentences_shape.*(137861,.*21,.*1)/)
-      )
+    validationCellOutputMatch(
+      validationCellOutput,
+      /preproc_french_sentences_shape.*(137861,.*21,.*1)/
     )
   );
 }
 
 function dataIsNumpyArray(validationCellOutput: string[]): boolean {
   return (
-    Boolean(
-      validationCellOutput.find((outputLine) =>
-        outputLine.match(
-          /preproc_english_sentences_type.*<class 'numpy.ndarray'>/
-        )
-      )
+    validationCellOutputMatch(
+      validationCellOutput,
+      /preproc_english_sentences_type.*<class 'numpy.ndarray'>/
     ) &&
-    Boolean(
-      validationCellOutput.find((outputLine) =>
-        outputLine.match(
-          /preproc_french_sentences_type.*<class 'numpy.ndarray'>/
-        )
-      )
+    validationCellOutputMatch(
+      validationCellOutput,
+      /preproc_french_sentences_type.*<class 'numpy.ndarray'>/
     )
   );
 }
