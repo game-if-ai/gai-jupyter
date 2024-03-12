@@ -48,7 +48,6 @@ import { NotebookEditor } from "./NotebookEditor";
 import { ActionPopup } from "./Popup";
 import { ShortcutKeyboard } from "./ShortcutKeyboard";
 import { useWithImproveCode } from "../hooks/use-with-improve-code";
-import { extractSetupAndValidationCellOutputs } from "../utils";
 import { STEP } from "../store/state";
 import { useAppDispatch, useAppSelector } from "../store";
 import { useWithState } from "../store/state/useWithState";
@@ -91,7 +90,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     cells,
     validationCellOutput,
     userInputCellsCode,
-    hasError,
+    error,
     isEdited,
     initialConnectionMade: notebookInitialized,
     notebookRunCount,
@@ -130,10 +129,10 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     .kernelManager as KernelManager;
 
   useEffect(() => {
-    if (showResults && hasError) {
+    if (showResults && error) {
       setShowResults(false);
     }
-  }, [showResults, hasError]);
+  }, [showResults, error]);
 
   useEffect(() => {
     if (kernel) {
@@ -290,7 +289,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           JSON.parse(ranNotebook.result[0]),
           JSON.parse(ranNotebook.result[1]),
         ];
-        extractSetupAndValidationCellOutputs(ranNotebook.notebook, activity!);
         const experiment = simulator.simulate(
           setupCellOutput,
           validationCellOutput,
@@ -483,7 +481,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
                 <IconButton
                   data-cy="run-btn"
                   disabled={
-                    hasError ||
                     isSaving ||
                     isRunning ||
                     kernelStatus !== KernelConnectionStatus.FINE
@@ -559,7 +556,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         </Button>
       </ActionPopup>
       <ActionPopup
-        open={showResults && !hasError}
+        open={showResults && !error}
         onClose={() => setShowResults(false)}
         title="See results"
         text="Would you like to view your results?"

@@ -32,12 +32,7 @@ import {
   setIsSaving,
   updateLocalNotebook,
 } from "../store/notebook";
-import {
-  extractSetupCellOutput,
-  extractValidationCellOutput,
-  extractCellCode,
-  formatCellCode,
-} from "../utils";
+import { extractCellCode, formatCellCode, isValidJSON } from "../utils";
 import {
   requestCodeExecution,
   pollCodeExecutionStatus,
@@ -78,13 +73,34 @@ export function useWithNotebook(props: {
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
   const [curExperimentLoaded, setCurExperimentLoaded] = useState(false);
   const [initialConnectionMade, setInitialConnectionMade] = useState(false);
-  const [setupCellOutput, setSetupCellOutput] = useState<number[]>([]);
-  const [validationCellOutput, setValidationCellOutput] = useState<any[]>([]);
   const [cells, setCells] = useState<CellsStates>({});
   const [notebookConnected, setNotebookConnected] = useState(false);
-  const [hasError, setHasError] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const [isEdited, setIsEdited] = useState<boolean>(false);
   const [notebookRunCount, setNotebookRuns] = useState(0);
+  const [lastExecutionResult, setLastExecutionResult] =
+    useState<ExecutionResult>();
+  const _setupCellOutput =
+    lastExecutionResult?.result && lastExecutionResult.result.length >= 1
+      ? lastExecutionResult.result[0]
+      : "";
+  const setupCellOutput = isValidJSON(_setupCellOutput)
+    ? JSON.parse(_setupCellOutput)
+    : _setupCellOutput;
+  const _validationCellOutput =
+    lastExecutionResult?.result && lastExecutionResult.result.length >= 2
+      ? lastExecutionResult.result[1]
+      : "";
+  const validationCellOutput = isValidJSON(_validationCellOutput)
+    ? JSON.parse(_validationCellOutput)
+    : _validationCellOutput;
+  const _modelCellOutput = lastExecutionResult?.console
+    ? lastExecutionResult.console
+    : "";
+  const modelCellOutput = isValidJSON(_modelCellOutput)
+    ? JSON.parse(_modelCellOutput)
+    : _modelCellOutput;
+
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
 
@@ -118,15 +134,70 @@ export function useWithNotebook(props: {
     connect(activeNotebookModel.model);
   }, [activeNotebookModel, notebook?.adapter?.commands]);
 
-  useEffect(() => {
-    for (const cell of Object.values(cells)) {
-      if (cell.errorOutput) {
-        setHasError(true);
-        return;
+  function attachOutputsToCells(lastExecutionResult: ExecutionResult) {
+    const setupCellOutput =
+      lastExecutionResult?.result && lastExecutionResult.result.length >= 1
+        ? lastExecutionResult.result[0]
+        : [];
+    const validationCellOutput =
+      lastExecutionResult?.result && lastExecutionResult.result.length >= 2
+        ? lastExecutionResult.result[1]
+        : [];
+    const modelCellOutput = lastExecutionResult?.console
+      ? lastExecutionResult.console
+      : "";
+    const error = lastExecutionResult?.error;
+    setCells((prevValue) => {
+      const newCells = { ...prevValue };
+      for (const cellId in newCells) {
+        if (
+          newCells[cellId].cell.getMetadata("gai_cell_type") ===
+          GaiCellTypes.SETUP
+        ) {
+          newCells[cellId].output = setupCellOutput.length
+            ? [
+                {
+                  output_type: "display_data",
+                  name: "stdout",
+                  text: setupCellOutput,
+                },
+              ]
+            : [];
+        }
+        if (
+          newCells[cellId].cell.getMetadata("gai_cell_type") ===
+          GaiCellTypes.VALIDATION
+        ) {
+          newCells[cellId].output = validationCellOutput.length
+            ? [
+                {
+                  output_type: "display_data",
+                  name: "stdout",
+                  text: validationCellOutput,
+                },
+              ]
+            : [];
+        }
+        if (
+          newCells[cellId].cell.getMetadata("gai_cell_type") ===
+          GaiCellTypes.MODEL
+        ) {
+          if (error) {
+            newCells[cellId].errorOutput = {
+              ename: "Error",
+              evalue: error,
+              traceback: [],
+              output_type: "error",
+            };
+          }
+          newCells[cellId].output = [
+            { output_type: "stream", name: "stdout", text: modelCellOutput },
+          ];
+        }
       }
-    }
-    setHasError(false);
-  }, [cells]);
+      return newCells;
+    });
+  }
 
   function connect(activeNotebookModel: INotebookModel) {
     const cs: Record<string, CellState> = {};
@@ -158,12 +229,13 @@ export function useWithNotebook(props: {
             });
           }
         }
-        if (cellType === GaiCellTypes.SETUP) {
-          setSetupCellOutput(extractSetupCellOutput(changedCell));
-        }
-        if (cellType === GaiCellTypes.VALIDATION) {
-          setValidationCellOutput(getValidationCellOutput(changedCell));
-        }
+        // Note: We no longer execute in jupyter labs, so no more listening to
+        // if (cellType === GaiCellTypes.SETUP) {
+        //   setSetupCellOutput(extractSetupCellOutput(changedCell));
+        // }
+        // if (cellType === GaiCellTypes.VALIDATION) {
+        //   setValidationCellOutput(getValidationCellOutput(changedCell));
+        // }
         setCells((prevValue) => {
           return {
             ...prevValue,
@@ -190,17 +262,11 @@ export function useWithNotebook(props: {
     dispatch(setIsSaving(false));
   }
 
-  function getValidationCellOutput(changedCell: ICellModel) {
-    if (curActivity.extractValidationCellOutput) {
-      return curActivity.extractValidationCellOutput(changedCell);
-    }
-    return extractValidationCellOutput(changedCell);
-  }
-
   async function runNotebook() {
     if (!notebook) {
       return;
     }
+    setError("");
     dispatch(setIsRunning(true));
     let result: ExecutionResult = {
       console: "",
@@ -232,21 +298,31 @@ export function useWithNotebook(props: {
           success: true,
         };
       } else {
+        setError(
+          `An error occured: ${
+            actualResponse.error ||
+            actualResponse.message ||
+            JSON.stringify(actualResponse.result)
+          }`
+        );
         result = {
           notebook: notebook,
-          error: actualResponse.error,
+          error: `An error occured: ${
+            actualResponse.error ||
+            actualResponse.message ||
+            JSON.stringify(actualResponse.result)
+          }`,
           console: actualResponse.message,
           success: false,
         };
       }
-      //await notebook.adapter?.commands.execute("notebook:save");
-      //await notebook.adapter?.commands.execute("notebook:run-all");
+      attachOutputsToCells(result);
+      setLastExecutionResult(result);
     } catch (err) {
       console.error(err);
     } finally {
       dispatch(setIsRunning(false));
       setNotebookRuns((prevValue) => prevValue + 1);
-      console.log(notebook);
       return result;
     }
   }
@@ -313,8 +389,6 @@ export function useWithNotebook(props: {
     if (!notebook?.adapter) {
       return;
     }
-    setSetupCellOutput([]);
-    setValidationCellOutput([]);
     if (experiment && experiment.notebookContent) {
       notebook.adapter.setNotebookModel(experiment.notebookContent);
       setIsEdited(true);
@@ -335,8 +409,6 @@ export function useWithNotebook(props: {
       return;
     }
     dispatch(setIsSaving(true));
-    setSetupCellOutput([]);
-    setValidationCellOutput([]);
     const source = notebook.model.toJSON() as INotebookContent;
     for (let i = 0; i < notebook.model.cells.length; i++) {
       const cell = notebook.model.cells.get(i);
@@ -354,7 +426,8 @@ export function useWithNotebook(props: {
     setupCellOutput,
     validationCellOutput,
     userInputCellsCode,
-    hasError,
+    modelCellOutput,
+    error,
     isEdited,
     notebookRunCount,
     notebookInitialRunComplete: notebookRunCount > 0,
