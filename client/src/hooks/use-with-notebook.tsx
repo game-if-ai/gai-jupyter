@@ -84,14 +84,15 @@ export function useWithNotebook(props: {
     lastExecutionResult?.result && lastExecutionResult.result.length >= 1
       ? lastExecutionResult.result[0]
       : "";
-  const setupCellOutput = isValidJSON(_setupCellOutput)
-    ? JSON.parse(_setupCellOutput)
-    : _setupCellOutput;
+  const setupCellOutput: string[] | string =
+    isValidJSON(_setupCellOutput) && typeof _setupCellOutput === "string"
+      ? JSON.parse(_setupCellOutput)
+      : _setupCellOutput;
   const _validationCellOutput =
     lastExecutionResult?.result && lastExecutionResult.result.length >= 2
       ? lastExecutionResult.result[1]
       : [];
-  const validationCellOutput: string[] =
+  const validationCellOutput: string[] | string =
     isValidJSON(_validationCellOutput) &&
     typeof _validationCellOutput === "string"
       ? JSON.parse(_validationCellOutput)
@@ -99,7 +100,7 @@ export function useWithNotebook(props: {
   const _modelCellOutput = lastExecutionResult?.console
     ? lastExecutionResult.console
     : [];
-  const modelCellOutput: string[] =
+  const modelCellOutput: string[] | string =
     isValidJSON(_modelCellOutput) && typeof _modelCellOutput === "string"
       ? JSON.parse(_modelCellOutput)
       : _modelCellOutput;

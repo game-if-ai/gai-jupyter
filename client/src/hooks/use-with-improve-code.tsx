@@ -29,7 +29,7 @@ export interface UseWithImproveCode {
 
 export function useWithImproveCode(props: {
   userCode: Record<string, string[]>;
-  validationCellOutput: any[];
+  validationCellOutput: string[] | string;
   activeActivity: Activity;
   notebookRunCount: number;
 }): UseWithImproveCode {
