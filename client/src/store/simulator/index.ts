@@ -140,15 +140,18 @@ const initialState: SimulationState = {
   experiments: getExperimentHistory(),
 };
 function getExperimentHistory(): ExperimentHistory {
+  const activityNames = Object.values(ActivityID) as ActivityID[];
   let experiments = localStorageGet(EXPERIMENT_HISTORY) as ExperimentHistory;
   if (!experiments) {
-    experiments = {
-      cafe: [],
-      fruitpicker: [],
-      neural_machine_translation: [],
-      planes: [],
-      wine: [],
-    };
+    experiments = activityNames.reduce((acc, activityName) => {
+      acc[activityName] = [];
+      return acc;
+    }, {} as ExperimentHistory);
+  }
+  for (const activityName of activityNames) {
+    if (!experiments[activityName]) {
+      experiments[activityName] = [];
+    }
   }
   return experiments;
 }

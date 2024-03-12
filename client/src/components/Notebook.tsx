@@ -75,6 +75,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const pastExperiments = useAppSelector(
     (s) => s.simulator.experiments[activity.id]
   );
+
   const { curCell, isSaving, isRunning } = useAppSelector(
     (s) => s.notebookState
   );
@@ -289,6 +290,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           JSON.parse(ranNotebook.result[0]),
           JSON.parse(ranNotebook.result[1]),
         ];
+        console.log(setupCellOutput, validationCellOutput);
         const experiment = simulator.simulate(
           setupCellOutput,
           validationCellOutput,

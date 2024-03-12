@@ -11,24 +11,15 @@ import { getAllWineCodeInfo } from "./examine-wine-code-helpers";
 type LoadStatus = "LOADING" | "LOADED";
 
 export interface WineCodeInfo {
-  // Before run
-  callsFitOnTexts: boolean;
-  callsTextsToSequences: boolean;
-  callsPadSequences: boolean;
-  callsPadSequencesWithPaddingPost: boolean;
-  callsPadSequencesTwice: boolean;
-  callsPadSequencesTwiceWithPaddingPost: boolean;
-  callsReshape: boolean;
-  callsReshapeOnXAndY: boolean;
-  callsArgmax: boolean;
-  callsJoin: boolean;
-
-  hasValidationOutput: boolean;
-  // Post run
-  dataIsNumpyArray: boolean;
-  keywordZeroLookup: boolean;
-  preprocessedDataCorrectDimensions: boolean;
-  outputCorrectlyFormatted: boolean;
+  dropsWineColumn: boolean;
+  dropsWineColumnWithAxis: boolean;
+  savesQualityColumnBeforeDropping: boolean;
+  dropsQualityColumn: boolean;
+  dropsQualityColumnWithAxis: boolean;
+  usesStandardScaler: boolean;
+  fitsWithStandardScaler: boolean;
+  transformsWithStandardScaler: boolean;
+  usesDataframe: boolean;
 }
 
 export interface UserCodeInfoLoad extends WineCodeInfo {
@@ -42,26 +33,19 @@ interface UseWithWineCodeExamine {
 
 export function useWithWineCodeExamine(
   userCode: Record<string, string[]>,
-  validationCellOutput: any[],
+  validationCellOutput: any,
   notebookRunCount: number
 ): UseWithWineCodeExamine {
-  const [nnCodeInfo, setNNCodeinfo] = useState<UserCodeInfoLoad>({
-    callsFitOnTexts: false,
-    callsTextsToSequences: false,
-    callsPadSequences: false,
-    callsPadSequencesWithPaddingPost: false,
-    callsPadSequencesTwice: false,
-    callsPadSequencesTwiceWithPaddingPost: false,
-    callsReshape: false,
-    callsReshapeOnXAndY: false,
-    callsArgmax: false,
-    callsJoin: false,
-    // Post run
-    hasValidationOutput: false,
-    dataIsNumpyArray: false,
-    preprocessedDataCorrectDimensions: false,
-    keywordZeroLookup: false,
-    outputCorrectlyFormatted: false,
+  const [wineCodeInfo, setWineCodeInfo] = useState<UserCodeInfoLoad>({
+    dropsWineColumn: false,
+    dropsWineColumnWithAxis: false,
+    savesQualityColumnBeforeDropping: false,
+    dropsQualityColumn: false,
+    dropsQualityColumnWithAxis: false,
+    usesStandardScaler: false,
+    fitsWithStandardScaler: false,
+    transformsWithStandardScaler: false,
+    usesDataframe: false,
     loadStatus: "LOADING",
   });
 
@@ -70,14 +54,14 @@ export function useWithWineCodeExamine(
       return;
     }
     const allUserInputCode = Object.values(userCode).flat();
-    setNNCodeinfo({
-      ...getAllWineCodeInfo(allUserInputCode, validationCellOutput as string[]),
+    setWineCodeInfo({
+      ...getAllWineCodeInfo(allUserInputCode),
       loadStatus: "LOADED",
     });
   }, [userCode, validationCellOutput, notebookRunCount]);
 
   return {
-    codeInfo: nnCodeInfo,
-    loadStatus: nnCodeInfo.loadStatus,
+    codeInfo: wineCodeInfo,
+    loadStatus: wineCodeInfo.loadStatus,
   };
 }

@@ -4,191 +4,92 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { ICellModel } from "@jupyterlab/cells";
-import { IOutput, isError, isStream } from "@jupyterlab/nbformat";
-import { PartialJSONObject } from "@lumino/coreutils";
 import { WineCodeInfo } from "./use-with-wine-code-examine";
-import { splitListOfStringsBy } from "../../../utils";
 
-export function getAllWineCodeInfo(
-  userCode: string[],
-  validationCellOutput: string[]
-): WineCodeInfo {
+export interface ClusterGroup {
+  numMembers: number;
+  quality: number;
+}
+
+export function getAllWineCodeInfo(userCode: string[]): WineCodeInfo {
   return {
-    callsFitOnTexts: callsFitOnTexts(userCode),
-    callsTextsToSequences: callsTextsToSequences(userCode),
-    callsPadSequences: callsPadSequences(userCode),
-    callsPadSequencesWithPaddingPost:
-      callsPadSequencesWithPaddingPost(userCode),
-    callsPadSequencesTwice: callsPadSequencesTwice(userCode),
-    callsPadSequencesTwiceWithPaddingPost:
-      callsPadSequencesTwiceWithPaddingPost(userCode),
-    callsReshape: callsReshape(userCode),
-    callsReshapeOnXAndY: callsReshapeOnXAndY(userCode),
-    callsArgmax: callsArgmax(userCode),
-    callsJoin: callsJoin(userCode),
-
-    hasValidationOutput: validationCellOutput.length > 0,
-    dataIsNumpyArray: dataIsNumpyArray(validationCellOutput),
-    keywordZeroLookup: keywordZeroLookup(validationCellOutput),
-    preprocessedDataCorrectDimensions:
-      preprocessedDataCorrectDimensions(validationCellOutput),
-    outputCorrectlyFormatted: outputCorrectlyFormatted(validationCellOutput),
+    dropsWineColumn: dropsWineColumn(userCode),
+    dropsWineColumnWithAxis: dropsWineColumnWithAxis(userCode),
+    savesQualityColumnBeforeDropping:
+      savesQualityColumnBeforeDropping(userCode),
+    dropsQualityColumn: dropsQualityColumn(userCode),
+    dropsQualityColumnWithAxis: dropsQualityColumnWithAxis(userCode),
+    usesStandardScaler: usesStandardScaler(userCode),
+    fitsWithStandardScaler: fitsWithStandardScaler(userCode),
+    transformsWithStandardScaler: transformsWithStandardScaler(userCode),
+    usesDataframe: usesDataframe(userCode),
   };
 }
 
-function callsJoin(userCode: string[]): boolean {
-  return Boolean(userCode.find((codeLine) => codeLine.match(/.join\(.*\)/)));
+function codeContainsRegex(userCode: string[], regex: RegExp): boolean {
+  return Boolean(userCode.find((codeLine) => codeLine.match(regex)));
 }
 
-function callsPadSequencesWithPaddingPost(userCode: string[]): boolean {
-  return Boolean(
-    userCode.find((codeLine) =>
-      codeLine.match(/pad_sequences\(.*padding=.*post.*\)/)
-    )
-  );
+function dropsWineColumn(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /drop\(.*"Wine".*\)/);
 }
 
-function callsPadSequencesTwiceWithPaddingPost(userCode: string[]): boolean {
-  return (
-    userCode.filter((codeLine) =>
-      codeLine.match(/pad_sequences\(.*padding=.*post.*\)/)
-    ).length > 1
-  );
+function dropsWineColumnWithAxis(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /drop\(.*"Wine".*,.*axis=1.*\)/);
 }
 
-function outputCorrectlyFormatted(validationCellOutput: string[]): boolean {
-  return Boolean(
-    validationCellOutput.find((outputLine) =>
-      outputLine.match(/Predicted translation:.*new jersey/)
-    )
-  );
+function savesQualityColumnBeforeDropping(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /.*=.*wineDataFrame\["quality"\].*/);
 }
 
-function keywordZeroLookup(validationCellOutput: string[]): boolean {
-  return (
-    Boolean(
-      validationCellOutput.find((outputLine) => outputLine.match(/KeyError/))
-    ) &&
-    Boolean(validationCellOutput.find((outputLine) => outputLine.match(/0/)))
-  );
+function dropsQualityColumn(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /drop\(.*"quality".*\)/);
 }
 
-function preprocessedDataCorrectDimensions(
-  validationCellOutput: string[]
-): boolean {
-  return (
-    Boolean(
-      validationCellOutput.find((outputLine) =>
-        outputLine.match(/preproc_english_sentences_shape.*(137861,.*21,.*1)/)
-      )
-    ) &&
-    Boolean(
-      validationCellOutput.find((outputLine) =>
-        outputLine.match(/preproc_french_sentences_shape.*(137861,.*21,.*1)/)
-      )
-    )
-  );
+function dropsQualityColumnWithAxis(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /drop\(.*"quality".*,.*axis=1.*\)/);
 }
 
-function dataIsNumpyArray(validationCellOutput: string[]): boolean {
-  return (
-    Boolean(
-      validationCellOutput.find((outputLine) =>
-        outputLine.match(
-          /preproc_english_sentences_type.*<class 'numpy.ndarray'>/
-        )
-      )
-    ) &&
-    Boolean(
-      validationCellOutput.find((outputLine) =>
-        outputLine.match(
-          /preproc_french_sentences_type.*<class 'numpy.ndarray'>/
-        )
-      )
-    )
-  );
+function usesStandardScaler(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /StandardScaler\(\)/);
 }
 
-function callsArgmax(userCode: string[]): boolean {
-  return Boolean(userCode.find((codeLine) => codeLine.match(/.argmax\(.*\)/)));
+function fitsWithStandardScaler(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /.fit\(.*\)/);
 }
 
-function callsPadSequences(userCode: string[]): boolean {
-  return Boolean(userCode.find((codeLine) => codeLine.match(/pad_sequences/)));
+function transformsWithStandardScaler(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /.transform\(.*\)/);
 }
 
-function callsPadSequencesTwice(userCode: string[]): boolean {
-  return (
-    userCode.filter((codeLine) => codeLine.match(/pad_sequences/)).length > 1
-  );
+function usesDataframe(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /DataFrame\(/);
 }
 
-function callsReshape(userCode: string[]): boolean {
-  return Boolean(userCode.find((codeLine) => codeLine.match(/reshape/)));
-}
-
-export function callsFitOnTexts(userCode: string[]) {
-  const fitOnTextFuncUsed = Boolean(
-    userCode.find((codeLine) => codeLine.match(/.fit_on_texts\(.*\)/))
-  );
-  return fitOnTextFuncUsed;
-}
-
-export function callsTextsToSequences(userCode: string[]) {
-  const textsToSequencesFuncUsed = Boolean(
-    userCode.find((codeLine) => codeLine.match(/.texts_to_sequences\(.*\)/))
-  );
-  return textsToSequencesFuncUsed;
-}
-
-export function isRemovingStopwords(userCode: string[]): boolean {
-  const importsStopwords = Boolean(
-    userCode.find((codeLine) => codeLine.match(/import.*stopwords/))
-  );
-  const initializesStopwords = Boolean(
-    userCode.find((codeLine) => codeLine.match(/stopwords.words\(.*\)/))
-  );
-  return importsStopwords && initializesStopwords;
-}
-
-export function callsReshapeOnXAndY(userCode: string[]): boolean {
-  const reshapesX = Boolean(
-    userCode.find((codeLine) => codeLine.match(/reshape\(.*x.*\)/i))
-  );
-  const reshapesY = Boolean(
-    userCode.find((codeLine) => codeLine.match(/reshape\(.*y.*\)/i))
-  );
-  return reshapesX && reshapesY;
-}
-
-export function extractWineCellOutput(cell: ICellModel): string[] {
-  const cellData = cell.toJSON();
-  const cellOutputs = cellData.outputs as IOutput[];
-  return cellOutputs.reduce((acc: string[], curOutput) => {
-    if (isError(curOutput)) {
-      return [...acc, curOutput.ename, curOutput.evalue];
-    } else if (isStream(curOutput)) {
-      const textOutput = curOutput.text;
-      if (textOutput.includes("you can ignore this message")) {
-        return acc;
-      }
-      return Array.isArray(textOutput)
-        ? [...acc, ...splitListOfStringsBy(textOutput, "\n")]
-        : [...acc, ...textOutput.split("\n")];
-    } else {
-      try {
-        const outputData =
-          (curOutput.data &&
-            ((curOutput.data as PartialJSONObject)[
-              "application/json"
-            ] as any)) ||
-          {};
-        return [...acc, JSON.stringify(outputData)];
-      } catch (err) {
-        console.error(err);
-        return acc;
-      }
+export function processData(data: string): ClusterGroup[] {
+  // data example: ,quality,N\n4,5.267857142857143,168\n2,5.326923076923077,520\n3,5.333333333333333,30\n1,5.538181818181818,275\n0,5.915697674418604,344\n5,6.255725190839694,262\n
+  const lines = data.split("\n");
+  lines.shift(); //Remove first line that constains title
+  const groups: ClusterGroup[] = [];
+  lines.forEach((line) => {
+    if (!line) {
+      return;
     }
-  }, []);
+    groups.push({
+      numMembers: parseInt(line.split(",")[2]),
+      quality: parseFloat(line.split(",")[1]),
+    });
+  });
+  console.log(groups);
+  return groups;
+}
+
+/**
+ *
+ * @param validationCellOutput a string that contains csv stringified data
+ */
+export function extractWineCellOutput(
+  validationCellOutput: any
+): ClusterGroup[] {
+  return processData(validationCellOutput);
 }

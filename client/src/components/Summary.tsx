@@ -27,6 +27,7 @@ import {
 } from "../store/dialogue/useWithDialogue";
 import { PlaneCodeInfo } from "games/planes/hooks/use-with-plane-code-examine";
 import Planes from "../games/planes";
+import { WineSimulationsSummary } from "games/wine/simulator";
 
 function Summary(props: { onSubmit: () => void }): JSX.Element {
   const { loadExperiment } = useWithState();
@@ -48,7 +49,6 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
   }
 
   useEffect(() => {
-    const msgs: DialogueMessage[] = [];
     if (experiment.activityId === ActivityID.nmt) {
       if (experiment.evaluationScore < 1) {
         addMessage(
@@ -87,6 +87,41 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
           true
         );
         return;
+      }
+    } else if (experiment.activityId === ActivityID.wine) {
+      const numClusters = (experiment.summary as WineSimulationsSummary)
+        .clusters.length;
+      if (numClusters === 6 || numClusters === 5) {
+        addMessage(
+          {
+            id: "notebook",
+            title: "Good job!",
+            text: "You've separated the wine into a small number of groups varying in quality. Would you like to submit the assignment or keep working on it?",
+            noSave: true,
+          },
+          true
+        );
+      } else if (numClusters < 5) {
+        addMessage(
+          {
+            id: "notebook",
+            title: "Not enough clusters",
+            text: "Consider whether some of the clusters are getting too large.",
+            noSave: true,
+          },
+          true
+        );
+      } else {
+        // > 6 clusters
+        addMessage(
+          {
+            id: "notebook",
+            title: "Too many clusters",
+            text: "Consider whether some of the clusters are getting too small",
+            noSave: true,
+          },
+          true
+        );
       }
     } else {
       if (experiment.evaluationScore <= 0.6) {
@@ -158,7 +193,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
           <WineCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
-            />
+          />
         );
       default:
         return <div />;

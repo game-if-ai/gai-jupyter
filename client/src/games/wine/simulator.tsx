@@ -5,49 +5,52 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import { INotebookState } from "@datalayer/jupyter-react";
-import { WineCodeInfo } from "./hooks/use-with-wine-code-examine";
-import { getAllWineCodeInfo } from "./hooks/examine-wine-code-helpers";
+import {
+  ClusterGroup,
+  extractWineCellOutput,
+  getAllWineCodeInfo,
+} from "./hooks/examine-wine-code-helpers";
 import { extractAllUserInputCode } from "../../utils";
-import { evaluteWineExperiment } from "./hooks/wine-score-evaluation";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
 import { ActivityID, Experiment, Simulator } from "../../store/simulator";
 import { initSimulate } from "../../store/simulator/useWithSimulator";
+import { WineCodeInfo } from "./hooks/use-with-wine-code-examine";
 
 export interface WineSimulationOutput {}
 
-export type WineClassifierOutput = string[];
+export type WineClassifierOutput = ClusterGroup[];
 
-export interface WineSimulationsSummary extends WineCodeInfo {}
+export interface WineSimulationsSummary extends WineCodeInfo {
+  clusters: ClusterGroup[];
+}
 
 export function WineSimulator(): Simulator {
-  function scoreExperiment(experiment: Experiment): number {
-    return evaluteWineExperiment(experiment);
-  }
-
   function play(): WineSimulationOutput {
     return {};
   }
 
   function simulate(
     inputs: number[],
-    outputs: WineClassifierOutput,
+    outputs: any,
     notebook: INotebookState,
     displayedHints: ImproveCodeHint[]
   ): Experiment {
     const experiment = initSimulate(
       inputs,
       notebook,
-      ActivityID.nmt,
+      ActivityID.wine,
       displayedHints
     );
     if (experiment.notebookContent) {
       experiment.codeInfo = getAllWineCodeInfo(
-        extractAllUserInputCode(experiment.notebookContent),
-        outputs
+        extractAllUserInputCode(experiment.notebookContent)
       );
     }
-    // experiment.summary = experiment.codeInfo;
-    experiment.evaluationScore = scoreExperiment(experiment);
+    const clusters = extractWineCellOutput(outputs);
+    experiment.summary = {
+      clusters: clusters,
+      ...(experiment.codeInfo as WineCodeInfo),
+    };
     return experiment;
   }
 
