@@ -90,16 +90,19 @@ export function useWithNotebook(props: {
   const _validationCellOutput =
     lastExecutionResult?.result && lastExecutionResult.result.length >= 2
       ? lastExecutionResult.result[1]
-      : "";
-  const validationCellOutput = isValidJSON(_validationCellOutput)
-    ? JSON.parse(_validationCellOutput)
-    : _validationCellOutput;
+      : [];
+  const validationCellOutput: string[] =
+    isValidJSON(_validationCellOutput) &&
+    typeof _validationCellOutput === "string"
+      ? JSON.parse(_validationCellOutput)
+      : _validationCellOutput;
   const _modelCellOutput = lastExecutionResult?.console
     ? lastExecutionResult.console
-    : "";
-  const modelCellOutput = isValidJSON(_modelCellOutput)
-    ? JSON.parse(_modelCellOutput)
-    : _modelCellOutput;
+    : [];
+  const modelCellOutput: string[] =
+    isValidJSON(_modelCellOutput) && typeof _modelCellOutput === "string"
+      ? JSON.parse(_modelCellOutput)
+      : _modelCellOutput;
 
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
