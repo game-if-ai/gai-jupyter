@@ -12,6 +12,7 @@ import {
   GameSimulationsSummary,
   SimulationSummary,
 } from "./store/simulator";
+import { WineSimulationsSummary } from "games/wine/simulator";
 
 const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_ENDPOINT;
 
@@ -62,6 +63,23 @@ mutation submitPlaneNotebookExperiment(
   $displayedHints: [DisplayedHintsInputType]
 ){
   submitPlaneNotebookExperiment(
+    cmi5LaunchParameters: $cmi5LaunchParameters,
+    activityId: $activityId,
+    notebookStateStringified: $notebookStateStringified,
+    summary: $summary,
+    displayedHints: $displayedHints
+  )
+}
+`;
+
+const wineNotebookMutation = `mutation SubmitWineExperiment(
+  $cmi5LaunchParameters: Cmi5LaunchParametersType,
+  $activityId: String,
+  $notebookStateStringified: String
+  $summary: WineSummaryInputType
+  $displayedHints: [DisplayedHintsInputType]
+){
+  submitWineExperiment(
     cmi5LaunchParameters: $cmi5LaunchParameters,
     activityId: $activityId,
     notebookStateStringified: $notebookStateStringified,
@@ -127,7 +145,7 @@ mutation submitFruitPickerNotebookExperiment(
 function extractNotebookSummaryGQL(
   data: SubmitNotebookExperimentGQL
 ): SimulationSummary {
-  if (!(data.activityId in ActivityID)) {
+  if (!Object.values(ActivityID).find((id) => id === data.activityId)) {
     throw new Error("Activity types summary not handled for sending to GQL");
   } else if (data.activityId === ActivityID.nmt) {
     const dataSummary = data.summary as NMTSimulationsSummary;
@@ -150,6 +168,22 @@ function extractNotebookSummaryGQL(
       preprocessedDataCorrectDimensions:
         dataSummary.preprocessedDataCorrectDimensions,
       outputCorrectlyFormatted: dataSummary.outputCorrectlyFormatted,
+    };
+  } else if (data.activityId === ActivityID.wine) {
+    const summary: WineSimulationsSummary =
+      data.summary as WineSimulationsSummary;
+    return {
+      dropsWineColumn: summary.dropsWineColumn,
+      dropsWineColumnWithAxis: summary.dropsQualityColumnWithAxis,
+      savesQualityColumnBeforeDropping:
+        summary.savesQualityColumnBeforeDropping,
+      dropsQualityColumn: summary.dropsQualityColumn,
+      dropsQualityColumnWithAxis: summary.dropsQualityColumnWithAxis,
+      usesStandardScaler: summary.usesStandardScaler,
+      fitsWithStandardScaler: summary.fitsWithStandardScaler,
+      transformsWithStandardScaler: summary.transformsWithStandardScaler,
+      usesDataframe: summary.usesDataframe,
+      clusters: summary.clusters,
     };
   } else {
     const dataSummary = data.summary as GameSimulationsSummary;
@@ -185,6 +219,9 @@ export async function submitNotebookExperimentGQL(
       break;
     case ActivityID.planes:
       mutationQuery = planeNotebookMutation;
+      break;
+    case ActivityID.wine:
+      mutationQuery = wineNotebookMutation;
       break;
     default:
       throw new Error(

@@ -7,6 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 
 import Cafe from "./cafe";
 import FruitPicker from "./fruit-picker";
+import Wine from "./wine";
 import NeuralMachineTranslation from "./neural_machine_translation";
 import Planes from "./planes";
 import { Activity, SimulationOutput, Simulator } from "store/simulator";
@@ -35,4 +36,5 @@ export const Activities: Activity[] = [
   Planes,
   FruitPicker,
   NeuralMachineTranslation,
+  Wine,
 ];

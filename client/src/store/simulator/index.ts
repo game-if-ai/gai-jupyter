@@ -37,18 +37,25 @@ import {
   localStorageGet,
   localStorageStore,
 } from "../../local-storage";
+import { WineCodeInfo } from "games/wine/hooks/use-with-wine-code-examine";
+import {
+  WineSimulationOutput,
+  WineSimulationsSummary,
+} from "games/wine/simulator";
 
 export type SimulationOutput =
   | CafeSimulationOutput
   | FruitSimulationOutput
   | NMTSimulationOutput
-  | PlaneSimulationOutput;
+  | PlaneSimulationOutput
+  | WineSimulationOutput;
 
 export type SimulationSummary =
   | CafeSimulationsSummary
   | FruitSimulationsSummary
   | NMTSimulationsSummary
-  | PlaneSimulationsSummary;
+  | PlaneSimulationsSummary
+  | WineSimulationsSummary;
 
 export interface GameSimulationsSummary {
   lowAccuracy: number;
@@ -75,7 +82,8 @@ export type CodeInfo =
   | CafeCodeInfo
   | FruitPickerCodeInfo
   | NMTCodeInfo
-  | PlaneCodeInfo;
+  | PlaneCodeInfo
+  | WineCodeInfo;
 
 type LoadStatus = "LOADING" | "LOADED";
 interface LoadedCodeInfo {
@@ -88,6 +96,7 @@ export enum ActivityID {
   fruit = "fruitpicker",
   nmt = "neural_machine_translation",
   planes = "planes",
+  wine = "wine",
 }
 
 export type ActivityType = "GAME" | "NOTEBOOK_ONLY";
@@ -131,14 +140,18 @@ const initialState: SimulationState = {
   experiments: getExperimentHistory(),
 };
 function getExperimentHistory(): ExperimentHistory {
+  const activityNames = Object.values(ActivityID) as ActivityID[];
   let experiments = localStorageGet(EXPERIMENT_HISTORY) as ExperimentHistory;
   if (!experiments) {
-    experiments = {
-      cafe: [],
-      fruitpicker: [],
-      neural_machine_translation: [],
-      planes: [],
-    };
+    experiments = activityNames.reduce((acc, activityName) => {
+      acc[activityName] = [];
+      return acc;
+    }, {} as ExperimentHistory);
+  }
+  for (const activityName of activityNames) {
+    if (!experiments[activityName]) {
+      experiments[activityName] = [];
+    }
   }
   return experiments;
 }

@@ -75,6 +75,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const pastExperiments = useAppSelector(
     (s) => s.simulator.experiments[activity.id]
   );
+
   const { curCell, isSaving, isRunning } = useAppSelector(
     (s) => s.notebookState
   );
