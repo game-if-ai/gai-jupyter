@@ -145,7 +145,7 @@ mutation submitFruitPickerNotebookExperiment(
 function extractNotebookSummaryGQL(
   data: SubmitNotebookExperimentGQL
 ): SimulationSummary {
-  if (!(data.activityId in ActivityID)) {
+  if (!Object.values(ActivityID).find((id) => id === data.activityId)) {
     throw new Error("Activity types summary not handled for sending to GQL");
   } else if (data.activityId === ActivityID.nmt) {
     const dataSummary = data.summary as NMTSimulationsSummary;
