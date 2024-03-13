@@ -89,17 +89,20 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
     } else if (experiment.activityId === ActivityID.wine) {
       const codeInfo = experiment.codeInfo as WineCodeInfo;
       const firstActiveHint = Wine.improveCodeHints.find((hint) =>
-      hint.active(codeInfo, numRuns, previousExperiments)
-    );
-    if(firstActiveHint){
-      addMessage({
-        id: "notebook",
-        title: "Feedback",
-        text: firstActiveHint.message,
-        noSave: true,
-      }, true);
-      return;
-    }
+        hint.active(codeInfo, numRuns, previousExperiments)
+      );
+      if (firstActiveHint) {
+        addMessage(
+          {
+            id: "notebook",
+            title: "Feedback",
+            text: firstActiveHint.message,
+            noSave: true,
+          },
+          true
+        );
+        return;
+      }
       const numClusters = (experiment.summary as WineSimulationsSummary)
         .clusters.length;
       if (numClusters === 6 || numClusters === 5) {
