@@ -4,11 +4,21 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+import { executeCafeResNameError } from "../fixtures/execute-cafe-name-error";
+import { executeCafeRes } from "../fixtures/execute-cafe-res";
+import { executeWineRes } from "../fixtures/execute-wine-complete-res";
+import { cyMockDefault, cyMockExecuteResponse } from "../support/functions";
+
 describe("notebook", () => {
   beforeEach(() => {
-    cy.viewport(1280, 720);
+    cyMockDefault(cy);
+    cyMockExecuteResponse(cy, {
+      resData: executeCafeRes(),
+    });
     cy.visit("/?activity=cafe");
-    cy.get("[data-cy=okay-btn]").click();
+    // Currently have to wait for jupyter notebooks to load
+    // TODO: remove timeout once we no longer use jupyter labs
+    cy.get("[data-cy=okay-btn]", { timeout: 8000 }).click();
   });
 
   it("auto scrolls to model cell at start", () => {
@@ -287,6 +297,10 @@ describe("notebook", () => {
   });
 
   it("saves changes and views error", () => {
+    cyMockExecuteResponse(cy, {
+      resData: executeCafeResNameError,
+    });
+    cy.visit("/?activity=cafe");
     Cypress.config("defaultCommandTimeout", 10000);
     cy.wait(1000);
     cy.get("[data-cy=cell]")
@@ -309,6 +323,10 @@ describe("notebook", () => {
   });
 
   it("saves changes and views output", () => {
+    cyMockExecuteResponse(cy, {
+      resData: executeCafeRes("hi"),
+    });
+    cy.visit("/?activity=cafe");
     Cypress.config("defaultCommandTimeout", 10000);
     cy.wait(1000);
     cy.get("[data-cy=cell]")
@@ -327,7 +345,7 @@ describe("notebook", () => {
     cy.get("[data-cy=output]").contains("hi");
   });
 
-  it.only("can run notebook", () => {
+  it("can run notebook", () => {
     cy.get("[data-cy=run-btn]").click();
     cy.get("[data-cy=run-btn]").should("not.be.visible");
     // show result popup
@@ -403,7 +421,7 @@ describe("notebook", () => {
       .within(($em) => {
         cy.get(".cm-line").eq(2).type("nl", { delay: 500 });
         cy.get(".autocompleteOption")
-          .eq(1)
+          .eq(2)
           .contains("from nltk.stem import WordNetLemmatizer");
         cy.get(".autocompleteOption").eq(1).click();
         cy.get(".cm-line").eq(10).type("wo", { delay: 500 });
