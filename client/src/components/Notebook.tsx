@@ -52,10 +52,10 @@ import { STEP } from "../store/state";
 import { useAppDispatch, useAppSelector } from "../store";
 import { useWithState } from "../store/state/useWithState";
 import { useWithSimulator } from "../store/simulator/useWithSimulator";
-import { clearExperiments } from "../store/simulator";
 import { setCurCell, updateLocalNotebook } from "../store/notebook";
 
 import "react-toastify/dist/ReactToastify.css";
+import { useWithExperimentsStore } from "../hooks/use-with-experiments-store";
 
 export enum KernelConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -72,9 +72,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     (s) => s.notebookState.localNotebooks[activity.id]
   );
   const isKeyboardOpen = useAppSelector((s) => s.keyboard.isOpen);
-  const pastExperiments = useAppSelector(
-    (s) => s.simulator.experiments[activity.id]
-  );
 
   const { curCell, isSaving, isRunning } = useAppSelector(
     (s) => s.notebookState
@@ -101,10 +98,11 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     saveLocalChanges,
     runNotebook,
   } = useWithNotebook({
-    curActivity: activity!,
+    curActivity: activity,
     curExperiment: experiment,
     kernelStatus,
   });
+
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
     validationCellOutput: validationCellOutput,
@@ -126,6 +124,9 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [didScroll, setDidScroll] = useState<boolean>(false);
   const simulator = useWithSimulator();
+  const { getPastExperiments, clearExperimentHistory } =
+    useWithExperimentsStore();
+  const pastExperiments = getPastExperiments(activity.id);
   const kernelManager: KernelManager = useJupyter()
     .kernelManager as KernelManager;
 
@@ -626,7 +627,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         {pastExperiments.length > 0 ? (
           <MenuItem
             onClick={() => {
-              dispatch(clearExperiments(activity.id));
+              clearExperimentHistory(activity.id);
               setHistoryPopup(null);
             }}
           >

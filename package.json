@@ -12,5 +12,8 @@
     "test:license": "license-check-and-add check -f license-config.json",
     "format": "prettier --write '**/*.{js,jsx,json,ts,tsx}'",
     "test:format": "prettier --check '**/*.{js,jsx,json,ts,tsx}'"
+  },
+  "dependencies": {
+    "use-indexeddb": "^2.0.2"
   }
 }

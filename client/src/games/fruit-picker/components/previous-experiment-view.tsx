@@ -25,6 +25,7 @@ import {
 import { useAppSelector } from "../../../store";
 import { FruitSimulationsSummary } from "../simulator";
 import { Experiment } from "store/simulator";
+import { useWithExperimentsStore } from "../../../hooks/use-with-experiments-store";
 
 export function FruitPickerPreviousExperimentsView(props: {
   classes: Record<string, any>;
@@ -32,9 +33,8 @@ export function FruitPickerPreviousExperimentsView(props: {
 }) {
   const activity = useAppSelector((s) => s.state.activity!);
   const currentExperiment = useAppSelector((s) => s.state.experiment!);
-  const previousExperiments = useAppSelector(
-    (s) => s.simulator.experiments[activity.id]
-  );
+  const { getPastExperiments } = useWithExperimentsStore();
+  const previousExperiments = getPastExperiments(activity.id);
 
   const { classes, setExperiment } = props;
   const experimentsSortedByF1score =

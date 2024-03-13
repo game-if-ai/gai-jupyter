@@ -25,6 +25,7 @@ import {
 import { useAppSelector } from "../../../store";
 import { CafeSimulationsSummary } from "../simulator";
 import { Experiment } from "store/simulator";
+import { useWithExperimentsStore } from "../../../hooks/use-with-experiments-store";
 
 export function CafePreviousExperimentsView(props: {
   classes: Record<string, any>;
@@ -33,9 +34,8 @@ export function CafePreviousExperimentsView(props: {
   const { classes, setExperiment } = props;
   const activity = useAppSelector((s) => s.state.activity!);
   const currentExperiment = useAppSelector((s) => s.state.experiment!);
-  const previousExperiments = useAppSelector(
-    (s) => s.simulator.experiments[activity.id]
-  );
+  const { getPastExperiments } = useWithExperimentsStore();
+  const previousExperiments = getPastExperiments(activity.id);
   const experimentsSortedByF1score =
     sortExperimentsByF1Score(previousExperiments);
   const moreThanOnePreviousExperiment = experimentsSortedByF1score.length > 1;

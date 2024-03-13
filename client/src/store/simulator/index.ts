@@ -32,11 +32,6 @@ import {
   PlaneSimulationsSummary,
 } from "games/planes/simulator";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
-import {
-  EXPERIMENT_HISTORY,
-  localStorageGet,
-  localStorageStore,
-} from "../../local-storage";
 import { WineCodeInfo } from "games/wine/hooks/use-with-wine-code-examine";
 import {
   WineSimulationOutput,
@@ -136,25 +131,16 @@ export type ExperimentHistory = Record<ActivityID, Experiment[]>;
 export interface SimulationState {
   experiments: ExperimentHistory;
 }
-const initialState: SimulationState = {
-  experiments: getExperimentHistory(),
+
+export const initialState: SimulationState = {
+  experiments: {
+    cafe: [],
+    fruitpicker: [],
+    neural_machine_translation: [],
+    planes: [],
+    wine: [],
+  },
 };
-function getExperimentHistory(): ExperimentHistory {
-  const activityNames = Object.values(ActivityID) as ActivityID[];
-  let experiments = localStorageGet(EXPERIMENT_HISTORY) as ExperimentHistory;
-  if (!experiments) {
-    experiments = activityNames.reduce((acc, activityName) => {
-      acc[activityName] = [];
-      return acc;
-    }, {} as ExperimentHistory);
-  }
-  for (const activityName of activityNames) {
-    if (!experiments[activityName]) {
-      experiments[activityName] = [];
-    }
-  }
-  return experiments;
-}
 
 export const simulationSlice = createSlice({
   name: "simulation",
@@ -166,15 +152,20 @@ export const simulationSlice = createSlice({
     ) => {
       const { id, experiment } = action.payload;
       state.experiments[id].push(experiment);
-      localStorageStore(EXPERIMENT_HISTORY, state.experiments);
+    },
+    updateExperimentHistory: (
+      state,
+      action: PayloadAction<{ experimentHistory: ExperimentHistory }>
+    ) => {
+      state.experiments = action.payload.experimentHistory;
     },
     clearExperiments: (state, action: PayloadAction<ActivityID>) => {
       state.experiments[action.payload] = [];
-      localStorageStore(EXPERIMENT_HISTORY, state.experiments);
     },
   },
 });
 
-export const { addExperiment, clearExperiments } = simulationSlice.actions;
+export const { addExperiment, clearExperiments, updateExperimentHistory } =
+  simulationSlice.actions;
 
 export default simulationSlice.reducer;

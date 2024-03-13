@@ -6,43 +6,27 @@ The full terms of this copyright and license should always be found in the root 
 */
 /* eslint-disable */
 
-import { v4 as uuid } from "uuid";
 import { INotebookState } from "@datalayer/jupyter-react";
-import { INotebookContent } from "@jupyterlab/nbformat";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
-import { ActivityID, addExperiment, Experiment, SimulationOutput } from "./";
+import { ActivityID, Experiment, SimulationOutput } from "./";
 import { useAppDispatch, useAppSelector } from "../";
 import { CafeSimulator } from "../../games/cafe/simulator";
 import { FruitSimulator } from "../../games/fruit-picker/simulator";
 import { NMTSimulator } from "../../games/neural_machine_translation/simulator";
 import { PlaneSimulator } from "../../games/planes/simulator";
 import { WineSimulator } from "../../games/wine/simulator";
-import { updateLocalNotebook } from "../notebook";
 import { storeNotebookExperimentInGql } from "../../utils";
+import { initSimulate } from "./helpers";
+import { useWithExperimentsStore } from "../../hooks/use-with-experiments-store";
+import { updateLocalNotebook } from "../../store/notebook";
 
-export function initSimulate(
-  inputs: number[],
-  notebook: INotebookState,
-  activityId: ActivityID,
-  displayedHints: ImproveCodeHint[]
-): Experiment {
-  const notebookContent = notebook.model
-    ? (notebook.model.toJSON() as INotebookContent)
-    : undefined;
-  const experiment: Experiment = {
-    id: uuid(),
-    activityId,
-    time: new Date(),
-    notebookContent,
-    trainInstances: inputs[0],
-    testInstances: inputs[1],
-    simulations: [],
-    displayedHints: displayedHints,
-    codeInfo: {} as any,
-    summary: {} as any,
-    evaluationScore: 0,
+// displayedHints can't be stored because they contain functions
+// if needed at a later time, remove just the function from the ImproveCodeHint
+export function cleanExperimentForStore(experiment: Experiment): Experiment {
+  return {
+    ...experiment,
+    displayedHints: [],
   };
-  return experiment;
 }
 
 export function useWithSimulator() {
@@ -54,7 +38,7 @@ export function useWithSimulator() {
   const nmtSimulator = NMTSimulator();
   const planeSimulator = PlaneSimulator();
   const wineSimulator = WineSimulator();
-
+  const { addExperiment } = useWithExperimentsStore();
   function play(): SimulationOutput {
     if (!activity) {
       throw new Error("no activity selected");
@@ -132,7 +116,7 @@ export function useWithSimulator() {
         );
         break;
     }
-    dispatch(addExperiment({ id: activity.id, experiment }));
+    addExperiment(experiment);
     dispatch(updateLocalNotebook({ id: activity.id, notebook: undefined }));
     storeNotebookExperimentInGql(experiment, uniqueUserId);
     return experiment;

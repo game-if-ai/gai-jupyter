@@ -16,7 +16,7 @@ import {
   GameSimulationsSummary,
   Simulator,
 } from "../../store/simulator";
-import { initSimulate } from "../../store/simulator/useWithSimulator";
+import { initSimulate } from "../../store/simulator/helpers";
 
 export const GAME_TIME = 30; // time the game lasts in seconds
 export const SPAWN_TIME = 300; // time between fruit spawns in ms
