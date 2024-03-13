@@ -135,7 +135,7 @@ export const Cafe: Game = {
       label: "from nltk.stem import WordNetLemmatizer",
       type: "text",
       apply,
-      detail: "import lemmatizatizer",
+      detail: "",
     },
     {
       label: "lemmatizer = WordNetLemmatizer()",
