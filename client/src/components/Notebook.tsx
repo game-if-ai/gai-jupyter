@@ -290,7 +290,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           JSON.parse(ranNotebook.result[0]),
           JSON.parse(ranNotebook.result[1]),
         ];
-        console.log(setupCellOutput, validationCellOutput);
         const experiment = simulator.simulate(
           setupCellOutput,
           validationCellOutput,

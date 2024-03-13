@@ -80,7 +80,6 @@ export function processData(data: string): ClusterGroup[] {
       quality: parseFloat(line.split(",")[1]),
     });
   });
-  console.log(groups);
   return groups;
 }
 
