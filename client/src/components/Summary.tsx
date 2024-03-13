@@ -21,21 +21,18 @@ import { WineCurrentExperimentView } from "../games/wine/components/current-expe
 import { useAppSelector } from "../store";
 import { ActivityID, Experiment } from "../store/simulator";
 import { useWithState } from "../store/state/useWithState";
-import {
-  DialogueMessage,
-  useWithDialogue,
-} from "../store/dialogue/useWithDialogue";
+import { useWithDialogue } from "../store/dialogue/useWithDialogue";
 import { PlaneCodeInfo } from "games/planes/hooks/use-with-plane-code-examine";
 import Planes from "../games/planes";
 import { WineSimulationsSummary } from "games/wine/simulator";
+import { useWithExperimentsStore } from "../hooks/use-with-experiments-store";
 
 function Summary(props: { onSubmit: () => void }): JSX.Element {
   const { loadExperiment } = useWithState();
   const activity = useAppSelector((s) => s.state.activity!);
   const experiment: Experiment = useAppSelector((s) => s.state.experiment!);
-  const previousExperiments = useAppSelector(
-    (s) => s.simulator.experiments[activity.id]
-  );
+  const { getPastExperiments } = useWithExperimentsStore();
+  const previousExperiments = getPastExperiments(activity.id);
   const numRuns = previousExperiments.length;
   const summary = experiment.summary;
 

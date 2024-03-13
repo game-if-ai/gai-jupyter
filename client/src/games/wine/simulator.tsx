@@ -13,7 +13,7 @@ import {
 import { extractAllUserInputCode } from "../../utils";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
 import { ActivityID, Experiment, Simulator } from "../../store/simulator";
-import { initSimulate } from "../../store/simulator/useWithSimulator";
+import { initSimulate } from "../../store/simulator/helpers";
 import { WineCodeInfo } from "./hooks/use-with-wine-code-examine";
 
 export interface WineSimulationOutput {}

@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppSelector } from "../store";
 import { Activity, CodeInfo, Experiment } from "store/simulator";
+import { useWithExperimentsStore } from "./use-with-experiments-store";
 type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
 
 export interface ImproveCodeHint {
@@ -34,9 +35,8 @@ export function useWithImproveCode(props: {
   notebookRunCount: number;
 }): UseWithImproveCode {
   const activity = useAppSelector((s) => s.state.activity!);
-  const previousExperiments = useAppSelector(
-    (state) => state.simulator.experiments[activity.id]
-  );
+  const { getPastExperiments } = useWithExperimentsStore();
+  const previousExperiments = getPastExperiments(activity.id);
   const isRunning = useAppSelector((s) => s.notebookState.isRunning);
   const { activeActivity, userCode, validationCellOutput, notebookRunCount } =
     props;

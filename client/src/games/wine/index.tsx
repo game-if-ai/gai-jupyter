@@ -19,7 +19,7 @@ export const Wine: Activity = {
   activityType: "NOTEBOOK_ONLY",
   gameDescription: "",
   notebookDescription:
-    "Please finish this notebook to complete the English to French translator. You will receive hints as you go.",
+    "This notebook clusters wines based on their chemical properties. Please complete the data preprocessing function and choose a value for k (the number of clusters) based on the Clustering Cliff Notes. You will receive hints as you go.",
   improveCodeHints: [
     {
       message:

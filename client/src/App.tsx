@@ -22,6 +22,7 @@ import { sessionStorageStore } from "./local-storage";
 import { STEP } from "./store/state";
 import { useAppSelector } from "./store";
 import { useWithState } from "./store/state/useWithState";
+import useWithIndexDb from "./store/use-with-index-db";
 
 function App(): JSX.Element {
   const classes = useStyles();
@@ -30,7 +31,7 @@ function App(): JSX.Element {
     (s) => s.state
   );
   const { loadActivity, toNotebook } = useWithState();
-
+  useWithIndexDb();
   useEffect(() => {
     const cm = new ContentsManager();
     try {

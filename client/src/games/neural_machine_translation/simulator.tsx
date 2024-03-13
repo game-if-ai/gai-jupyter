@@ -11,7 +11,7 @@ import { extractAllUserInputCode } from "../../utils";
 import { evaluteNMTExperiment } from "./hooks/nmt-score-evaluation";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
 import { ActivityID, Experiment, Simulator } from "../../store/simulator";
-import { initSimulate } from "../../store/simulator/useWithSimulator";
+import { initSimulate } from "../../store/simulator/helpers";
 
 export interface NMTSimulationOutput {}
 
