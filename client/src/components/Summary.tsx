@@ -24,8 +24,10 @@ import { useWithState } from "../store/state/useWithState";
 import { useWithDialogue } from "../store/dialogue/useWithDialogue";
 import { PlaneCodeInfo } from "games/planes/hooks/use-with-plane-code-examine";
 import Planes from "../games/planes";
+import Wine from "../games/wine";
 import { WineSimulationsSummary } from "games/wine/simulator";
 import { useWithExperimentsStore } from "../hooks/use-with-experiments-store";
+import { WineCodeInfo } from "games/wine/hooks/use-with-wine-code-examine";
 
 function Summary(props: { onSubmit: () => void }): JSX.Element {
   const { loadExperiment } = useWithState();
@@ -35,7 +37,6 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
   const previousExperiments = getPastExperiments(activity.id);
   const numRuns = previousExperiments.length;
   const summary = experiment.summary;
-
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
   const { addMessage } = useWithDialogue();
@@ -86,6 +87,19 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
         return;
       }
     } else if (experiment.activityId === ActivityID.wine) {
+      const codeInfo = experiment.codeInfo as WineCodeInfo;
+      const firstActiveHint = Wine.improveCodeHints.find((hint) =>
+      hint.active(codeInfo, numRuns, previousExperiments)
+    );
+    if(firstActiveHint){
+      addMessage({
+        id: "notebook",
+        title: "Feedback",
+        text: firstActiveHint.message,
+        noSave: true,
+      }, true);
+      return;
+    }
       const numClusters = (experiment.summary as WineSimulationsSummary)
         .clusters.length;
       if (numClusters === 6 || numClusters === 5) {
