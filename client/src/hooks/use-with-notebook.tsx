@@ -32,7 +32,12 @@ import {
   setIsSaving,
   updateLocalNotebook,
 } from "../store/notebook";
-import { extractCellCode, formatCellCode, isValidJSON } from "../utils";
+import {
+  extractCellCode,
+  extractErrorMessageFromError,
+  formatCellCode,
+  isValidJSON,
+} from "../utils";
 import {
   requestCodeExecution,
   pollCodeExecutionStatus,
@@ -75,7 +80,7 @@ export function useWithNotebook(props: {
   const [initialConnectionMade, setInitialConnectionMade] = useState(false);
   const [cells, setCells] = useState<CellsStates>({});
   const [notebookConnected, setNotebookConnected] = useState(false);
-  const [error, setError] = useState<string>("");
+  const [unexpectedError, setUnexpectedError] = useState<string>("");
   const [isEdited, setIsEdited] = useState<boolean>(false);
   const [notebookRunCount, setNotebookRuns] = useState(0);
   const [lastExecutionResult, setLastExecutionResult] =
@@ -233,13 +238,6 @@ export function useWithNotebook(props: {
             });
           }
         }
-        // Note: We no longer execute in jupyter labs, so no more listening to
-        // if (cellType === GaiCellTypes.SETUP) {
-        //   setSetupCellOutput(extractSetupCellOutput(changedCell));
-        // }
-        // if (cellType === GaiCellTypes.VALIDATION) {
-        //   setValidationCellOutput(getValidationCellOutput(changedCell));
-        // }
         setCells((prevValue) => {
           return {
             ...prevValue,
@@ -270,7 +268,7 @@ export function useWithNotebook(props: {
     if (!notebook) {
       return;
     }
-    setError("");
+    setUnexpectedError("");
     dispatch(setIsRunning(true));
     let result: ExecutionResult = {
       console: "",
@@ -302,13 +300,6 @@ export function useWithNotebook(props: {
           success: true,
         };
       } else {
-        setError(
-          `An error occured: ${
-            actualResponse.error ||
-            actualResponse.message ||
-            JSON.stringify(actualResponse.result)
-          }`
-        );
         result = {
           notebook: notebook,
           error: `An error occured: ${
@@ -324,6 +315,7 @@ export function useWithNotebook(props: {
       setLastExecutionResult(result);
     } catch (err) {
       console.error(err);
+      setUnexpectedError(extractErrorMessageFromError(err));
     } finally {
       dispatch(setIsRunning(false));
       setNotebookRuns((prevValue) => prevValue + 1);
@@ -431,7 +423,8 @@ export function useWithNotebook(props: {
     validationCellOutput,
     userInputCellsCode,
     modelCellOutput,
-    error,
+    unexpectedError,
+    executionError: lastExecutionResult?.error,
     isEdited,
     notebookRunCount,
     notebookInitialRunComplete: notebookRunCount > 0,
@@ -441,5 +434,6 @@ export function useWithNotebook(props: {
     editCode,
     resetCode,
     initialConnectionMade,
+    clearError: () => setUnexpectedError(""),
   };
 }

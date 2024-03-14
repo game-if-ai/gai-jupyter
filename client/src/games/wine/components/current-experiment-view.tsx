@@ -34,6 +34,7 @@ export function WineCurrentExperimentView(props: {
 
   return (
     <div
+      data-cy="current-experiment-container"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -56,18 +57,20 @@ export function WineCurrentExperimentView(props: {
           outline: "black solid 1px",
           marginTop: 20,
         }}
+        data-cy="data-table-container"
       >
-        <TableHead>
+        <TableHead data-cy="data-table-head">
           <TableRow>
             <TableCell align="center">Cluster Size</TableCell>
             <TableCell align="center">Quality</TableCell>
           </TableRow>
         </TableHead>
-        <TableBody>
+        <TableBody data-cy="data-table-body">
           {clusters.map((s, i) => (
             <TableRow
               key={i}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              data-cy={`data-table-row-${i}`}
             >
               <TableCell align="center" component="th" scope="row">
                 {s.numMembers}

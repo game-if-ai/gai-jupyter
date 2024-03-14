@@ -129,44 +129,72 @@ export function cyMockDefault(
   ]);
 }
 
-export function cyMockExecuteResponse(
+interface MockedResData<T> {
+  resData: T;
+  statusCode: number;
+  contentType?: string;
+}
+
+export function cyMockMultipleResponses<T>(
+  cy,
+  urlRegex: string,
+  alias: string,
+  res: MockedResData<T>[]
+) {
+  let numCalls = 0;
+  cy.intercept(urlRegex, (req) => {
+    const {
+      statusCode: _statusCode,
+      contentType,
+      resData,
+    } = res[numCalls % res.length];
+    req.alias = alias;
+    const statusCode = _statusCode
+      ? Array.isArray(_statusCode)
+        ? _statusCode[numCalls]
+        : _statusCode
+      : 200;
+    req.reply(
+      staticResponse({
+        statusCode: statusCode,
+        body: {
+          data: resData,
+        },
+        headers: {
+          "Content-Type": contentType || "application/json",
+        },
+      })
+    );
+    numCalls++;
+  });
+}
+
+export function cyMockExecuteResponse<T>(
   cy,
   params: {
-    statusCode?: number;
-    resData?: CodeExecutorResponseData;
+    responses?: MockedResData<T>[];
   } = {}
 ) {
-  cy.intercept("**/executor/execute", (req) => {
-    req.alias = "execute";
-    req.reply(
-      staticResponse({
-        statusCode: params.statusCode || 200,
-        body: {
-          data: {
-            id: "123",
-            status: "QUEUED",
-            statusUrl: "/execute/status/321",
-          },
-        },
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-    );
-  });
+  const { responses } = params;
+  cyMockMultipleResponses(cy, "**/executor/execute", "Execute", [
+    {
+      resData: {
+        id: "123",
+        status: "QUEUED",
+        statusUrl: `/execute/status/123`,
+      },
+      statusCode: 200,
+    },
+  ]);
 
-  cy.intercept("**/execute/status/**", (req) => {
-    req.alias = "status";
-    req.reply(
-      staticResponse({
-        statusCode: params.statusCode || 200,
-        body: {
-          data: params.resData,
-        },
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-    );
-  });
+  cyMockMultipleResponses<T>(cy, "**/execute/status/**", "Status", responses);
+}
+
+export function replaceModelCellWithCode(cy, code: string) {
+  cy.get("[data-cy=cell]")
+    .eq(1)
+    .within(($em) => {
+      cy.get(".cm-line").eq(0).type("{ctrl}a{del}");
+      cy.get(".cm-line").eq(0).type(code, { delay: 0 });
+    });
 }

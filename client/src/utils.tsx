@@ -10,7 +10,7 @@ import { IOutput, ICell, INotebookContent } from "@jupyterlab/nbformat";
 import { PartialJSONObject } from "@lumino/coreutils";
 import Cmi5, { LaunchParameters } from "@xapi/cmi5";
 import { EditorView } from "codemirror";
-
+import { isAxiosError } from "axios";
 import { GaiCellTypes } from "./local-constants";
 import { submitNotebookExperimentGQL } from "./api";
 import { ImproveCodeHint } from "hooks/use-with-improve-code";
@@ -325,5 +325,29 @@ export function isValidJSON(str: any) {
     return true;
   } catch (error) {
     return false;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function extractErrorMessageFromError(err: any | unknown): string {
+  if (err?.response?.data) {
+    try {
+      const error = JSON.stringify(err.response.data);
+      return error;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  if (err instanceof Error) {
+    return err.message;
+  } else if (isAxiosError(err)) {
+    return err.response?.data || err.message;
+  } else {
+    try {
+      const error = JSON.stringify(err);
+      return error;
+    } catch (err) {
+      return "Cannot stringify error, unknown error structure";
+    }
   }
 }

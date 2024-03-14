@@ -109,7 +109,7 @@ export function TooltipMsg(props: {
       arrow
       leaveTouchDelay={isCurMsg ? curMessage?.timer : lastMessage?.timer}
       title={
-        <div>
+        <div data-cy="summary-tooltip">
           <IconButton
             color="inherit"
             size="small"
