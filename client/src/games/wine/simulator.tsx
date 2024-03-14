@@ -15,6 +15,7 @@ import { ImproveCodeHint } from "hooks/use-with-improve-code";
 import { ActivityID, Experiment, Simulator } from "../../store/simulator";
 import { initSimulate } from "../../store/simulator/helpers";
 import { WineCodeInfo } from "./hooks/use-with-wine-code-examine";
+import wineScoreEvaluation from "./hooks/wine-score-evalutaion";
 
 export interface WineSimulationOutput {}
 
@@ -51,6 +52,7 @@ export function WineSimulator(): Simulator {
       clusters: clusters,
       ...(experiment.codeInfo as WineCodeInfo),
     };
+    experiment.evaluationScore = wineScoreEvaluation(experiment);
     return experiment;
   }
 
