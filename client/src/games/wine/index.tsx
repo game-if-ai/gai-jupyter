@@ -15,7 +15,7 @@ import { apply } from "../../utils";
 
 export const Wine: Activity = {
   id: ActivityID.wine,
-  title: "Wine",
+  title: "Clustering Wines",
   activityType: "NOTEBOOK_ONLY",
   gameDescription: "",
   notebookDescription:
