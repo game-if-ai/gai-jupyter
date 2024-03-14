@@ -56,6 +56,7 @@ import { setCurCell, updateLocalNotebook } from "../store/notebook";
 
 import "react-toastify/dist/ReactToastify.css";
 import { useWithExperimentsStore } from "../hooks/use-with-experiments-store";
+import { ErrorDialog } from "./dialog";
 
 export enum KernelConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -88,7 +89,8 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     cells,
     validationCellOutput,
     userInputCellsCode,
-    error,
+    executionError,
+    unexpectedError,
     isEdited,
     initialConnectionMade: notebookInitialized,
     notebookRunCount,
@@ -97,11 +99,13 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     saveNotebook,
     saveLocalChanges,
     runNotebook,
+    clearError,
   } = useWithNotebook({
     curActivity: activity,
     curExperiment: experiment,
     kernelStatus,
   });
+  const errorOccured = Boolean(executionError || unexpectedError);
 
   const hints = useWithImproveCode({
     userCode: userInputCellsCode,
@@ -131,10 +135,10 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     .kernelManager as KernelManager;
 
   useEffect(() => {
-    if (showResults && error) {
+    if (showResults && errorOccured) {
       setShowResults(false);
     }
-  }, [showResults, error]);
+  }, [showResults, errorOccured]);
 
   useEffect(() => {
     if (kernel) {
@@ -445,7 +449,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           </IconButton>
           <TooltipMsg elemId="hint">
             <IconButton
-              data-cy="hint-btn"
+              data-cy="hint-btn-header"
               disabled={!hints.hintsAvailable || isSaving}
               onClick={() => hints.toastHint()}
             >
@@ -558,7 +562,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         </Button>
       </ActionPopup>
       <ActionPopup
-        open={showResults && !error}
+        open={showResults && !errorOccured}
         onClose={() => setShowResults(false)}
         title="See results"
         text="Would you like to view your results?"
@@ -636,6 +640,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
         ) : undefined}
       </Popover>
       <ToastContainer {...defaultToastOptions} />
+      <ErrorDialog error={unexpectedError} clearError={clearError} />
     </div>
   );
 }

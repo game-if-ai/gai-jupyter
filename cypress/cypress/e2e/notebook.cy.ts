@@ -4,16 +4,21 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { executeCafeResNameError } from "../fixtures/execute-cafe-name-error";
-import { executeCafeRes } from "../fixtures/execute-cafe-res";
-import { executeWineRes } from "../fixtures/execute-wine-complete-res";
+import { executeCafeResNameError } from "../fixtures/cafe/execute-cafe-name-error";
+import { executeCafeRes } from "../fixtures/cafe/execute-cafe-res";
 import { cyMockDefault, cyMockExecuteResponse } from "../support/functions";
+import { CodeExecutorResponseData } from "../support/types";
 
 describe("notebook", () => {
   beforeEach(() => {
     cyMockDefault(cy);
-    cyMockExecuteResponse(cy, {
-      resData: executeCafeRes(),
+    cyMockExecuteResponse<CodeExecutorResponseData>(cy, {
+      responses: [
+        {
+          resData: executeCafeRes(),
+          statusCode: 200,
+        },
+      ],
     });
     cy.visit("/?activity=cafe");
     // Currently have to wait for jupyter notebooks to load
@@ -296,35 +301,14 @@ describe("notebook", () => {
       });
   });
 
-  it("saves changes and views error", () => {
-    cyMockExecuteResponse(cy, {
-      resData: executeCafeResNameError,
-    });
-    cy.visit("/?activity=cafe");
-    Cypress.config("defaultCommandTimeout", 10000);
-    cy.wait(1000);
-    cy.get("[data-cy=cell]")
-      .eq(1)
-      .within(($em) => {
-        cy.get(".cm-line").eq(2).type("t", { delay: 500 });
-        cy.get(".cm-line").eq(2).contains("t");
-      });
-    // saves and runs code
-    cy.wait(1000);
-    cy.get("[data-cy=save-btn]").click();
-    cy.get("[data-cy=run-btn]").should("exist");
-    cy.get("[data-cy=run-btn]").should("be.disabled");
-    // shows error output
-    cy.wait(2500);
-    cy.contains(
-      "Your code contains a naming error. You may be trying to use an undeclared variable or function."
-    );
-    cy.get("[data-cy=output]").contains("name 't' is not defined");
-  });
-
   it("saves changes and views output", () => {
-    cyMockExecuteResponse(cy, {
-      resData: executeCafeRes("hi"),
+    cyMockExecuteResponse<CodeExecutorResponseData>(cy, {
+      responses: [
+        {
+          resData: executeCafeRes("hi"),
+          statusCode: 200,
+        },
+      ],
     });
     cy.visit("/?activity=cafe");
     Cypress.config("defaultCommandTimeout", 10000);
@@ -432,5 +416,75 @@ describe("notebook", () => {
         cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
       });
     cy.contains("Consider giving the Naive Bayes model a try!");
+  });
+
+  describe("Errors", () => {
+    it("saves changes and views error", () => {
+      cyMockExecuteResponse<CodeExecutorResponseData>(cy, {
+        responses: [
+          {
+            resData: executeCafeResNameError,
+            statusCode: 200,
+          },
+        ],
+      });
+      cy.visit("/?activity=cafe");
+      Cypress.config("defaultCommandTimeout", 10000);
+      cy.wait(1000);
+      cy.get("[data-cy=cell]")
+        .eq(1)
+        .within(($em) => {
+          cy.get(".cm-line").eq(2).type("t", { delay: 500 });
+          cy.get(".cm-line").eq(2).contains("t");
+        });
+      // saves and runs code
+      cy.wait(1000);
+      cy.get("[data-cy=save-btn]").click();
+      cy.get("[data-cy=run-btn]").should("exist");
+      cy.get("[data-cy=run-btn]").should("be.disabled");
+      // shows error output
+      cy.wait(2500);
+      cy.contains(
+        "Your code contains a naming error. You may be trying to use an undeclared variable or function."
+      );
+      cy.get("[data-cy=output]").contains("name 't' is not defined");
+    });
+
+    it("execute error results in popup", () => {
+      cyMockExecuteResponse<CodeExecutorResponseData>(cy, {
+        responses: [
+          {
+            resData: executeCafeResNameError,
+            statusCode: 400,
+          },
+        ],
+      });
+      cy.visit("/?activity=cafe");
+      cy.get("[data-cy=run-btn]").click();
+      cy.get("[data-cy=run-btn]").should("not.be.visible");
+      cy.get("[data-cy=error-dialog]").should("exist");
+      cy.get("[data-cy=error-dialog]").contains("name 't' is not defined");
+    });
+
+    it("can clear error popup and successfully run", () => {
+      cyMockExecuteResponse<CodeExecutorResponseData>(cy, {
+        responses: [
+          {
+            resData: executeCafeResNameError,
+            statusCode: 400,
+          },
+          {
+            resData: executeCafeRes(),
+            statusCode: 200,
+          },
+        ],
+      });
+      cy.visit("/?activity=cafe");
+      cy.get("[data-cy=run-btn]").click();
+      cy.get("[data-cy=run-btn]").should("not.be.visible");
+      cy.get("[data-cy=error-dialog]").should("exist");
+      cy.get("[data-cy=close-error-dialog]").click();
+      cy.get("[data-cy=run-btn]").click();
+    });
   });
 });
