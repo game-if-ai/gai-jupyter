@@ -25,7 +25,7 @@ export default function wineScoreEvaluation(experiment: Experiment): number {
   q.transformsWithStandardScaler ? (finalScore += 0.1) : (finalScore += 0);
   q.usesDataframe ? (finalScore += 0.1) : (finalScore += 0);
   clusters.length === 5 || clusters.length === 6
-    ? (finalScore += 0.15)
+    ? (finalScore += 0.3)
     : (finalScore += 0);
   return finalScore;
 }
