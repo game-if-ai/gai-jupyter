@@ -31,23 +31,29 @@ function codeContainsRegex(userCode: string[], regex: RegExp): boolean {
 }
 
 function dropsWineColumn(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /drop\(.*"Wine".*\)/);
+  return codeContainsRegex(userCode, /drop\(.*[",']Wine[",'].*\)/);
 }
 
 function dropsWineColumnWithAxis(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /drop\(.*"Wine".*,.*axis=1.*\)/);
+  return codeContainsRegex(userCode, /drop\(.*[",']Wine[",'].*,.*axis=1.*\)/);
 }
 
 function savesQualityColumnBeforeDropping(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /.*=.*wineDataFrame\["quality"\].*/);
+  return codeContainsRegex(
+    userCode,
+    /.*=.*wineDataFrame\[[",']quality[",']\].*/
+  );
 }
 
 function dropsQualityColumn(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /drop\(.*"quality".*\)/);
+  return codeContainsRegex(userCode, /drop\(.*[",']quality[",'].*\)/);
 }
 
 function dropsQualityColumnWithAxis(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /drop\(.*"quality".*,.*axis=1.*\)/);
+  return codeContainsRegex(
+    userCode,
+    /drop\(.*[",']quality[",'].*,.*axis=1.*\)/
+  );
 }
 
 function usesStandardScaler(userCode: string[]): boolean {
