@@ -239,7 +239,7 @@ export const Planes: Game = {
             (exp.codeInfo as PlaneCodeInfo).modelSize === "LARGE"
           );
         });
-        return epochs === 60 && modelSize === "MEDIUM" && !triedLargeSixty;
+        return epochs === 60 && modelSize === "MEDIUM" && !triedLargeSixty && numRuns > 0;
       },
     },
     {
@@ -256,7 +256,7 @@ export const Planes: Game = {
             (exp.codeInfo as PlaneCodeInfo).modelSize === "SMALL"
           );
         });
-        return epochs === 60 && modelSize === "MEDIUM" && !triedSmallSixty;
+        return epochs === 60 && modelSize === "MEDIUM" && !triedSmallSixty && numRuns > 0;
       },
     },
 
@@ -267,6 +267,7 @@ export const Planes: Game = {
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (codeInfo) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
+        console.log(modelSize, epochs)
         return (
           (epochs !== 30 && epochs !== 60) ||
           (modelSize !== "TINY" &&
@@ -275,6 +276,15 @@ export const Planes: Game = {
             modelSize !== "LARGE")
         );
       },
+    },
+    {
+      message: "Please run your model to get further hints.",
+      conditionDescription: "no runs",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (codeInfo, numRuns) => {
+        return numRuns === 0;
+      },
+      
     },
     {
       message:

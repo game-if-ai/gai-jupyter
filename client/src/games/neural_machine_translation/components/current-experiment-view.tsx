@@ -71,6 +71,7 @@ export function NMTCurrentExperimentView(props: {
 
   return (
     <div
+      data-cy="current-experiment-container"
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
       <Typography variant="h3">Experiment</Typography>
@@ -89,10 +90,12 @@ export function NMTCurrentExperimentView(props: {
       >
         <Typography variant="h5">Experiment Goals</Typography>
         <TableBody>
-          {curExperimentAverageDisplays().map((display) => {
+          {curExperimentAverageDisplays().map((display, i) => {
             const metricValue = display.metricValue.toString();
             return (
-              <TableRow>
+              <TableRow
+                data-cy={`data-table-row-${i}`}
+              >
                 <TableCell align="center">{display.metricName}</TableCell>
                 <TableCell
                   style={{ color: metricValue === "false" ? "red" : "green" }}
@@ -119,6 +122,7 @@ export function NMTCurrentExperimentView(props: {
           <TooltipMsg elemId="notebook">
             <Button
               data-elemid="notebook"
+              data-cy="notebook-btn"
               variant="contained"
               onClick={toNotebook}
               style={{ margin: 10 }}
