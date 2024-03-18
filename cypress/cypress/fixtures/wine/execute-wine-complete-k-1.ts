@@ -4,29 +4,13 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { PlaneCodeInfo, ModelSize } from "./use-with-plane-code-examine";
+import { CodeExecutorResponseData } from "../support/types";
 
-export function getAllPlaneCodeInfo(userCode: string[]): PlaneCodeInfo {
-  return {
-    epochs: getEpochs(userCode),
-    modelSize: getModelSize(userCode),
-  };
-}
-
-export function getEpochs(userCode: string[]): number {
-  if (userCode.find((codeline) => codeline.match(/60/))) return 60;
-  else if (userCode.find((codeline) => codeline.match(/30/))) return 30;
-  else return 0;
-}
-
-export function getModelSize(userCode: string[]): ModelSize {
-  if (userCode.find((codeline) => codeline.match(/tiny/)))
-    return ModelSize.TINY;
-  else if (userCode.find((codeline) => codeline.match(/small/)))
-    return ModelSize.SMALL;
-  else if (userCode.find((codeline) => codeline.match(/medium/)))
-    return ModelSize.MEDIUM;
-  else if (userCode.find((codeline) => codeline.match(/large/)))
-    return ModelSize.LARGE;
-  else return ModelSize.UNDEFINED;
-}
+export const executeWineResK1: CodeExecutorResponseData = {
+  id: "123",
+  status: "SUCCESS",
+  state: "SUCCESS",
+  result: ["{}", '",quality,N\\n0,5.636,1599\\n"'],
+  console: "",
+  statusUrl: "/execute/status/321",
+};

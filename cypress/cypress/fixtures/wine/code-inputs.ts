@@ -199,3 +199,45 @@ wineData_scaled, quality = preprocess(wineData_raw)
 k = 6
 model = cluster(wineData_scaled, k)
 `;
+
+export const completeWithFewClusters = `
+def preprocess(wineDataFrame):
+    # 1. drop "Wine" column which just assigns a number (1, 2, ...) to each wine
+    # It is okay to modify wineDataFrame
+    wineDataFrame.drop("Wine", axis=1, inplace=True)
+
+    # 2. split into data and labels. It is okay to modify wineDataFrame.
+    quality = wineDataFrame["quality"]
+    wineDataFrame.drop("quality", axis=1, inplace=True)
+
+    # 3. scale data but don't overwrite raw data
+    # 4. return data and labels
+    scaler = StandardScaler()
+    scaler.fit(wineDataFrame)
+    return pd.DataFrame(scaler.transform(wineDataFrame), columns=wineDataFrame.columns), quality
+
+wineData_scaled, quality = preprocess(wineData_raw)
+k = 1
+model = cluster(wineData_scaled, k)
+`;
+
+export const completeWithTooManyClusters = `
+def preprocess(wineDataFrame):
+    # 1. drop "Wine" column which just assigns a number (1, 2, ...) to each wine
+    # It is okay to modify wineDataFrame
+    wineDataFrame.drop("Wine", axis=1, inplace=True)
+
+    # 2. split into data and labels. It is okay to modify wineDataFrame.
+    quality = wineDataFrame["quality"]
+    wineDataFrame.drop("quality", axis=1, inplace=True)
+
+    # 3. scale data but don't overwrite raw data
+    # 4. return data and labels
+    scaler = StandardScaler()
+    scaler.fit(wineDataFrame)
+    return pd.DataFrame(scaler.transform(wineDataFrame), columns=wineDataFrame.columns), quality
+
+wineData_scaled, quality = preprocess(wineData_raw)
+k = 9
+model = cluster(wineData_scaled, k)
+`;

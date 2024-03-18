@@ -66,6 +66,7 @@ export function PlaneCurrentExperimentView(props: {
 
   return (
     <div
+      data-cy="current-experiment-container"
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
       <Typography variant="h3">Experiment</Typography>
@@ -84,9 +85,9 @@ export function PlaneCurrentExperimentView(props: {
       >
         <Typography variant="h5">Experiment Averages</Typography>
         <TableBody>
-          {curExperimentAverageDisplays().map((display) => {
+          {curExperimentAverageDisplays().map((display, i) => {
             return (
-              <TableRow>
+              <TableRow data-cy={`data-table-row-${i}`}>
                 <TableCell align="center">{display.metricName}</TableCell>
                 <TableCell align="center">{display.metricValue}</TableCell>
               </TableRow>
@@ -145,6 +146,7 @@ export function PlaneCurrentExperimentView(props: {
           <TooltipMsg elemId="notebook">
             <Button
               data-elemid="notebook"
+              data-cy="notebook-btn"
               variant="contained"
               onClick={toNotebook}
               style={{ margin: 10 }}
@@ -154,6 +156,7 @@ export function PlaneCurrentExperimentView(props: {
           </TooltipMsg>
           <Button
             variant="contained"
+            data-cy="simulator-btn"
             onClick={() => loadSimulation(0)}
             style={{ marginTop: 10, marginBottom: 10 }}
           >

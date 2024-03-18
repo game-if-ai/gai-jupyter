@@ -117,7 +117,7 @@ export const NeuralMachineTranslation: Activity = {
       },
     },
     {
-      message: "Run your code to first before seeing more hints!",
+      message: "Run your code first before seeing more hints!",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       conditionDescription:
         "Checks that the validation cell has an output (indicating that the user ran their code).",
@@ -164,7 +164,7 @@ export const NeuralMachineTranslation: Activity = {
       conditionDescription: "if there is no join call present",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (nmtCodeInfo) => {
-        return (nmtCodeInfo as NMTCodeInfo).callsJoin;
+        return !(nmtCodeInfo as NMTCodeInfo).callsJoin;
       },
     },
     {

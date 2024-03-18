@@ -73,6 +73,7 @@ export function FruitPickerCurrentExperimentView(props: {
 
   return (
     <div
+      data-cy="current-experiment-container"
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
       <Typography variant="h3">Experiment</Typography>
@@ -128,6 +129,7 @@ export function FruitPickerCurrentExperimentView(props: {
         <TableBody>
           {simulations.map((s, i) => (
             <TableRow
+              data-cy={`data-table-row-${i}`}
               key={i}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
@@ -156,6 +158,7 @@ export function FruitPickerCurrentExperimentView(props: {
           <TooltipMsg elemId="notebook">
             <Button
               data-elemid="notebook"
+              data-cy="notebook-btn"
               variant="contained"
               onClick={toNotebook}
               style={{ margin: 10 }}
@@ -165,6 +168,7 @@ export function FruitPickerCurrentExperimentView(props: {
           </TooltipMsg>
           <Button
             variant="contained"
+            data-cy="simulator-btn"
             onClick={() => loadSimulation(0)}
             style={{ marginTop: 10, marginBottom: 10 }}
           >

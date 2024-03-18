@@ -54,38 +54,69 @@ export function useWithImproveCode(props: {
     );
   const { improveCodeHints } = activeActivity;
 
+  /**
+   * Gets next improveCodeHints that is not already showing and is active
+   */
+  function getNextHintToShow(
+    startingPos?: number
+  ): ImproveCodeHint | undefined {
+    let nextHintIndex = startingPos || 0;
+    if (nextHintIndex >= improveCodeHints.length) {
+      return undefined;
+    }
+    let hintToShow: ImproveCodeHint | undefined =
+      improveCodeHints[nextHintIndex];
+    if (!hintToShow) {
+      return undefined;
+    }
+    let hintAlreadyShowing = Boolean(
+      activeToasts.find((toast) => toast.message === hintToShow?.message)
+    );
+    if (
+      hintAlreadyShowing ||
+      hintToShow.visibility !== "TRIGGERED_OR_HINT_BUTTON"
+    ) {
+      hintToShow = improveCodeHints.slice(nextHintIndex).find((hint) => {
+        return (
+          hint.active(codeInfo, 0, previousExperiments) &&
+          !Boolean(activeToasts.find((toast) => toast.message === hint.message))
+        );
+      });
+    }
+    return hintToShow;
+  }
+
   function toastHint() {
-    let activeHintIndexCopy = activeHintIndex;
     if (activeHintIndex === -1) {
       return;
     }
-
-    while (activeHintIndexCopy >= 0) {
-      const hintToShow = improveCodeHints[activeHintIndexCopy];
-      const hintAlreadyShowing = Boolean(
-        activeToasts.find((toast) => toast.message === hintToShow.message)
-      );
-      if (!hintToShow) {
-        break;
-      }
-      if (
-        hintAlreadyShowing ||
-        hintToShow.visibility !== "TRIGGERED_OR_HINT_BUTTON"
-      ) {
-        activeHintIndexCopy--;
-        continue;
-      }
-      // hintDisplayedCmi5(hintToShow, activeActivity.id);
-      setActiveToasts((prevValue) => [...prevValue, hintToShow]);
-      toast(hintToShow.message, {
-        onClose: () => {
-          setActiveToasts((prevValue) =>
-            prevValue.filter((hint) => hint.message !== hintToShow.message)
-          );
-        },
-      });
-      break;
+    let hintToShow: ImproveCodeHint | undefined =
+      improveCodeHints[activeHintIndex];
+    let hintAlreadyShowing = Boolean(
+      activeToasts.find((toast) => toast.message === hintToShow?.message)
+    );
+    if (!hintToShow) {
+      // issue with activeHintIndex
+      return;
     }
+    if (
+      hintAlreadyShowing ||
+      hintToShow.visibility !== "TRIGGERED_OR_HINT_BUTTON"
+    ) {
+      // get next active hint to show (that comes after current hint)
+      hintToShow = getNextHintToShow(activeHintIndex + 1);
+    }
+    if (!hintToShow) {
+      return;
+    }
+    setActiveToasts((prevValue) => [...prevValue, hintToShow!]);
+    toast(hintToShow.message, {
+      onClose: () => {
+        setActiveToasts((prevValue) =>
+          prevValue.filter((hint) => hint.message !== hintToShow!.message)
+        );
+      },
+    });
   }
 
   function getDisplayedHints() {
@@ -106,8 +137,11 @@ export function useWithImproveCode(props: {
       return;
     }
     const firstActiveHintIndex = improveCodeHints.findIndex((hint) =>
-      hint.active(codeInfo, 0, previousExperiments)
+      hint.active(codeInfo, previousExperiments.length, previousExperiments)
     );
+    if (firstActiveHintIndex === -1) {
+      return;
+    }
     setActiveHintIndex(firstActiveHintIndex);
     if (hintDisplayed) {
       return;
@@ -129,7 +163,7 @@ export function useWithImproveCode(props: {
       },
     });
   }, [
-    codeInfo, //most important
+    codeInfo,
     codeInfoLoadStatus,
     hintDisplayed,
     timesNotebookVisited,
@@ -138,7 +172,6 @@ export function useWithImproveCode(props: {
     isRunning,
     previousExperiments,
   ]);
-
   return {
     toastHint,
     hintsAvailable: activeHintIndex !== -1,

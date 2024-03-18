@@ -4,29 +4,32 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import { PlaneCodeInfo, ModelSize } from "./use-with-plane-code-examine";
+export const smallThirty = `
+LAYER_CONFIG = "small"
+TRAINING_EPOCHS = 30
+`;
 
-export function getAllPlaneCodeInfo(userCode: string[]): PlaneCodeInfo {
-  return {
-    epochs: getEpochs(userCode),
-    modelSize: getModelSize(userCode),
-  };
-}
+export const mediumThirty = `
+LAYER_CONFIG = "medium"
+TRAINING_EPOCHS = 30
+`;
 
-export function getEpochs(userCode: string[]): number {
-  if (userCode.find((codeline) => codeline.match(/60/))) return 60;
-  else if (userCode.find((codeline) => codeline.match(/30/))) return 30;
-  else return 0;
-}
+export const largeThirty = `
+LAYER_CONFIG = "large"
+TRAINING_EPOCHS = 30
+`;
 
-export function getModelSize(userCode: string[]): ModelSize {
-  if (userCode.find((codeline) => codeline.match(/tiny/)))
-    return ModelSize.TINY;
-  else if (userCode.find((codeline) => codeline.match(/small/)))
-    return ModelSize.SMALL;
-  else if (userCode.find((codeline) => codeline.match(/medium/)))
-    return ModelSize.MEDIUM;
-  else if (userCode.find((codeline) => codeline.match(/large/)))
-    return ModelSize.LARGE;
-  else return ModelSize.UNDEFINED;
-}
+export const smallSixty = `
+LAYER_CONFIG = "small"
+TRAINING_EPOCHS = 60
+`;
+
+export const mediumSixty = `
+LAYER_CONFIG = "medium"
+TRAINING_EPOCHS = 60
+`;
+
+export const largeSixty = `
+LAYER_CONFIG = "large"
+TRAINING_EPOCHS = 60
+`;
