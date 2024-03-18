@@ -92,7 +92,6 @@ export function useWithImproveCode(props: {
     }
     let hintToShow: ImproveCodeHint | undefined =
       improveCodeHints[activeHintIndex];
-    console.log(hintToShow);
     let hintAlreadyShowing = Boolean(
       activeToasts.find((toast) => toast.message === hintToShow?.message)
     );
@@ -110,7 +109,6 @@ export function useWithImproveCode(props: {
     if (!hintToShow) {
       return;
     }
-    console.log(hintToShow);
     setActiveToasts((prevValue) => [...prevValue, hintToShow!]);
     toast(hintToShow.message, {
       onClose: () => {
@@ -142,7 +140,6 @@ export function useWithImproveCode(props: {
       hint.active(codeInfo, previousExperiments.length, previousExperiments)
     );
     if (firstActiveHintIndex === -1) {
-      console.log("no active hint");
       return;
     }
     setActiveHintIndex(firstActiveHintIndex);
@@ -157,7 +154,6 @@ export function useWithImproveCode(props: {
     if (!hintToShow) {
       return;
     }
-    console.log("here");
     setActiveToasts((prevValue) => [...prevValue, hintToShow]);
     toast(hintToShow.message, {
       onClose: () => {
