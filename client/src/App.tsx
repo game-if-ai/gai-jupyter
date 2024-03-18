@@ -40,9 +40,9 @@ function App(): JSX.Element {
           `/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/${activity.id}/test2.ipynb`
         );
       });
-      Promise.all(removeOldFiles).catch((err)=>{
-        console.log(`Error deleting old files: ${err}`)
-      })
+      Promise.all(removeOldFiles).catch((err) => {
+        console.log(`Error deleting old files: ${err}`);
+      });
       cm.save(`/${TEMP_NOTEBOOK_DIR}/`, { type: "directory" }).then(() => {
         cm.save(`/${TEMP_NOTEBOOK_DIR}/${uniqueUserId}/`, {
           type: "directory",

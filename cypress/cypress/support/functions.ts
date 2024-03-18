@@ -190,11 +190,18 @@ export function cyMockExecuteResponse<T>(
   cyMockMultipleResponses<T>(cy, "**/execute/status/**", "Status", responses);
 }
 
-export function replaceModelCellWithCode(cy, code: string) {
+export function replaceModelCellWithCode(
+  cy,
+  code: string,
+  cellNumber?: number
+) {
+  const cell = cellNumber !== undefined ? cellNumber : 1;
   cy.get("[data-cy=cell]")
-    .eq(1)
+    .eq(cell)
     .within(($em) => {
       cy.get(".cm-line").eq(0).type("{ctrl}a{del}");
-      cy.get(".cm-line").eq(0).type(code, { delay: 0 });
+      cy.get(".cm-line")
+        .eq(0)
+        .type(code, { delay: 0, parseSpecialCharSequences: false });
     });
 }

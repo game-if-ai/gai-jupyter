@@ -88,6 +88,7 @@ export function WineCurrentExperimentView(props: {
         <BottomNavigation>
           <TooltipMsg elemId="notebook">
             <Button
+              data-cy="notebook-btn"
               data-elemid="notebook"
               variant="contained"
               onClick={toNotebook}

@@ -88,15 +88,17 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
       }
     } else if (experiment.activityId === ActivityID.wine) {
       const codeInfo = experiment.codeInfo as WineCodeInfo;
-      const firstActiveHint = Wine.improveCodeHints.find((hint) =>
+      const firstActiveHintIndex = Wine.improveCodeHints.findIndex((hint) =>
         hint.active(codeInfo, numRuns, previousExperiments)
       );
-      if (firstActiveHint) {
+      const isFinalHint =
+        firstActiveHintIndex === Wine.improveCodeHints.length - 1;
+      if (!isFinalHint) {
         addMessage(
           {
             id: "notebook",
             title: "Feedback",
-            text: firstActiveHint.message,
+            text: Wine.improveCodeHints[firstActiveHintIndex].message,
             noSave: true,
           },
           true

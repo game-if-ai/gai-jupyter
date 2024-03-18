@@ -85,9 +85,9 @@ export function PlaneCurrentExperimentView(props: {
       >
         <Typography variant="h5">Experiment Averages</Typography>
         <TableBody>
-          {curExperimentAverageDisplays().map((display) => {
+          {curExperimentAverageDisplays().map((display, i) => {
             return (
-              <TableRow>
+              <TableRow data-cy={`data-table-row-${i}`}>
                 <TableCell align="center">{display.metricName}</TableCell>
                 <TableCell align="center">{display.metricValue}</TableCell>
               </TableRow>
@@ -120,7 +120,6 @@ export function PlaneCurrentExperimentView(props: {
         <TableBody>
           {simulations.map((s, i) => (
             <TableRow
-              data-cy={`data-table-row-${i}`}
               key={i}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >

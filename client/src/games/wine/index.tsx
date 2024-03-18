@@ -106,6 +106,14 @@ export const Wine: Activity = {
         return !(nmtCodeInfo as WineCodeInfo).usesDataframe;
       },
     },
+    {
+      message: "Everything looks good. Run your code to see how it performs.",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      conditionDescription: "complete",
+      active: (nmtCodeInfo) => {
+        return true;
+      },
+    },
   ],
   autocompletion: [
     {

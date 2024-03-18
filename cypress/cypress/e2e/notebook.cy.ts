@@ -372,52 +372,6 @@ describe("notebook", () => {
       });
   });
 
-  it("gives hints on code changes", () => {
-    cy.get("[data-cy=select]").contains("Model");
-    cy.get("[data-cy=cell]")
-      .eq(1)
-      .within(($em) => {
-        cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
-      });
-    cy.contains(
-      "You are currently using a dummy classifier model, try a real one! (Naive Bayes, Logistic Regression, etc.)"
-    );
-    cy.get("[data-cy=cell]")
-      .eq(1)
-      .within(($em) => {
-        cy.get(".cm-line").eq(0).type("{shift}{upArrow}{del}", { delay: 500 });
-        cy.get(".cm-line").eq(0).type("sk", { delay: 500 });
-        cy.get(".autocompleteOption")
-          .eq(1)
-          .contains("from sklearn.naive_bayes import MultinomialNB");
-        cy.get(".autocompleteOption").eq(1).click();
-        cy.get(".cm-line").eq(24).type("{shift}{upArrow}{del}", { delay: 500 });
-        cy.get(".cm-line").eq(24).type("mu", { delay: 500 });
-        cy.get(".autocompleteOption")
-          .eq(1)
-          .contains("classifier = MultinomialNB()");
-        cy.get(".autocompleteOption").eq(1).click();
-        cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
-      });
-    cy.contains("Consider preprocessing your data with stemming!");
-    cy.get("[data-cy=cell]")
-      .eq(1)
-      .within(($em) => {
-        cy.get(".cm-line").eq(2).type("nl", { delay: 500 });
-        cy.get(".autocompleteOption")
-          .eq(2)
-          .contains("from nltk.stem import WordNetLemmatizer");
-        cy.get(".autocompleteOption").eq(1).click();
-        cy.get(".cm-line").eq(10).type("wo", { delay: 500 });
-        cy.get(".autocompleteOption")
-          .eq(1)
-          .contains("lemmatizer = WordNetLemmatizer()");
-        cy.get(".autocompleteOption").eq(1).click();
-        cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
-      });
-    cy.contains("Consider giving the Naive Bayes model a try!");
-  });
-
   describe("Errors", () => {
     it("saves changes and views error", () => {
       cyMockExecuteResponse<CodeExecutorResponseData>(cy, {

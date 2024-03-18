@@ -9,7 +9,13 @@ import { getAllPlaneCodeInfo } from "./examine-plane-code-helpers";
 import { useEffect, useState } from "react";
 
 type LoadStatus = "LOADING" | "LOADED";
-export type ModelSize = "TINY" | "SMALL" | "MEDIUM" | "LARGE" | "UNDEFINED";
+export enum ModelSize {
+  TINY = "TINY",
+  SMALL = "SMALL",
+  MEDIUM = "MEDIUM",
+  LARGE = "LARGE",
+  UNDEFINED = "UNDEFINED",
+}
 
 export interface PlaneCodeInfo {
   modelSize: ModelSize;
@@ -30,7 +36,7 @@ export function useWithPlaneCodeExamine(
 ): UseWithPlaneCodeExamine {
   const [planeCodeInfo, setPlaneCodeInfo] = useState<PlaneCodeInfoLoad>({
     loadStatus: "LOADING",
-    modelSize: "UNDEFINED",
+    modelSize: ModelSize.UNDEFINED,
     epochs: 0,
   });
 

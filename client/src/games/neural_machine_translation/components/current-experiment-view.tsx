@@ -93,9 +93,7 @@ export function NMTCurrentExperimentView(props: {
           {curExperimentAverageDisplays().map((display, i) => {
             const metricValue = display.metricValue.toString();
             return (
-              <TableRow
-                data-cy={`data-table-row-${i}`}
-              >
+              <TableRow data-cy={`data-table-row-${i}`}>
                 <TableCell align="center">{display.metricName}</TableCell>
                 <TableCell
                   style={{ color: metricValue === "false" ? "red" : "green" }}

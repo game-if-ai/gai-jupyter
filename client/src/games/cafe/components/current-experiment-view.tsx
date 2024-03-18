@@ -95,9 +95,7 @@ export function CafeCurrentExperimentView(props: {
         <TableBody>
           {curExperimentAverageDisplays().map((display, i) => {
             return (
-              <TableRow
-              data-cy={`data-table-row-${i}`}
-              >
+              <TableRow data-cy={`data-table-row-${i}`}>
                 <TableCell align="center">{display.metricName}</TableCell>
                 <TableCell align="center">{display.metricValue}</TableCell>
               </TableRow>

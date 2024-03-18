@@ -10,6 +10,7 @@ import PlaneGame from "./Game";
 import { Summary } from "./components/summary";
 import { Game } from "..";
 import {
+  ModelSize,
   PlaneCodeInfo,
   useWithPlaneCodeExamine,
 } from "./hooks/use-with-plane-code-examine";
@@ -170,6 +171,36 @@ export const Planes: Game = {
   ],
   improveCodeHints: [
     {
+      message: "Please run your code to see how the small model performs.",
+      conditionDescription: "large model 60 epochs",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (codeInfo, numRuns, previousExperiments) => {
+        const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
+        const hasTriedSmallSixty = previousExperiments.some((exp) => {
+          return (
+            (exp.codeInfo as PlaneCodeInfo).epochs === 60 &&
+            (exp.codeInfo as PlaneCodeInfo).modelSize === "SMALL"
+          );
+        });
+        return epochs === 60 && modelSize === "SMALL" && !hasTriedSmallSixty;
+      },
+    },
+    {
+      message: "Please run your code to see how the large model performs.",
+      conditionDescription: "large model 60 epochs",
+      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      active: (codeInfo, numRuns, previousExperiments) => {
+        const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
+        const hasTriedLargeSixty = previousExperiments.some((exp) => {
+          return (
+            (exp.codeInfo as PlaneCodeInfo).epochs === 60 &&
+            (exp.codeInfo as PlaneCodeInfo).modelSize === "LARGE"
+          );
+        });
+        return epochs === 60 && modelSize === "LARGE" && !hasTriedLargeSixty;
+      },
+    },
+    {
       message: "Seems to still be improving. Maybe try training for 60 epochs.",
       conditionDescription: "30 epochs",
       visibility: "TRIGGERED_OR_HINT_BUTTON",
@@ -239,7 +270,12 @@ export const Planes: Game = {
             (exp.codeInfo as PlaneCodeInfo).modelSize === "LARGE"
           );
         });
-        return epochs === 60 && modelSize === "MEDIUM" && !triedLargeSixty && numRuns > 0;
+        return (
+          epochs === 60 &&
+          modelSize === "MEDIUM" &&
+          !triedLargeSixty &&
+          numRuns > 0
+        );
       },
     },
     {
@@ -256,7 +292,12 @@ export const Planes: Game = {
             (exp.codeInfo as PlaneCodeInfo).modelSize === "SMALL"
           );
         });
-        return epochs === 60 && modelSize === "MEDIUM" && !triedSmallSixty && numRuns > 0;
+        return (
+          epochs === 60 &&
+          modelSize === "MEDIUM" &&
+          !triedSmallSixty &&
+          numRuns > 0
+        );
       },
     },
 
@@ -267,14 +308,16 @@ export const Planes: Game = {
       visibility: "TRIGGERED_OR_HINT_BUTTON",
       active: (codeInfo) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
-        console.log(modelSize, epochs)
-        return (
+        if (!modelSize || !epochs || modelSize === ModelSize.UNDEFINED) {
+          return false;
+        }
+        const returnValue =
           (epochs !== 30 && epochs !== 60) ||
           (modelSize !== "TINY" &&
             modelSize !== "SMALL" &&
             modelSize !== "MEDIUM" &&
-            modelSize !== "LARGE")
-        );
+            modelSize !== "LARGE");
+        return returnValue;
       },
     },
     {
@@ -284,7 +327,6 @@ export const Planes: Game = {
       active: (codeInfo, numRuns) => {
         return numRuns === 0;
       },
-      
     },
     {
       message:
