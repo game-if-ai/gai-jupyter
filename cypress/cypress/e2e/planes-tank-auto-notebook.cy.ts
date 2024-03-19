@@ -13,6 +13,7 @@ import {
 } from "../fixtures/planes-tanks-automobiles/code-inputs";
 import { executePlaneRes } from "../fixtures/planes-tanks-automobiles/execute-planes-res";
 import {
+  clickHintButton,
   cyMockDefault,
   cyMockExecuteResponse,
   replaceModelCellWithCode,
@@ -34,10 +35,6 @@ function runAndCloseSummary(cy) {
   cy.get("[data-cy=save-btn]").click();
   cy.wait(3000);
   cy.get("body").click(100, 100); // click off layover to close
-}
-
-function clickHintButton(cy) {
-  cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
 }
 
 describe("cafe notebook", () => {

@@ -15,6 +15,7 @@ import {
 } from "./hooks/use-with-cafe-code-examine";
 import { apply } from "../../utils";
 import { ActivityID } from "../../store/simulator";
+import { HintVisibilityCondition } from "../../hooks/use-with-improve-code";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -178,7 +179,11 @@ export const Cafe: Game = {
     {
       message:
         "You are currently using a dummy classifier model, try a real one! (Naive Bayes, Logistic Regression, etc.)",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks if the user is still using the dummy classifier.",
       active: (cafeCodeInfo) => {
@@ -187,7 +192,11 @@ export const Cafe: Game = {
     },
     {
       message: "Consider giving the Naive Bayes model a try!",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks if the user is still using the dummy classifier.",
       active: (cafeCodeInfo) => {
@@ -197,7 +206,11 @@ export const Cafe: Game = {
     {
       message: "Consider preprocessing your data with stemming!",
       conditionDescription: "Checks that the user is stemming their data.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active(cafeCodeInfo) {
         const { usingStemming } = cafeCodeInfo as CafeCodeInfo;
         return !usingStemming;
@@ -206,7 +219,11 @@ export const Cafe: Game = {
     {
       message: "Consider giving a Logistic Regression model a try!",
       conditionDescription: "Checks if the user is using a Naive Bayes model",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active(cafeCodeInfo) {
         const { classifierModelUsed } = cafeCodeInfo as CafeCodeInfo;
         return classifierModelUsed === "NAIVE_BAYES";
@@ -216,7 +233,11 @@ export const Cafe: Game = {
     {
       message: "Try removing stopwords.",
       conditionDescription: "Check if the user is removing stopwords",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active(cafeCodeInfo) {
         const { classifierModelUsed, usingStemming, removesStopwords } =
           cafeCodeInfo as CafeCodeInfo;
@@ -233,7 +254,10 @@ export const Cafe: Game = {
         "Your classifier is working very well! Do you want to submit this or keep playing with it?",
       conditionDescription: "always true",
 
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+      ],
       active: () => {
         return true;
       },

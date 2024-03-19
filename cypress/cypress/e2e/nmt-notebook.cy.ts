@@ -13,6 +13,7 @@ import {
 } from "../fixtures/nmt/code-inputs";
 import { executeNmtRes } from "../fixtures/nmt/execute-nmt-res";
 import {
+  clickHintButton,
   cyMockDefault,
   cyMockExecuteResponse,
   replaceModelCellWithCode,
@@ -39,31 +40,30 @@ describe("nmt notebook", () => {
       ],
     });
     initActivity(cy);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "When using text data with a neural network, it is crucial to first tokenize it."
     );
-
     replaceModelCellWithCode(cy, useFitOnTextsTokenize, 0);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "To tokenize the input and return the tokens, you need to use this code to get the tokens: tokenizer.texts_to_sequences(x)"
     );
     replaceModelCellWithCode(cy, useTextToSequences, 0);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains("The maximum sentence length of y is greater than x.");
     replaceModelCellWithCode(cy, usePadSequences, 0);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "Keras's sparse_categorical_crossentropy function requires the labels to be in 3 dimensions; if padded_x is an ndarray, you can use the following code to add an extra dimension of size 1: padded_x.reshape(*padded_x.shape, 1)"
     );
     replaceModelCellWithCode(cy, usesReshape, 0);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "Consider the output, all possible words have a logit probability."
     );
     replaceModelCellWithCode(cy, complete, 0);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains("Run your code first before seeing more hints!");
     cy.get("[data-cy=save-btn]").click();
     cy.wait(3000);

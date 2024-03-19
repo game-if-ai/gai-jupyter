@@ -31,11 +31,11 @@ function codeContainsRegex(userCode: string[], regex: RegExp): boolean {
 }
 
 function dropsWineColumn(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /drop\(.*[",']Wine[",'].*\)/);
+  return codeContainsRegex(userCode, /drop.*[",']Wine[",'].*/);
 }
 
 function dropsWineColumnWithAxis(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /drop\(.*[",']Wine[",'].*,.*axis=1.*\)/);
+  return codeContainsRegex(userCode, /drop.*[",']Wine[",'].*,.*axis=1.*/);
 }
 
 function savesQualityColumnBeforeDropping(userCode: string[]): boolean {
@@ -46,14 +46,11 @@ function savesQualityColumnBeforeDropping(userCode: string[]): boolean {
 }
 
 function dropsQualityColumn(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /drop\(.*[",']quality[",'].*\)/);
+  return codeContainsRegex(userCode, /drop.*[",']quality[",'].*/);
 }
 
 function dropsQualityColumnWithAxis(userCode: string[]): boolean {
-  return codeContainsRegex(
-    userCode,
-    /drop\(.*[",']quality[",'].*,.*axis=1.*\)/
-  );
+  return codeContainsRegex(userCode, /drop.*[",']quality[",'].*,.*axis=1.*/);
 }
 
 function usesStandardScaler(userCode: string[]): boolean {
@@ -61,11 +58,11 @@ function usesStandardScaler(userCode: string[]): boolean {
 }
 
 function fitsWithStandardScaler(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /.fit\(.*\)/);
+  return codeContainsRegex(userCode, /.fit/);
 }
 
 function transformsWithStandardScaler(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /.transform\(.*\)/);
+  return codeContainsRegex(userCode, /.transform/);
 }
 
 function usesDataframe(userCode: string[]): boolean {

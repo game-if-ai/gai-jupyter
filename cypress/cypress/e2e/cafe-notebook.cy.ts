@@ -5,6 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import {
+  clickHintButton,
   cyMockDefault,
   cyMockExecuteResponse,
   replaceModelCellWithCode,
@@ -29,19 +30,19 @@ function initActivity(cy) {
 describe("cafe notebook", () => {
   it("hints displayed properly", () => {
     initActivity(cy);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "You are currently using a dummy classifier model, try a real one! (Naive Bayes, Logistic Regression, etc.)"
     );
 
     replaceModelCellWithCode(cy, useLogisticRegression);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains("Consider preprocessing your data with stemming!");
     replaceModelCellWithCode(cy, useStemming);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains("Try removing stopwords.");
     replaceModelCellWithCode(cy, complete);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "Your classifier is working very well! Do you want to submit this or keep playing with it?"
     );
