@@ -205,3 +205,7 @@ export function replaceModelCellWithCode(
         .type(code, { delay: 0, parseSpecialCharSequences: false });
     });
 }
+
+export function closeHint(cy) {
+  cy.get(".Toastify__close-button").click({ multiple: true, force: true });
+}

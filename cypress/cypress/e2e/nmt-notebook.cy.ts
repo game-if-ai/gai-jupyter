@@ -43,7 +43,6 @@ describe("nmt notebook", () => {
     cy.contains(
       "When using text data with a neural network, it is crucial to first tokenize it."
     );
-
     replaceModelCellWithCode(cy, useFitOnTextsTokenize, 0);
     cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
     cy.contains(

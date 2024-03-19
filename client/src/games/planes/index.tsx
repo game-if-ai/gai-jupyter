@@ -16,6 +16,7 @@ import {
 } from "./hooks/use-with-plane-code-examine";
 import { apply } from "../../utils";
 import { ActivityID } from "../../store/simulator";
+import { HintVisibilityCondition } from "../../hooks/use-with-improve-code";
 
 const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -173,7 +174,11 @@ export const Planes: Game = {
     {
       message: "Please run your code to see how the small model performs.",
       conditionDescription: "large model 60 epochs",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo, numRuns, previousExperiments) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
         const hasTriedSmallSixty = previousExperiments.some((exp) => {
@@ -188,7 +193,11 @@ export const Planes: Game = {
     {
       message: "Please run your code to see how the large model performs.",
       conditionDescription: "large model 60 epochs",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo, numRuns, previousExperiments) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
         const hasTriedLargeSixty = previousExperiments.some((exp) => {
@@ -203,7 +212,11 @@ export const Planes: Game = {
     {
       message: "Seems to still be improving. Maybe try training for 60 epochs.",
       conditionDescription: "30 epochs",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo) => {
         const { epochs } = codeInfo as PlaneCodeInfo;
         return epochs === 30;
@@ -212,7 +225,11 @@ export const Planes: Game = {
     {
       message: "Model may be too small for further improvement.",
       conditionDescription: "tiny or small model 60 epochs",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
         return epochs === 60 && (modelSize === "TINY" || modelSize === "SMALL");
@@ -221,7 +238,11 @@ export const Planes: Game = {
     {
       message: "Model may be too large given the size of the training data.",
       conditionDescription: "large model 60 epochs",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
         return epochs === 60 && modelSize === "LARGE";
@@ -232,7 +253,11 @@ export const Planes: Game = {
       message:
         "This model seems the best fit given the size of the training set. You should submit your results.",
       conditionDescription: "medium 60, has not tried large or small 60",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo, numRuns, previousExperiments) => {
         const curCodeInfo = codeInfo as PlaneCodeInfo;
         const { modelSize, epochs } = curCodeInfo;
@@ -260,7 +285,11 @@ export const Planes: Game = {
       message:
         "Pretty good results. You should try the large model to see if you can get better.",
       conditionDescription: "medium 60, has not tried large 60",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo, numRuns, previousExperiments) => {
         const curCodeInfo = codeInfo as PlaneCodeInfo;
         const { modelSize, epochs } = curCodeInfo;
@@ -282,7 +311,11 @@ export const Planes: Game = {
       message:
         "Pretty good results. You should try the small model to see if it generalizes better.",
       conditionDescription: "medium 60, has not tried small 60",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo, numRuns, previousExperiments) => {
         const curCodeInfo = codeInfo as PlaneCodeInfo;
         const { modelSize, epochs } = curCodeInfo;
@@ -305,7 +338,11 @@ export const Planes: Game = {
       message: "Make sure you're using the specified values for the system.",
       conditionDescription: "ensure correct values",
 
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo) => {
         const { modelSize, epochs } = codeInfo as PlaneCodeInfo;
         if (!modelSize || !epochs || modelSize === ModelSize.UNDEFINED) {
@@ -323,7 +360,11 @@ export const Planes: Game = {
     {
       message: "Please run your model to get further hints.",
       conditionDescription: "no runs",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       active: (codeInfo, numRuns) => {
         return numRuns === 0;
       },
@@ -332,7 +373,10 @@ export const Planes: Game = {
       message:
         "That was a good run! Do you want to submit this or tune it more?",
       conditionDescription: "always true",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+      ],
       active: () => {
         return true;
       },

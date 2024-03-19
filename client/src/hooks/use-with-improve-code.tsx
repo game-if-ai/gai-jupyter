@@ -9,7 +9,11 @@ import { toast } from "react-toastify";
 import { useAppSelector } from "../store";
 import { Activity, CodeInfo, Experiment } from "store/simulator";
 import { useWithExperimentsStore } from "./use-with-experiments-store";
-type HintVisibilityType = "TRIGGERED_ONLY" | "TRIGGERED_OR_HINT_BUTTON";
+export enum HintVisibilityCondition {
+  TRIGGERED_ON_NOTEBOOK_RETURN = "TRIGGERED_ON_NOTEBOOK_RETURN",
+  HINT_BUTTON_CLICKED = "HINT_BUTTON_CLICKED",
+  MUST_BE_ACTIVE = "MUST_BE_ACTIVE",
+}
 
 export interface ImproveCodeHint {
   message: string;
@@ -19,7 +23,7 @@ export interface ImproveCodeHint {
     previousExperiments: Experiment[]
   ) => boolean;
   conditionDescription: string;
-  visibility: HintVisibilityType;
+  visibilityConditions: HintVisibilityCondition[];
 }
 
 export interface UseWithImproveCode {
@@ -62,11 +66,13 @@ export function useWithImproveCode(props: {
   ): ImproveCodeHint | undefined {
     let nextHintIndex = startingPos || 0;
     if (nextHintIndex >= improveCodeHints.length) {
+      console.log("returning undefined 1");
       return undefined;
     }
     let hintToShow: ImproveCodeHint | undefined =
       improveCodeHints[nextHintIndex];
     if (!hintToShow) {
+      console.log("returning undefined 2");
       return undefined;
     }
     let hintAlreadyShowing = Boolean(
@@ -74,14 +80,25 @@ export function useWithImproveCode(props: {
     );
     if (
       hintAlreadyShowing ||
-      hintToShow.visibility !== "TRIGGERED_OR_HINT_BUTTON"
+      !hintToShow.visibilityConditions.includes(
+        HintVisibilityCondition.HINT_BUTTON_CLICKED
+      )
     ) {
-      hintToShow = improveCodeHints.slice(nextHintIndex).find((hint) => {
-        return (
-          hint.active(codeInfo, 0, previousExperiments) &&
-          !Boolean(activeToasts.find((toast) => toast.message === hint.message))
-        );
-      });
+      hintToShow = improveCodeHints
+        .slice(0, nextHintIndex)
+        .reverse()
+        .find((hint) => {
+          return (
+            (hint.visibilityConditions.includes(
+              HintVisibilityCondition.MUST_BE_ACTIVE
+            )
+              ? hint.active(codeInfo, 0, previousExperiments)
+              : true) &&
+            !Boolean(
+              activeToasts.find((toast) => toast.message === hint.message)
+            )
+          );
+        });
     }
     return hintToShow;
   }
@@ -101,10 +118,12 @@ export function useWithImproveCode(props: {
     }
     if (
       hintAlreadyShowing ||
-      hintToShow.visibility !== "TRIGGERED_OR_HINT_BUTTON"
+      !hintToShow.visibilityConditions.includes(
+        HintVisibilityCondition.HINT_BUTTON_CLICKED
+      )
     ) {
       // get next active hint to show (that comes after current hint)
-      hintToShow = getNextHintToShow(activeHintIndex + 1);
+      hintToShow = getNextHintToShow(activeHintIndex);
     }
     if (!hintToShow) {
       return;

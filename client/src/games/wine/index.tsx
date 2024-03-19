@@ -12,6 +12,7 @@ import {
 } from "./hooks/use-with-wine-code-examine";
 import { Activity, ActivityID } from "../../store/simulator";
 import { apply } from "../../utils";
+import { HintVisibilityCondition } from "../../hooks/use-with-improve-code";
 
 export const Wine: Activity = {
   id: ActivityID.wine,
@@ -24,7 +25,11 @@ export const Wine: Activity = {
     {
       message:
         "You need to drop the 'Wine' column because it isn't a useful feature.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription: "Checks that the user has dropped the wine column.",
       active: (nmtCodeInfo) => {
         return !(nmtCodeInfo as WineCodeInfo).dropsWineColumn;
@@ -33,7 +38,11 @@ export const Wine: Activity = {
     {
       message:
         "In the drop method, you need to use the parameter setting 'axis=1' since you are dropping a column.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks that the user has dropped the wine column with axis=1.",
       active: (nmtCodeInfo) => {
@@ -43,7 +52,11 @@ export const Wine: Activity = {
     {
       message:
         "You need to drop the 'quality' column to separate the labels from the data.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks that the user has dropped the quality column.",
       active: (nmtCodeInfo) => {
@@ -52,7 +65,11 @@ export const Wine: Activity = {
     },
     {
       message: "Are you saving the 'quality' column before dropping it?",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks that the user has saved the quality column before dropping it.",
       active: (nmtCodeInfo) => {
@@ -62,7 +79,11 @@ export const Wine: Activity = {
     {
       message:
         "In the drop method, you need to use the parameter setting 'axis=1' since you are dropping a column.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks that the user has dropped the quality column with axis=1.",
       active: (nmtCodeInfo) => {
@@ -71,7 +92,11 @@ export const Wine: Activity = {
     },
     {
       message: "You need to create a StandardScaler object.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks that the user has used the StandardScaler method.",
       active: (nmtCodeInfo) => {
@@ -80,7 +105,11 @@ export const Wine: Activity = {
     },
     {
       message: "You need to fit the StandardScaler to the data",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks that the user has fit the StandardScaler method.",
       active: (nmtCodeInfo) => {
@@ -89,7 +118,11 @@ export const Wine: Activity = {
     },
     {
       message: "You need to use the transform method to scale the data.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks that the user has transformed the data with the StandardScaler method.",
       active: (nmtCodeInfo) => {
@@ -99,7 +132,11 @@ export const Wine: Activity = {
     {
       message:
         "The output of transform is an ndarray. You need to convert this into a DataFrame. Use pd.DataFrame with 'columns=wineDataFrame.columns' to convert the ndarray to a DataFrame",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
       conditionDescription:
         "Checks that the user has used the dataframe object.",
       active: (nmtCodeInfo) => {
@@ -108,7 +145,10 @@ export const Wine: Activity = {
     },
     {
       message: "Everything looks good. Run your code to see how it performs.",
-      visibility: "TRIGGERED_OR_HINT_BUTTON",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+      ],
       conditionDescription: "complete",
       active: (nmtCodeInfo) => {
         return true;
