@@ -5,6 +5,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import {
+  clickHintButton,
   cyMockDefault,
   cyMockExecuteResponse,
   replaceModelCellWithCode,
@@ -39,39 +40,39 @@ function initActivity(cy) {
 describe("wine notebook", () => {
   it("hints displayed properly", () => {
     initActivity(cy);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "You need to drop the 'Wine' column because it isn't a useful feature."
     );
 
     replaceModelCellWithCode(cy, dropWine);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "In the drop method, you need to use the parameter setting 'axis=1' since you are dropping a column."
     );
     replaceModelCellWithCode(cy, dropWineWithAxis);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "You need to drop the 'quality' column to separate the labels from the data."
     );
     replaceModelCellWithCode(cy, dropQuality);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains("Are you saving the 'quality' column before dropping it?");
     replaceModelCellWithCode(cy, saveQuality);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     replaceModelCellWithCode(cy, useStandardScaler);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains("You need to fit the StandardScaler to the data");
     replaceModelCellWithCode(cy, fitsWithStandardScaler);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains("You need to use the transform method to scale the data.");
     replaceModelCellWithCode(cy, transformsWithStandardScaler);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains(
       "The output of transform is an ndarray. You need to convert this"
     );
     replaceModelCellWithCode(cy, complete);
-    cy.get("[data-cy=hint-btn]").trigger("mouseover").click();
+    clickHintButton(cy);
     cy.contains("Everything looks good. Run your code to see how it performs.");
   });
 

@@ -209,3 +209,7 @@ export function replaceModelCellWithCode(
 export function closeHint(cy) {
   cy.get(".Toastify__close-button").click({ multiple: true, force: true });
 }
+
+export function clickHintButton(cy) {
+  cy.get("[data-cy=hint-btn]").trigger("mouseover").click({ force: true });
+}
