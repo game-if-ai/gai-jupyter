@@ -68,9 +68,8 @@ export type UserInputCellsCode = Record<string, string[]>;
 export function useWithNotebook(props: {
   curActivity: Activity;
   curExperiment?: Experiment;
-  kernelStatus: KernelConnectionStatus;
 }) {
-  const { curActivity, curExperiment, kernelStatus } = props;
+  const { curActivity, curExperiment } = props;
   const dispatch = useAppDispatch();
   const { isSaving } = useAppSelector((s) => s.notebookState);
   const [userInputCellsCode, setUserInputCellsCode] =
@@ -116,7 +115,6 @@ export function useWithNotebook(props: {
   useEffect(() => {
     if (
       curExperimentLoaded ||
-      kernelStatus !== KernelConnectionStatus.FINE ||
       !notebook ||
       !notebook.adapter ||
       !curExperiment ||
@@ -129,7 +127,7 @@ export function useWithNotebook(props: {
       setNotebookConnected(false);
       setCurExperimentLoaded(true);
     }
-  }, [loadedWithExperiment, notebook, kernelStatus]);
+  }, [loadedWithExperiment, notebook]);
 
   useEffect(() => {
     if (
