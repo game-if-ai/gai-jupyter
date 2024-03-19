@@ -66,13 +66,11 @@ export function useWithImproveCode(props: {
   ): ImproveCodeHint | undefined {
     let nextHintIndex = startingPos || 0;
     if (nextHintIndex >= improveCodeHints.length) {
-      console.log("returning undefined 1");
       return undefined;
     }
     let hintToShow: ImproveCodeHint | undefined =
       improveCodeHints[nextHintIndex];
     if (!hintToShow) {
-      console.log("returning undefined 2");
       return undefined;
     }
     let hintAlreadyShowing = Boolean(
