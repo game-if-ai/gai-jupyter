@@ -35,9 +35,11 @@ interface CurExperimentAvgDisplay {
 export function CafeCurrentExperimentView(props: {
   classes: Record<string, any>;
   onSubmit: () => void;
+  toNotebook: () => void;
 }) {
+  const { toNotebook } = props;
   const classes = props.classes;
-  const { loadSimulation, toNotebook } = useWithState();
+  const { loadSimulation } = useWithState();
   const experiment = useAppSelector((s) => s.state.experiment!);
   const summary = experiment.summary as CafeSimulationsSummary;
   const simulations = experiment.simulations as CafeSimulationOutput[];

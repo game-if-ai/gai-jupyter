@@ -57,6 +57,7 @@ import { setCurCell, updateLocalNotebook } from "../store/notebook";
 import "react-toastify/dist/ReactToastify.css";
 import { useWithExperimentsStore } from "../hooks/use-with-experiments-store";
 import { ErrorDialog } from "./dialog";
+import { Experiment } from "store/simulator";
 
 export enum KernelConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -127,6 +128,15 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const pastExperiments = getPastExperiments(activity.id);
   const kernelManager: KernelManager = useJupyter()
     .kernelManager as KernelManager;
+
+  function sortPreviousExperiments(experiments: Experiment[]) {
+    if (!experiments || experiments.length === 0 || experiments.length === 1) {
+      return experiments;
+    }
+    return [...experiments].sort((a, b) => {
+      return b.time.getTime() - a.time.getTime();
+    });
+  }
 
   useEffect(() => {
     if (showResults && errorOccured) {
@@ -216,7 +226,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     ) {
       setDidScroll(true);
       const modelCell = Object.values(cells).find(
-        (c) => c.cell.getMetadata("gai_cell_type") === GaiCellTypes.MODEL
+        (c) => c.metadata?.gai_cell_type === GaiCellTypes.MODEL
       );
       if (modelCell) {
         dispatch(setCurCell(modelCell.cell.id));
@@ -298,7 +308,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   function onReset(event: React.MouseEvent<HTMLButtonElement>): void {
     setHistoryPopup(event.currentTarget);
   }
-
   function scrollTo(cell: string): void {
     dispatch(setCurCell(cell));
     const element = document.getElementById(`cell-${cell}`);
@@ -356,15 +365,13 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
             data-test={curCell}
             value={curCell}
             onChange={(e) => scrollTo(e.target.value)}
-            style={{ color: "white", maxWidth: "50%" }}
+            style={{ color: "white" }}
           >
-            {Object.keys(cells)
-              .filter((cellKey) => !cells[cellKey].hiddenCell)
-              .map((c, i) => (
-                <MenuItem data-cy="select-item" key={i} value={c}>
-                  {cells[c].cell.getMetadata("gai_title")}
-                </MenuItem>
-              ))}
+            {visibleCells.map((v, i) => (
+              <MenuItem data-cy="select-item" value={v[0]}>
+                {v[1].metadata?.gai_title}
+              </MenuItem>
+            ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
           <IconButton
@@ -539,7 +546,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           horizontal: "left",
         }}
       >
-        {[...pastExperiments].reverse().map((e) => (
+        {sortPreviousExperiments(pastExperiments).map((e) => (
           <MenuItem
             key={e.id}
             onClick={() => {

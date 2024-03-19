@@ -20,17 +20,17 @@ import Cmi5 from "@xapi/cmi5";
 import { TooltipMsg } from "../../../components/Dialogue";
 import { formatDateTime } from "../../../utils";
 import { useAppSelector } from "../../../store";
-import { useWithState } from "../../../store/state/useWithState";
 import { WineSimulationsSummary } from "../simulator";
 
 export function WineCurrentExperimentView(props: {
   classes: Record<string, any>;
   onSubmit: () => void;
+  toNotebook: () => void;
 }) {
   const experiment = useAppSelector((s) => s.state.experiment!);
   const { clusters } = experiment.summary as WineSimulationsSummary;
   const { time: dateOfExperiment } = experiment;
-  const { toNotebook } = useWithState();
+  const { toNotebook } = props;
 
   return (
     <div

@@ -19,7 +19,6 @@ import Cmi5 from "@xapi/cmi5";
 import { TooltipMsg } from "../../../components/Dialogue";
 import { formatDateTime } from "../../../utils";
 import { useAppSelector } from "../../../store";
-import { useWithState } from "../../../store/state/useWithState";
 import { NMTCodeInfo } from "../hooks/use-with-nn-code-examine";
 
 interface CurExperimentAvgDisplay {
@@ -30,11 +29,12 @@ interface CurExperimentAvgDisplay {
 export function NMTCurrentExperimentView(props: {
   classes: Record<string, any>;
   onSubmit: () => void;
+  toNotebook: () => void;
 }) {
   const experiment = useAppSelector((s) => s.state.experiment!);
   const codeInfo = experiment.codeInfo as NMTCodeInfo;
   const { time: dateOfExperiment } = experiment;
-  const { toNotebook } = useWithState();
+  const { toNotebook } = props;
 
   function curExperimentAverageDisplays(): CurExperimentAvgDisplay[] {
     return [

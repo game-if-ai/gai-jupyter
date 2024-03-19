@@ -34,9 +34,11 @@ interface CurExperimentAvgDisplay {
 export function FruitPickerCurrentExperimentView(props: {
   classes: Record<string, any>;
   onSubmit: () => void;
+  toNotebook: () => void;
 }) {
   const classes = props.classes;
-  const { loadSimulation, toNotebook } = useWithState();
+  const { loadSimulation } = useWithState();
+  const { toNotebook } = props;
   const experiment = useAppSelector((s) => s.state.experiment!);
   const summary = experiment.summary as FruitSimulationsSummary;
   const simulations = experiment.simulations as FruitSimulationOutput[];

@@ -44,6 +44,8 @@ export interface CellState {
   code: MultilineString;
   output: IOutput[];
   hiddenCell: boolean;
+  metadata: any;
+  cellId: string;
   errorOutput?: IError;
   lintOutput?: string;
 }
@@ -211,6 +213,8 @@ export function useWithNotebook(props: {
         code: cellData.toJSON().source,
         output: outputs || [],
         hiddenCell: cellData.getMetadata("hidden") || false,
+        metadata: cellData.toJSON().metadata,
+        cellId: cellId,
       };
     }
     extractAndSetModelCellCode(activeNotebookModel.cells);
@@ -363,12 +367,14 @@ export function useWithNotebook(props: {
     const source = notebook.model.toJSON() as INotebookContent;
     for (let i = 0; i < notebook.model.cells.length; i++) {
       const cell = notebook.model.cells.get(i);
+      console.log(cell.toJSON());
       const cellId = cell.id;
       if (cell.getMetadata("contenteditable") !== false) {
         source.cells[i].source = cells[cellId].code;
       }
     }
     notebook.adapter.setNotebookModel(source);
+    console.log(source.cells);
     setNotebookConnected(false);
   }
 
