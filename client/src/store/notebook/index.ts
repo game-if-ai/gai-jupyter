@@ -16,7 +16,6 @@ import {
 
 export interface NotebookState {
   curCell: string;
-  isSaving: boolean;
   isRunning: boolean;
   wrapText: boolean;
   localNotebooks: Record<ActivityID, INotebookContent | undefined>;
@@ -24,7 +23,6 @@ export interface NotebookState {
 
 const initialState: NotebookState = {
   curCell: "",
-  isSaving: false,
   isRunning: false,
   wrapText: false,
   localNotebooks: getNotebookHistory(),
@@ -57,11 +55,8 @@ export const notebookSlice = createSlice({
     setCurCell: (state, action: PayloadAction<string>) => {
       state.curCell = action.payload;
     },
-    setIsSaving: (state, action: PayloadAction<boolean>) => {
-      state.isSaving = action.payload;
-    },
     setIsRunning: (state, action: PayloadAction<boolean>) => {
-      state.isSaving = action.payload;
+      state.isRunning = action.payload;
     },
     setWrapText: (state, action: PayloadAction<boolean>) => {
       state.wrapText = action.payload;
@@ -80,12 +75,7 @@ export const notebookSlice = createSlice({
   },
 });
 
-export const {
-  setCurCell,
-  setIsSaving,
-  setIsRunning,
-  setWrapText,
-  updateLocalNotebook,
-} = notebookSlice.actions;
+export const { setCurCell, setIsRunning, setWrapText, updateLocalNotebook } =
+  notebookSlice.actions;
 
 export default notebookSlice.reducer;

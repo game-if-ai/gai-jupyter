@@ -23,15 +23,10 @@ import {
 } from "@jupyterlab/nbformat";
 import { useEffect, useState } from "react";
 
-import { KernelConnectionStatus } from "../components/Notebook";
 import { GaiCellTypes, NOTEBOOK_UID } from "../local-constants";
 import { useAppDispatch, useAppSelector } from "../store";
 import { Activity, Experiment } from "../store/simulator";
-import {
-  setIsRunning,
-  setIsSaving,
-  updateLocalNotebook,
-} from "../store/notebook";
+import { setIsRunning, updateLocalNotebook } from "../store/notebook";
 import {
   extractCellCode,
   extractErrorMessageFromError,
@@ -71,7 +66,6 @@ export function useWithNotebook(props: {
 }) {
   const { curActivity, curExperiment } = props;
   const dispatch = useAppDispatch();
-  const { isSaving } = useAppSelector((s) => s.notebookState);
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
@@ -111,7 +105,6 @@ export function useWithNotebook(props: {
 
   const notebook = selectNotebook(NOTEBOOK_UID);
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
-
   useEffect(() => {
     if (
       curExperimentLoaded ||
@@ -219,47 +212,12 @@ export function useWithNotebook(props: {
         output: outputs || [],
         hiddenCell: cellData.getMetadata("hidden") || false,
       };
-      cellData.stateChanged.connect((changedCell) => {
-        const cellType = changedCell.getMetadata("gai_cell_type") as string;
-        const outputs = changedCell.toJSON().outputs as IOutput[];
-        if (cellType === GaiCellTypes.LINT) {
-          if (outputs.length > 0) {
-            const codeCellId = notebookCells.get(i - 1).id;
-            setCells((prevValue) => {
-              return {
-                ...prevValue,
-                [codeCellId]: {
-                  ...prevValue[codeCellId],
-                  lintOutput: outputs[0].text as string,
-                },
-              };
-            });
-          }
-        }
-        setCells((prevValue) => {
-          return {
-            ...prevValue,
-            [cellId]: {
-              cell: changedCell,
-              code: changedCell.toJSON().source,
-              output: outputs,
-              hiddenCell: changedCell.getMetadata("hidden") || false,
-              errorOutput:
-                outputs[0] && isError(outputs[0]) ? outputs[0] : undefined,
-            },
-          };
-        });
-      });
     }
     extractAndSetModelCellCode(activeNotebookModel.cells);
-    activeNotebookModel.contentChanged.connect((changedNotebook) => {
-      extractAndSetModelCellCode(changedNotebook.cells);
-    });
     setCells(cs);
     setNotebookConnected(true);
     setInitialConnectionMade(true);
     setIsEdited(false);
-    dispatch(setIsSaving(false));
   }
 
   async function runNotebook() {
@@ -399,10 +357,9 @@ export function useWithNotebook(props: {
   }
 
   function saveNotebook(): void {
-    if (isSaving || !notebook || !notebook.model || !notebook.adapter) {
+    if (!notebook || !notebook.model || !notebook.adapter) {
       return;
     }
-    dispatch(setIsSaving(true));
     const source = notebook.model.toJSON() as INotebookContent;
     for (let i = 0; i < notebook.model.cells.length; i++) {
       const cell = notebook.model.cells.get(i);

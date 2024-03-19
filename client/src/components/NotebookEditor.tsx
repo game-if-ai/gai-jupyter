@@ -155,9 +155,7 @@ export function NotebookEditor(props: {
   const dispatch = useAppDispatch();
   const key = useAppSelector((s) => s.keyboard.key);
   const activity = useAppSelector((s) => s.state.activity!);
-  const { curCell, wrapText, isSaving } = useAppSelector(
-    (s) => s.notebookState
-  );
+  const { wrapText, isRunning } = useAppSelector((s) => s.notebookState);
   const { selectCell, selectKey } = useWithShortcutKeys();
   const { addMessage } = useWithDialogue();
 
@@ -430,7 +428,7 @@ export function NotebookEditor(props: {
         {isDisabled ? undefined : (
           <IconButton
             data-cy="hint-btn"
-            disabled={!hints.hintsAvailable || isSaving}
+            disabled={!hints.hintsAvailable || isRunning}
             onClick={() => {
               hints.toastHint();
               // hintClickedCmi5(activity.id);

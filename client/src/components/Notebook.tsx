@@ -74,9 +74,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   );
   const isKeyboardOpen = useAppSelector((s) => s.keyboard.isOpen);
 
-  const { curCell, isSaving, isRunning } = useAppSelector(
-    (s) => s.notebookState
-  );
+  const { curCell, isRunning } = useAppSelector((s) => s.notebookState);
 
   const classes = useStyles();
   const { loadSimulation, loadExperiment, toStep } = useWithState();
@@ -117,7 +115,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const [showLocalChanges, setShowLocalChanges] = useState<boolean>(
     Boolean(localNotebook && !experiment)
   );
-  const [saveRun, setSaveRun] = useState<boolean>(false);
   const [kernel, setKernel] = useState<Kernel>();
   const [historyPopup, setHistoryPopup] = useState<HTMLButtonElement | null>(
     null
@@ -228,13 +225,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
   }, [showDescription, sawTutorial, messages, curMessage, cells]);
 
-  useEffect(() => {
-    if (!isSaving && !isRunning && saveRun) {
-      setSaveRun(false);
-      simulate();
-    }
-  }, [isSaving]);
-
   function connectToNewKernel() {
     if (!kernelManager) {
       return;
@@ -265,13 +255,9 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   }
 
   function saveAndRun(): void {
-    if (isEdited) {
-      if (isSaving || isRunning) return;
-      setSaveRun(true);
-      saveNotebook();
-    } else {
-      simulate();
-    }
+    if (isRunning) return;
+    saveNotebook();
+    simulate();
   }
 
   function toSimulation(): void {
@@ -360,7 +346,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       dispatch(setCurCell(visibleCell));
     }
   }
-
   const visibleCells = Object.entries(cells).filter((v) => !v[1].hiddenCell);
   return (
     <div data-cy="notebook-root" className={classes.root}>
@@ -391,7 +376,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           <TooltipMsg elemId="hint">
             <IconButton
               data-cy="hint-btn-header"
-              disabled={!hints.hintsAvailable || isSaving}
+              disabled={!hints.hintsAvailable}
               onClick={() => hints.toastHint()}
             >
               <HelpOutlineOutlined />
@@ -410,7 +395,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
                 justifyContent: "center",
               }}
             >
-              {isSaving || isRunning ? (
+              {isRunning ? (
                 <CircularProgress
                   style={{ color: "white", position: "absolute" }}
                   size={28}
@@ -419,7 +404,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
               {isEdited ? (
                 <IconButton
                   data-cy="save-btn"
-                  disabled={isSaving}
+                  disabled={isRunning}
                   onClick={saveAndRun}
                 >
                   <Save />
@@ -427,7 +412,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
               ) : (
                 <IconButton
                   data-cy="run-btn"
-                  disabled={isSaving || isRunning}
+                  disabled={isRunning}
                   onClick={saveAndRun}
                 >
                   <PlayArrow />
