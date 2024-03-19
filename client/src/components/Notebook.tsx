@@ -82,9 +82,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   const { loadSimulation, loadExperiment, toStep } = useWithState();
   const { messages, curMessage, addMessages } = useWithDialogue();
   const notebook = selectNotebook(NOTEBOOK_UID);
-  const [kernelStatus, setKernelStatus] = useState(
-    KernelConnectionStatus.CONNECTING
-  );
+
   const {
     cells,
     validationCellOutput,
@@ -103,7 +101,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
   } = useWithNotebook({
     curActivity: activity,
     curExperiment: experiment,
-    kernelStatus,
   });
   const errorOccured = Boolean(executionError || unexpectedError);
 
@@ -145,7 +142,11 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
       window.onbeforeunload = () => {
         if (kernel) {
           console.log("shutting down kernel");
-          kernel.shutdown();
+          kernel.getJupyterKernel().then((k) => {
+            if (k) {
+              k.shutdown();
+            }
+          });
         }
       };
     }
@@ -153,7 +154,11 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     return () => {
       if (kernel) {
         console.log("shutting down kernel");
-        kernel.shutdown();
+        kernel.getJupyterKernel().then((k) => {
+          if (k) {
+            k.shutdown();
+          }
+        });
       }
     };
   }, [kernel]);
@@ -234,7 +239,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     if (!kernelManager) {
       return;
     }
-    setKernelStatus(KernelConnectionStatus.CONNECTING);
     const newKernel = new Kernel({ kernelManager, kernelName: "python" });
     newKernel
       .getJupyterKernel()
@@ -244,24 +248,19 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
             case "starting":
             case "restarting":
             case "autorestarting":
-              setKernelStatus(KernelConnectionStatus.CONNECTING);
               break;
             case "idle":
             case "busy":
-              setKernelStatus(KernelConnectionStatus.FINE);
               break;
             // case "terminating":
             // case "dead":
             // case "unknown":
             default:
-              setKernelStatus(KernelConnectionStatus.UNKNOWN);
               break;
           }
         });
       })
-      .catch(() => {
-        setKernelStatus(KernelConnectionStatus.UNKNOWN);
-      });
+      .catch(() => {});
     setKernel(newKernel);
   }
 
@@ -362,63 +361,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
     }
   }
 
-  function kernelStatusDisplay(): JSX.Element {
-    if (isSaving) {
-      return (
-        <div style={{ color: "#9h0EE90", fontWeight: "bold" }}>
-          Kernel Saving Code...
-        </div>
-      );
-    }
-    if (isRunning) {
-      return (
-        <div style={{ color: "#90EE90", fontWeight: "bold" }}>
-          Kernel Executing Code...
-        </div>
-      );
-    }
-    switch (kernelStatus) {
-      case KernelConnectionStatus.CONNECTING:
-        return (
-          <div style={{ color: "white", fontWeight: "bold" }}>
-            Kernel Connecting...
-          </div>
-        );
-      case KernelConnectionStatus.UNKNOWN:
-        return (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignContent: "center",
-            }}
-          >
-            <div style={{ color: "red", fontWeight: "bold" }}>
-              Kernel Connection Failure
-            </div>
-            <Button
-              onClick={connectToNewKernel}
-              style={{
-                color: "black",
-                padding: 0,
-                margin: 0,
-                border: "solid black 1px",
-                backgroundColor: "lightgrey",
-              }}
-            >
-              Reconnect
-            </Button>
-          </div>
-        );
-      case KernelConnectionStatus.FINE:
-        return (
-          <div style={{ color: "#90EE90", fontWeight: "bold" }}>
-            Kernel Idle
-          </div>
-        );
-    }
-  }
-
   const visibleCells = Object.entries(cells).filter((v) => !v[1].hiddenCell);
   return (
     <div data-cy="notebook-root" className={classes.root}>
@@ -440,7 +382,6 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
               ))}
           </Select>
           <div style={{ flexGrow: 1 }} />
-          {kernelStatusDisplay()}
           <IconButton
             data-cy="info-btn"
             onClick={() => setShowDescription(true)}
@@ -486,11 +427,7 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
               ) : (
                 <IconButton
                   data-cy="run-btn"
-                  disabled={
-                    isSaving ||
-                    isRunning ||
-                    kernelStatus !== KernelConnectionStatus.FINE
-                  }
+                  disabled={isSaving || isRunning}
                   onClick={saveAndRun}
                 >
                   <PlayArrow />
