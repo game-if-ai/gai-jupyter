@@ -35,9 +35,11 @@ interface CurExperimentAvgDisplay {
 export function PlaneCurrentExperimentView(props: {
   classes: Record<string, any>;
   onSubmit: () => void;
+  toNotebook: () => void;
 }) {
   const classes = props.classes;
-  const { loadSimulation, toNotebook } = useWithState();
+  const { loadSimulation } = useWithState();
+  const { toNotebook } = props;
   const experiment = useAppSelector((s) => s.state.experiment!);
   const summary = experiment.summary as PlaneSimulationsSummary;
   const simulations = experiment.simulations as PlaneSimulationOutput[];

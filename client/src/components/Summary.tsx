@@ -30,7 +30,7 @@ import { useWithExperimentsStore } from "../hooks/use-with-experiments-store";
 import { WineCodeInfo } from "games/wine/hooks/use-with-wine-code-examine";
 
 function Summary(props: { onSubmit: () => void }): JSX.Element {
-  const { loadExperiment } = useWithState();
+  const { loadExperiment, toNotebook } = useWithState();
   const activity = useAppSelector((s) => s.state.activity!);
   const experiment: Experiment = useAppSelector((s) => s.state.experiment!);
   const { getPastExperiments } = useWithExperimentsStore();
@@ -39,7 +39,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
   const summary = experiment.summary;
   const [viewPreviousExperiment, setViewPreviousExperiments] = useState(false);
   const classes = useStyles();
-  const { addMessage } = useWithDialogue();
+  const { addMessage, clearMessages } = useWithDialogue();
 
   function _setExperiment(experiment: Experiment) {
     loadExperiment(experiment);
@@ -174,6 +174,11 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
     }
   }, [summary]);
 
+  function returnToNotebook() {
+    clearMessages();
+    toNotebook();
+  }
+
   function curExperimentView() {
     switch (experiment.activityId) {
       case ActivityID.cafe:
@@ -181,6 +186,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
           <CafeCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
+            toNotebook={returnToNotebook}
           />
         );
       case ActivityID.fruit:
@@ -188,6 +194,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
           <FruitPickerCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
+            toNotebook={returnToNotebook}
           />
         );
       case ActivityID.nmt:
@@ -195,6 +202,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
           <NMTCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
+            toNotebook={returnToNotebook}
           />
         );
       case ActivityID.planes:
@@ -202,6 +210,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
           <PlaneCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
+            toNotebook={returnToNotebook}
           />
         );
       case ActivityID.wine:
@@ -209,6 +218,7 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
           <WineCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
+            toNotebook={returnToNotebook}
           />
         );
       default:

@@ -13,6 +13,7 @@ import { ICellModel } from "@jupyterlab/cells";
 import { useAppDispatch } from "../";
 import { setKey, setOpen } from ".";
 import { setCurCell } from "../notebook";
+import { CellState } from "hooks/use-with-notebook";
 
 export interface ShortcutKey {
   text: string;
@@ -45,7 +46,7 @@ export interface UseWithShortcutKeys {
   isMobile: boolean;
   isMobileKeyboardOpen: boolean;
   mobileKeyboardHeight: number;
-  selectCell: (cell: ICellModel) => void;
+  selectCell: (cell: CellState) => void;
   selectKey: (key: ShortcutKey | undefined) => void;
 }
 
@@ -73,9 +74,9 @@ export function useWithShortcutKeys(): UseWithShortcutKeys {
     dispatch(setKey(key));
   }
 
-  function selectCell(cell: ICellModel): void {
-    dispatch(setCurCell(cell.id));
-    if (cell.getMetadata("contenteditable") === false) {
+  function selectCell(cell: CellState): void {
+    dispatch(setCurCell(cell.cellId));
+    if (cell.metadata?.contenteditable === false) {
       dispatch(setOpen(false));
     } else {
       dispatch(setOpen(true));

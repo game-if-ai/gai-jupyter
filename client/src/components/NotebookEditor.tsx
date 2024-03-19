@@ -141,8 +141,7 @@ export function NotebookEditor(props: {
 }): JSX.Element {
   const classes = useStyles();
   const { cellState, hints } = props;
-  const { cell, output, errorOutput, lintOutput } = cellState;
-  const cellId = cell.id;
+  const { cell, output, errorOutput, lintOutput, cellId } = cellState;
   const [cellType] = useState(cell.getMetadata("gai_cell_type") || "");
   const [showOutput, setShowOutput] = useState<boolean>(cellType === "MODEL");
   const [outputElement, setOutputElement] = useState<JSX.Element>();
@@ -211,7 +210,7 @@ export function NotebookEditor(props: {
       EditorState.readOnly.of(isDisabled), // disable editing
       EditorView.focusChangeEffect.of((_, focusing) => {
         // detect when cell clicked
-        if (focusing) selectCell(cell);
+        if (focusing) selectCell(cellState);
         return StateEffect.define(undefined).of(null);
       }),
       autocompletion({ optionClass: () => "autocompleteOption" }),
