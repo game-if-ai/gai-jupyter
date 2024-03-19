@@ -249,6 +249,11 @@ export function NotebookEditor(props: {
       e.stopPropagation();
       props.saveLocalChanges();
     });
+    ed.dom.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.key === "s") {
+        e.preventDefault();
+      }
+    });
     setEditor(ed);
   }, [cell]);
 
@@ -339,7 +344,7 @@ export function NotebookEditor(props: {
               message: l,
             });
           }
-          // // Note: Since all code is now executed together, we don't know where to place this error
+          // // Note: Since all code is now executed together, the error line is not cell specific
           // // TODO: Re-enable once cells are executed separately
           // if (errorOutput) {
           //   const traceback = errorOutput.traceback?.toString();
