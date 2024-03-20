@@ -11,7 +11,12 @@ import {
   selectNotebook,
   selectNotebookModel,
 } from "@datalayer/jupyter-react";
-import { INotebookModel } from "@jupyterlab/notebook";
+import {
+  INotebookModel,
+  NotebookModel,
+  NotebookActions,
+  NotebookModelFactory,
+} from "@jupyterlab/notebook";
 import { CellList } from "@jupyterlab/notebook/lib/celllist";
 import { ICellModel } from "@jupyterlab/cells";
 import {
@@ -71,7 +76,6 @@ export function useWithNotebook(props: {
   const [userInputCellsCode, setUserInputCellsCode] =
     useState<UserInputCellsCode>({});
   const [loadedWithExperiment] = useState(Boolean(curExperiment)); //only evaluates when component first loads
-  const [curExperimentLoaded, setCurExperimentLoaded] = useState(false);
   const [initialConnectionMade, setInitialConnectionMade] = useState(false);
   const [cells, setCells] = useState<CellsStates>({});
   const [notebookConnected, setNotebookConnected] = useState(false);
@@ -109,32 +113,32 @@ export function useWithNotebook(props: {
   const activeNotebookModel = selectNotebookModel(NOTEBOOK_UID);
   useEffect(() => {
     if (
-      curExperimentLoaded ||
-      !notebook ||
-      !notebook.adapter ||
-      !curExperiment ||
-      !curExperiment.notebookContent
-    ) {
-      return;
-    }
-    if (loadedWithExperiment) {
-      notebook.adapter.setNotebookModel(curExperiment.notebookContent);
-      setNotebookConnected(false);
-      setCurExperimentLoaded(true);
-    }
-  }, [loadedWithExperiment, notebook]);
-
-  useEffect(() => {
-    if (
-      !activeNotebookModel?.model?.cells ||
       !notebook?.adapter?.commands ||
-      notebookConnected ||
-      (loadedWithExperiment && !curExperimentLoaded)
+      !activeNotebookModel?.model?.cells ||
+      notebookConnected
     ) {
       return;
     }
-    connect(activeNotebookModel.model);
-  }, [activeNotebookModel, notebook?.adapter?.commands]);
+    if (
+      loadedWithExperiment &&
+      curExperiment &&
+      curExperiment.notebookContent
+    ) {
+      const newNotebookModel = new NotebookModel();
+      newNotebookModel.fromJSON(curExperiment.notebookContent);
+      notebook.adapter.setNotebookModel(
+        newNotebookModel.toJSON() as INotebookContent
+      );
+      connect(newNotebookModel);
+    } else {
+      connect(activeNotebookModel.model);
+    }
+  }, [
+    loadedWithExperiment,
+    notebook,
+    activeNotebookModel,
+    notebook?.adapter?.commands,
+  ]);
 
   function attachOutputsToCells(lastExecutionResult: ExecutionResult) {
     const setupCellOutput =
@@ -367,14 +371,12 @@ export function useWithNotebook(props: {
     const source = notebook.model.toJSON() as INotebookContent;
     for (let i = 0; i < notebook.model.cells.length; i++) {
       const cell = notebook.model.cells.get(i);
-      console.log(cell.toJSON());
       const cellId = cell.id;
       if (cell.getMetadata("contenteditable") !== false) {
         source.cells[i].source = cells[cellId].code;
       }
     }
     notebook.adapter.setNotebookModel(source);
-    console.log(source.cells);
     setNotebookConnected(false);
   }
 
