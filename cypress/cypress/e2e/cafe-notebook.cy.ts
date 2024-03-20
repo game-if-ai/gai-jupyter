@@ -5,10 +5,13 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import {
+  checkModelCellCode,
   clickHintButton,
   cyMockDefault,
   cyMockExecuteResponse,
   replaceModelCellWithCode,
+  runAndCloseSummary,
+  runAndViewSummary,
 } from "../support/functions";
 
 import { CodeExecutorResponseData } from "../support/types";
@@ -92,5 +95,24 @@ describe("cafe notebook", () => {
     cy.get("[data-cy=view-sum-btn]").click();
     cy.get("[data-cy=notebook-btn]").should("exist");
     cy.get("[data-cy=simulator-btn]").should("exist");
+  });
+
+  it("edits are saved between runs", () => {
+    cyMockExecuteResponse<CodeExecutorResponseData>(cy, {
+      responses: [
+        {
+          resData: executeCafeRes(),
+          statusCode: 200,
+        },
+      ],
+    });
+    initActivity(cy);
+    replaceModelCellWithCode(cy, useLogisticRegression);
+    runAndViewSummary(cy);
+    cy.get("[data-cy=notebook-btn]").click();
+    checkModelCellCode(cy, useLogisticRegression);
+    replaceModelCellWithCode(cy, complete);
+    runAndCloseSummary(cy);
+    checkModelCellCode(cy, complete);
   });
 });

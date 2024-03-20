@@ -7,16 +7,17 @@ The full terms of this copyright and license should always be found in the root 
 import {
   largeSixty,
   mediumSixty,
-  mediumThirty,
   smallSixty,
-  smallThirty,
 } from "../fixtures/planes-tanks-automobiles/code-inputs";
 import { executePlaneRes } from "../fixtures/planes-tanks-automobiles/execute-planes-res";
 import {
+  checkModelCellCode,
   clickHintButton,
   cyMockDefault,
   cyMockExecuteResponse,
   replaceModelCellWithCode,
+  runAndCloseSummary,
+  runAndViewSummary,
 } from "../support/functions";
 
 import { CodeExecutorResponseData } from "../support/types";
@@ -29,12 +30,6 @@ function initActivity(cy) {
   // Currently have to wait for jupyter notebooks to load
   // TODO: remove timeout once we no longer use jupyter labs
   cy.get("[data-cy=okay-btn]", { timeout: 8000 }).click();
-}
-
-function runAndCloseSummary(cy) {
-  cy.get("[data-cy=save-btn]").click();
-  cy.wait(3000);
-  cy.get("body").click(100, 100); // click off layover to close
 }
 
 describe("cafe notebook", () => {
@@ -121,5 +116,24 @@ describe("cafe notebook", () => {
     cy.get("[data-cy=view-sum-btn]").click();
     cy.get("[data-cy=notebook-btn]").should("exist");
     cy.get("[data-cy=simulator-btn]").should("exist");
+  });
+
+  it("edits are saved between runs", () => {
+    cyMockExecuteResponse<CodeExecutorResponseData>(cy, {
+      responses: [
+        {
+          resData: executePlaneRes(),
+          statusCode: 200,
+        },
+      ],
+    });
+    initActivity(cy);
+    replaceModelCellWithCode(cy, mediumSixty);
+    runAndViewSummary(cy);
+    cy.get("[data-cy=notebook-btn]").click();
+    checkModelCellCode(cy, mediumSixty);
+    replaceModelCellWithCode(cy, largeSixty);
+    runAndCloseSummary(cy);
+    checkModelCellCode(cy, largeSixty);
   });
 });
