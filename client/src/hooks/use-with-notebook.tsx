@@ -157,8 +157,7 @@ export function useWithNotebook(props: {
       const newCells = { ...prevValue };
       for (const cellId in newCells) {
         if (
-          newCells[cellId].cell.getMetadata("gai_cell_type") ===
-          GaiCellTypes.SETUP
+          newCells[cellId].cell.metadata.gai_cell_type === GaiCellTypes.SETUP
         ) {
           newCells[cellId].output = setupCellOutput.length
             ? [
@@ -171,7 +170,7 @@ export function useWithNotebook(props: {
             : [];
         }
         if (
-          newCells[cellId].cell.getMetadata("gai_cell_type") ===
+          newCells[cellId].cell.metadata.gai_cell_type ===
           GaiCellTypes.VALIDATION
         ) {
           newCells[cellId].output = validationCellOutput.length
@@ -185,8 +184,7 @@ export function useWithNotebook(props: {
             : [];
         }
         if (
-          newCells[cellId].cell.getMetadata("gai_cell_type") ===
-          GaiCellTypes.MODEL
+          newCells[cellId].cell.metadata.gai_cell_type === GaiCellTypes.MODEL
         ) {
           if (error) {
             newCells[cellId].errorOutput = {
@@ -377,7 +375,10 @@ export function useWithNotebook(props: {
       }
     }
     notebook.adapter.setNotebookModel(source);
-    setNotebookConnected(false);
+    const newNotebook = new NotebookModel();
+    newNotebook.fromJSON(source);
+    connect(newNotebook);
+    setIsEdited(false);
   }
 
   return {

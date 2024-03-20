@@ -206,10 +206,37 @@ export function replaceModelCellWithCode(
     });
 }
 
+export function checkModelCellCode(cy, code: string, cellNumber?: number) {
+  const cell = cellNumber !== undefined ? cellNumber : 1;
+  cy.get("[data-cy=cell]")
+    .eq(cell)
+    .within(() => {
+      const codeLines = code.split("\n");
+      codeLines.forEach((line, i) => {
+        if (line === "") {
+          return;
+        }
+        console.log(`checking line ${i} for ${line}`);
+        cy.get(".cm-line").eq(i).contains(line.trim());
+      });
+    });
+}
+
 export function closeHint(cy) {
   cy.get(".Toastify__close-button").click({ multiple: true, force: true });
 }
 
 export function clickHintButton(cy) {
   cy.get("[data-cy=hint-btn]").trigger("mouseover").click({ force: true });
+}
+
+export function runAndCloseSummary(cy) {
+  cy.get("[data-cy=save-btn]").click();
+  cy.wait(3000);
+  cy.get("body").click(100, 100); // click off layover to close
+}
+
+export function runAndViewSummary(cy) {
+  cy.get("[data-cy=save-btn]").click();
+  cy.get("[data-cy=view-sum-btn]").click();
 }
