@@ -9,6 +9,14 @@ import { executeCafeRes } from "../fixtures/cafe/execute-cafe-res";
 import { cyMockDefault, cyMockExecuteResponse } from "../support/functions";
 import { CodeExecutorResponseData } from "../support/types";
 
+export function cafeNotebookLoaded(cy) {
+  cy.get("[data-cy=cell]")
+    .eq(1)
+    .within(($em) => {
+      cy.get(".cm-line").should("have.length", 29);
+    });
+}
+
 describe("notebook", () => {
   beforeEach(() => {
     cyMockDefault(cy);
@@ -24,6 +32,8 @@ describe("notebook", () => {
     // Currently have to wait for jupyter notebooks to load
     // TODO: remove timeout once we no longer use jupyter labs
     cy.get("[data-cy=okay-btn]", { timeout: 8000 }).click();
+    cafeNotebookLoaded(cy);
+    cy.get("[data-cy=okay-btn]").should("not.exist");
   });
 
   it("auto scrolls to model cell at start", () => {
@@ -330,6 +340,7 @@ describe("notebook", () => {
   });
 
   it("can run notebook", () => {
+    cy.get("[data-cy=run-btn]").should("be.enabled");
     cy.get("[data-cy=run-btn]").click();
     cy.get("[data-cy=run-btn]").should("not.be.visible");
     // show result popup
