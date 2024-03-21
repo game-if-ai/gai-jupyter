@@ -4,9 +4,17 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+import { complete, useLogisticRegression } from "../fixtures/cafe/code-inputs";
 import { executeCafeResNameError } from "../fixtures/cafe/execute-cafe-name-error";
 import { executeCafeRes } from "../fixtures/cafe/execute-cafe-res";
-import { cyMockDefault, cyMockExecuteResponse } from "../support/functions";
+import {
+  checkModelCellCode,
+  cyMockDefault,
+  cyMockExecuteResponse,
+  replaceModelCellWithCode,
+  runAndCloseSummary,
+  runAndViewSummary,
+} from "../support/functions";
 import { CodeExecutorResponseData } from "../support/types";
 
 export function cafeNotebookLoaded(cy) {
@@ -20,6 +28,7 @@ export function cafeNotebookLoaded(cy) {
 describe("notebook", () => {
   beforeEach(() => {
     cyMockDefault(cy);
+    cy.clearLocalStorage();
     cyMockExecuteResponse<CodeExecutorResponseData>(cy, {
       responses: [
         {
@@ -381,6 +390,34 @@ describe("notebook", () => {
         cy.get(".autocompleteOption").eq(0).click();
         cy.get(".cm-line").eq(2).contains("from sklearn.cluster import DBSCAN");
       });
+  });
+
+  describe("experiment history", () => {
+    it("shows experiment history", () => {
+      replaceModelCellWithCode(cy, complete);
+      runAndCloseSummary(cy);
+      cy.get("[data-cy=experiment-history-btn]").click();
+      cy.get("[data-cy=experiment-history-0]").should("exist");
+    });
+
+    it("can revert to experiment history", () => {
+      replaceModelCellWithCode(cy, complete);
+      runAndCloseSummary(cy);
+      checkModelCellCode(cy, complete);
+      replaceModelCellWithCode(cy, "print('hi')");
+      checkModelCellCode(cy, "print('hi')");
+      cy.get("[data-cy=experiment-history-btn]").click();
+      cy.get("[data-cy=experiment-history-0]").should("exist");
+      cy.get("[data-cy=experiment-history-0]").click();
+      checkModelCellCode(cy, complete);
+      replaceModelCellWithCode(cy, useLogisticRegression);
+      runAndViewSummary(cy);
+      cy.get("[data-cy=notebook-btn]").click();
+      checkModelCellCode(cy, useLogisticRegression);
+      cy.get("[data-cy=experiment-history-btn]").click();
+      cy.get("[data-cy=experiment-history-0]").click();
+      checkModelCellCode(cy, complete);
+    });
   });
 
   describe("Errors", () => {

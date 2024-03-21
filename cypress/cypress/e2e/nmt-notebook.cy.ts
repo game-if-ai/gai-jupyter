@@ -68,7 +68,7 @@ describe("nmt notebook", () => {
     cy.get("[data-cy=save-btn]").click();
     cy.wait(3000);
     cy.get("body").click(100, 100); // click off layover to close
-    cy.get("[data-cy=hint-btn]").click();
+    clickHintButton(cy);
     cy.contains("You're looking good");
   });
 

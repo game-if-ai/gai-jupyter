@@ -121,6 +121,8 @@ export function cyMockDefault(
   } = {}
 ) {
   const gqlQueries = args?.gqlQueries || [];
+  cy.clearLocalStorage();
+  indexedDB.deleteDatabase("history-db");
   cySetup(cy);
   cyInterceptGraphQL(cy, [
     ...gqlQueries,
@@ -216,7 +218,6 @@ export function checkModelCellCode(cy, code: string, cellNumber?: number) {
         if (line === "") {
           return;
         }
-        console.log(`checking line ${i} for ${line}`);
         cy.get(".cm-line").eq(i).contains(line.trim());
       });
     });

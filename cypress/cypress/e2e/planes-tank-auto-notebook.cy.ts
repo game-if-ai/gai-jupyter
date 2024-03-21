@@ -25,7 +25,6 @@ import { CodeExecutorResponseData } from "../support/types";
 function initActivity(cy) {
   cyMockDefault(cy);
   cy.clearLocalStorage();
-  indexedDB.deleteDatabase("history-db");
   cy.visit("/?activity=planes");
   // Currently have to wait for jupyter notebooks to load
   // TODO: remove timeout once we no longer use jupyter labs
