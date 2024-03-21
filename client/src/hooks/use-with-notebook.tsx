@@ -124,12 +124,7 @@ export function useWithNotebook(props: {
       curExperiment &&
       curExperiment.notebookContent
     ) {
-      const newNotebookModel = new NotebookModel();
-      newNotebookModel.fromJSON(curExperiment.notebookContent);
-      notebook.adapter.setNotebookModel(
-        newNotebookModel.toJSON() as INotebookContent
-      );
-      connect(newNotebookModel);
+      connectToNotebookContent(curExperiment.notebookContent, notebook);
     } else {
       connect(activeNotebookModel.model);
     }
@@ -348,18 +343,30 @@ export function useWithNotebook(props: {
       return;
     }
     if (experiment && experiment.notebookContent) {
-      notebook.adapter.setNotebookModel(experiment.notebookContent);
+      connectToNotebookContent(experiment.notebookContent, notebook);
       setIsEdited(true);
-      setNotebookConnected(false);
     } else if (curExperiment?.notebookContent) {
-      notebook.adapter.setNotebookModel(curExperiment.notebookContent);
+      connectToNotebookContent(curExperiment.notebookContent, notebook);
       setIsEdited(true);
-      setNotebookConnected(false);
     } else if (localNotebook) {
-      notebook.adapter.setNotebookModel(localNotebook);
       setIsEdited(true);
-      setNotebookConnected(false);
+      connectToNotebookContent(localNotebook, notebook);
     }
+  }
+
+  function connectToNotebookContent(
+    notebookContent: INotebookContent,
+    notebook: INotebookState
+  ) {
+    if (!notebook || !notebook.adapter) {
+      return;
+    }
+    const newNotebookModel = new NotebookModel();
+    newNotebookModel.fromJSON(notebookContent);
+    notebook.adapter.setNotebookModel(
+      newNotebookModel.toJSON() as INotebookContent
+    );
+    connect(newNotebookModel);
   }
 
   function saveNotebook(): void {
@@ -374,10 +381,7 @@ export function useWithNotebook(props: {
         source.cells[i].source = cells[cellId].code;
       }
     }
-    notebook.adapter.setNotebookModel(source);
-    const newNotebook = new NotebookModel();
-    newNotebook.fromJSON(source);
-    connect(newNotebook);
+    connectToNotebookContent(source, notebook);
     setIsEdited(false);
   }
 

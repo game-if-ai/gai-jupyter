@@ -390,7 +390,11 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
             </IconButton>
           </TooltipMsg>
           <TooltipMsg elemId="reset">
-            <IconButton onClick={onReset} disabled={!pastExperiments.length}>
+            <IconButton
+              data-cy="experiment-history-btn"
+              onClick={onReset}
+              disabled={!pastExperiments.length}
+            >
               <Restore />
             </IconButton>
           </TooltipMsg>
@@ -546,9 +550,10 @@ function NotebookComponent(props: { uniqueUserId: string }): JSX.Element {
           horizontal: "left",
         }}
       >
-        {sortPreviousExperiments(pastExperiments).map((e) => (
+        {sortPreviousExperiments(pastExperiments).map((e, i) => (
           <MenuItem
             key={e.id}
+            data-cy={`experiment-history-${i}`}
             onClick={() => {
               resetCode(e);
               setHistoryPopup(null);
