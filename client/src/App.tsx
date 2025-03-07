@@ -32,7 +32,7 @@ function App(): JSX.Element {
   );
   const { loadActivity, toNotebook } = useWithState();
   useWithIndexDb();
-  useEffect(() => {
+/*   useEffect(() => {
     const cm = new ContentsManager();
     try {
       const removeOldFiles = Activities.map((activity) => {
@@ -73,7 +73,7 @@ function App(): JSX.Element {
     } catch (err) {
       console.error(err);
     }
-  }, []);
+  }, []); */
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);

@@ -5,8 +5,8 @@ Permission to use, copy, modify, and distribute this software and its documentat
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
 import ReactDOM from "react-dom/client";
-import { Jupyter } from "@datalayer/jupyter-react";
-
+import {store } from "./store";
+import { Provider } from "react-redux";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import WithRedux from "./store/use-with-redux";
@@ -26,30 +26,33 @@ if (useLiveJupyterServer) {
   console.log("sufficient jupyter server params provided");
 }
 
+
 root.render(
-  <Jupyter
-    terminals={true}
-    startDefaultKernel={false}
-    jupyterServerHttpUrl={
-      useLiveJupyterServer
-        ? process.env.REACT_APP_JUPYTER_SERVER_HTTP_URL
-        : "http://localhost:8686/api/jupyter"
-    }
-    jupyterServerWsUrl={
-      useLiveJupyterServer
-        ? process.env.REACT_APP_JUPYTER_SERVER_WS_URL
-        : "ws://localhost:8686/api/jupyter"
-    }
-    jupyterToken={
-      useLiveJupyterServer
-        ? process.env.REACT_APP_JUPYTER_SERVER_TOKEN
-        : "60c1661cc408f978c309d04157af55c9588ff9557c9380e4fb50785750703da6"
-    }
-  >
+  // <Jupyter
+  //   terminals={true}
+  //   startDefaultKernel={false}
+  //   jupyterServerHttpUrl={
+  //     useLiveJupyterServer
+  //       ? process.env.REACT_APP_JUPYTER_SERVER_HTTP_URL
+  //       : "http://localhost:8686/api/jupyter"
+  //   }
+  //   jupyterServerWsUrl={
+  //     useLiveJupyterServer
+  //       ? process.env.REACT_APP_JUPYTER_SERVER_WS_URL
+  //       : "ws://localhost:8686/api/jupyter"
+  //   }
+  //   jupyterToken={
+  //     useLiveJupyterServer
+  //       ? process.env.REACT_APP_JUPYTER_SERVER_TOKEN
+  //       : "60c1661cc408f978c309d04157af55c9588ff9557c9380e4fb50785750703da6"
+  //   }
+  // >
+    <Provider store={store}>
     <WithRedux>
       <App />
     </WithRedux>
-  </Jupyter>
+    </Provider>
+  //</Jupyter>
 );
 
 // If you want to start measuring performance in your app, pass a function

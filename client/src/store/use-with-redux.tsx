@@ -4,7 +4,7 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
-import React, { useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { ReactReduxContext } from "react-redux";
 
 import { useAppSelector } from ".";
@@ -17,27 +17,28 @@ import { injectAsyncReducer } from "./reducers";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function WithRedux(props: { children: any }): JSX.Element {
-  const { store } = useContext(ReactReduxContext);
+  createContext(ReactReduxContext);
   const state = useAppSelector((s) => s.state);
   const notebook = useAppSelector((s) => s.notebookState);
   const simulator = useAppSelector((s) => s.simulator);
-  const keyboard = useAppSelector((s) => s.keyboard);
-  const dialogue = useAppSelector((s) => s.dialogue);
+  //const keyboard = useAppSelector((s) => s.keyboard);
+  //const dialogue = useAppSelector((s) => s.dialogue);
 
   /**
    * Jupyter-React hi-jacks the redux store
    * So we have to add our own reducers to it programmatically
    */
   useEffect(() => {
-    injectAsyncReducer(store, "state", stateReducer);
-    injectAsyncReducer(store, "notebookState", notebookReducer);
-    injectAsyncReducer(store, "simulator", simulatorReducer);
-    injectAsyncReducer(store, "keyboard", keyboardReducer);
-    injectAsyncReducer(store, "dialogue", dialogueReducer);
+   // injectAsyncReducer(store, "state", stateReducer);
+    //injectAsyncReducer(store, "notebookState", notebookReducer);
+   // injectAsyncReducer(store, "simulator", simulatorReducer);
+   // injectAsyncReducer(store, "keyboard", keyboardReducer);
+   // injectAsyncReducer(store, "dialogue", dialogueReducer);
   });
 
-  if (!state || !notebook || !simulator || !keyboard || !dialogue)
-    return <div />;
+  //if (!state || !notebook || !simulator || !keyboard || !dialogue)
+  //  return <div />;
+  
   return props.children;
 }
 
