@@ -32,50 +32,50 @@ function codeContainsRegex(userCode: string[], regex: RegExp): boolean {
 }
 
 function normalizeTrainImages(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /train_images\\s*=\\s*\\w+\\s*\\s*255.0/);
+  return codeContainsRegex(userCode, /train_images\s*=\s*\S+\s*\/\s*255(\.0)?/);
 }
 
 function normalizeTestImages(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /test_images\\s*=\\s*\\w+\\s*\\s*255.0/);
+  return codeContainsRegex(userCode, /test_images\s*=\s*\S+\s*\/\s*255(\.0)?/);
 }
 
 function addReluDenseLayer(userCode: string[]): boolean {
   return codeContainsRegex(
     userCode,
-    /Dense\\(\\s*\\d+\\s*,\\s*activation\\s*=\\s*['\"]relu['\"]\\s*\\)/
+    /Dense\s*\(\s*\d+\s*,\s*activation\s*=\s*['"]relu['"]\s*\)/
   );
 }
 
 function addSoftmaxDenseLayer(userCode: string[]): boolean {
   return codeContainsRegex(
     userCode,
-    /Dense\\(\\s*10\\s*,\\s*activation\\s*=\\s*['\"]softmax['\"]\\s*\\)/
+    /Dense\s*\(\s*10\s*,\s*activation\s*=\s*['"]softmax['"]\s*\)/
   );
 }
 
 function specifyAdamOptimizer(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /optimizer\\s*=\\s*['\"]adam['\"]/);
+  return codeContainsRegex(userCode, /optimizer\s*=\s*['"]adam['"]/);
 }
 
 function specifySparseCategoricalCrossentropy(userCode: string[]): boolean {
   return codeContainsRegex(
     userCode,
-    /loss\\s*=\\s*tf\\.keras\\.losses\\.SparseCategoricalCrossentropy\\(\\s*\\)/
+    /loss\s*=\s*tf.keras.losses.SparseCategoricalCrossentropy\s*\(\s*\)/
   );
 }
 
 function specifyEpochs(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /epochs\\s*=\\s*\\d+/);
+  return codeContainsRegex(userCode, /epochs\s*=\s*\d+/);
 }
 
 function usesModelPredict(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /model\\.predict\\(\\s*x_new\\s*\\)/);
+  return codeContainsRegex(userCode, /model\.predict\s*\(\s*x_new\s*\)/);
 }
 
 function usesNpArgmax(userCode: string[]): boolean {
   return codeContainsRegex(
     userCode,
-    /np\\.argmax\\(\\s*y_proba\\s*,\\s*axis\\s*=\\s*-1\\s*\\)/
+    /np\.argmax\s*\(\s*y_proba\s*,\s*axis\s*=\s*-1\s*\)/
   );
 }
 
