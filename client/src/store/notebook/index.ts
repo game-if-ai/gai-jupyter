@@ -42,6 +42,7 @@ function getNotebookHistory(): Record<
       fruitpicker: undefined,
       neural_machine_translation: undefined,
       planes: undefined,
+      nn_tf_tutorial: undefined,
       wine: undefined,
     };
   }

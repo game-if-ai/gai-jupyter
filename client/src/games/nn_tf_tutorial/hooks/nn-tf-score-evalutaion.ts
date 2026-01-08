@@ -4,39 +4,24 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+import { Experiment } from "store/simulator";
+import { NNTFCodeInfo } from "./use-with-nn-tf-code-examine";
+import { NNTFSimulationsSummary } from "../simulator";
 
-import Cafe from "./cafe";
-import FruitPicker from "./fruit-picker";
-import Wine from "./wine";
-import NeuralMachineTranslation from "./neural_machine_translation";
-import Planes from "./planes";
-import { Activity, SimulationOutput, Simulator } from "store/simulator";
-import NNTF from "./nn_tf_tutorial";
+export default function wineScoreEvaluation(experiment: Experiment): number {
+  let finalScore = 0;
+  const q = experiment.codeInfo as NNTFCodeInfo;
+  const outputSummary = experiment.summary as NNTFSimulationsSummary;
 
-export interface GameParams {
-  playManually: boolean;
-  isMuted: boolean;
-  speed: number;
-  eventSystem: Phaser.Events.EventEmitter;
-  simulator: Simulator;
-  simulation?: SimulationOutput;
+  q.normalizeTrainImages && (finalScore += 0.1);
+  q.normalizeTestImages && (finalScore += 0.1);
+  q.addReluDenseLayer && (finalScore += 0.2);
+  q.addSoftmaxDenseLayer && (finalScore += 0.2);
+  q.specifyAdamOptimizer && (finalScore += 0.1);
+  q.specifySparseCategoricalCrossentropy && (finalScore += 0.1);
+  q.specifyEpochs && (finalScore += 0.1);
+  q.usesModelPredict && (finalScore += 0.05);
+  q.usesNpArgmax && (finalScore += 0.05);
+
+  return finalScore;
 }
-
-export interface Game extends Activity {
-  activityType: "GAME";
-  config: Phaser.Types.Core.GameConfig;
-  summaryPanel: (props: { simulation: SimulationOutput }) => JSX.Element;
-}
-
-export function isGameActivity(object: Activity): object is Game {
-  return object.activityType === "GAME";
-}
-
-export const Activities: Activity[] = [
-  Cafe,
-  Planes,
-  FruitPicker,
-  NeuralMachineTranslation,
-  Wine,
-  NNTF,
-];
