@@ -24,91 +24,134 @@ export const NNTF: Activity = {
   improveCodeHints: [
     {
       message:
-        "Make sure to scale the pixel values of the training images to be between 0 and 1.",
-      visibilityConditions: [
-        HintVisibilityCondition.HINT_BUTTON_CLICKED,
-        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
-        HintVisibilityCondition.MUST_BE_ACTIVE,
-      ],
-      conditionDescription: "Checks that the user has scaled the pixel values.",
-      active: (nntfCodeInfo) => {
-        return !(nntfCodeInfo as NNTFCodeInfo).normalizeTrainImages;
-      },
-    },
-    {
-      message:
-        "Don't forget to scale the test images' pixel values to be between 0 and 1 as well.",
+        "Start by preprocessing your image data. Think about how to scale pixel values from their current range to a normalized range between 0 and 1. This is an important first step before feeding data into a neural network.",
       visibilityConditions: [
         HintVisibilityCondition.HINT_BUTTON_CLICKED,
         HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
         HintVisibilityCondition.MUST_BE_ACTIVE,
       ],
       conditionDescription:
-        "Checks that the user has normalized the test images.",
+        "Checks that the user has normalized the training images.",
       active: (nntfCodeInfo) => {
-        return !(nntfCodeInfo as NNTFCodeInfo).normalizeTestImages;
+        return !(nntfCodeInfo as NNTFCodeInfo).trainImageNormalization;
       },
     },
     {
       message:
-        "Consider adding a dense layer with some neurons and using a ReLU activation function.",
+        "You've normalized the training images - great! Now apply the same normalization technique to your test images to ensure consistency across your datasets.",
       visibilityConditions: [
         HintVisibilityCondition.HINT_BUTTON_CLICKED,
         HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
         HintVisibilityCondition.MUST_BE_ACTIVE,
       ],
       conditionDescription:
-        "Checks that the user has added a softmax dense layer.",
+        "Checks that the user has normalized both training and test images.",
       active: (nntfCodeInfo) => {
-        return !(nntfCodeInfo as NNTFCodeInfo).addReluDenseLayer;
+        const codeInfo = nntfCodeInfo as NNTFCodeInfo;
+        return !codeInfo.testImageNormalization;
       },
     },
     {
       message:
-        "Remember to add an output layer with 10 units corresponding to the number of classes, using a softmax activation function.",
+        "Now focus on building your neural network architecture. The hidden dense layer needs a specific number of units (neurons). Consider using a power of 2 like 64, 128, or 256 for better computational efficiency.",
       visibilityConditions: [
         HintVisibilityCondition.HINT_BUTTON_CLICKED,
         HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
         HintVisibilityCondition.MUST_BE_ACTIVE,
       ],
       conditionDescription:
-        "Checks that the user has added a softmax dense layer.",
+        "Checks that the user has specified hidden layer units.",
       active: (nntfCodeInfo) => {
-        return !(nntfCodeInfo as NNTFCodeInfo).addSoftmaxDenseLayer;
+        return !(nntfCodeInfo as NNTFCodeInfo).hiddenLayerUnits;
       },
     },
     {
       message:
-        "Select an optimizer for your model. 'adam' is often a good choice for many tasks.",
+        "Good progress on the layer units! Now specify the activation function for your hidden layer. For hidden layers in this type of network, 'relu' is a popular choice that helps the network learn non-linear patterns.",
       visibilityConditions: [
         HintVisibilityCondition.HINT_BUTTON_CLICKED,
         HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
         HintVisibilityCondition.MUST_BE_ACTIVE,
       ],
       conditionDescription:
-        "Checks that the user has specified the Adam optimizer.",
+        "Checks that the user has specified the hidden layer activation function.",
       active: (nntfCodeInfo) => {
-        return !(nntfCodeInfo as NNTFCodeInfo).specifyAdamOptimizer;
+        return !(nntfCodeInfo as NNTFCodeInfo).hiddenLayerActivation;
       },
     },
     {
       message:
-        "Choose an appropriate loss function for your classification task. Sparse Categorical Crossentropy is commonly used.",
+        "Your network architecture is taking shape! Now configure the model compilation. Choose an optimizer - 'adam' is a robust choice that works well for most neural networks.",
       visibilityConditions: [
         HintVisibilityCondition.HINT_BUTTON_CLICKED,
         HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
         HintVisibilityCondition.MUST_BE_ACTIVE,
       ],
       conditionDescription:
-        "Checks that the user has specified the Sparse Categorical Crossentropy loss function.",
+        "Checks that the user has specified the model optimizer.",
       active: (nntfCodeInfo) => {
-        return !(nntfCodeInfo as NNTFCodeInfo)
-          .specifySparseCategoricalCrossentropy;
+        return !(nntfCodeInfo as NNTFCodeInfo).modelOptimizer;
       },
     },
     {
       message:
-        "Decide on the number of epochs to train your model. Consider how many training cycles might be adequate for convergence.",
+        "Good! You've selected an optimizer. Now choose an appropriate loss function. Since you're working with multi-class classification where labels are integers (not one-hot encoded), look for a loss function that handles sparse categorical data.",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
+      conditionDescription:
+        "Checks that the user has specified the loss function.",
+      active: (nntfCodeInfo) => {
+        return !(nntfCodeInfo as NNTFCodeInfo).lossFunction;
+      },
+    },
+    {
+      message:
+        "Excellent compilation setup! Now prepare the fit() method call. Pass your training images as the first argument to provide the feature data for training.",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
+      conditionDescription:
+        "Checks that the user has passed training data to fit().",
+      active: (nntfCodeInfo) => {
+        return !(nntfCodeInfo as NNTFCodeInfo).fitTrainingData;
+      },
+    },
+    {
+      message:
+        "Great! You're passing the training images. Now add the training labels as the second argument to the fit() method so the model knows what to learn.",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
+      conditionDescription:
+        "Checks that the user has passed training labels to fit().",
+      active: (nntfCodeInfo) => {
+        return !(nntfCodeInfo as NNTFCodeInfo).fitTrainingLabels;
+      },
+    },
+    {
+      message:
+        "You're making good progress on the training setup! Now specify the validation_split parameter. This reserves a portion of your training data (typically 10-20%) to validate performance during training without using test data.",
+      visibilityConditions: [
+        HintVisibilityCondition.HINT_BUTTON_CLICKED,
+        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
+        HintVisibilityCondition.MUST_BE_ACTIVE,
+      ],
+      conditionDescription:
+        "Checks that the user has specified the validation_split parameter.",
+      active: (nntfCodeInfo) => {
+        return !(nntfCodeInfo as NNTFCodeInfo).validationSplitRatio;
+      },
+    },
+    {
+      message:
+        "Almost there! Set the number of epochs for training. This determines how many times the model will iterate over the entire training dataset. Start with a reasonable number like 10 and adjust based on your training performance.",
       visibilityConditions: [
         HintVisibilityCondition.HINT_BUTTON_CLICKED,
         HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
@@ -117,57 +160,32 @@ export const NNTF: Activity = {
       conditionDescription:
         "Checks that the user has specified the number of epochs.",
       active: (nntfCodeInfo) => {
-        return !(nntfCodeInfo as NNTFCodeInfo).specifyEpochs;
+        return !(nntfCodeInfo as NNTFCodeInfo).trainingEpochs;
       },
     },
     {
       message:
-        "Use your model to make predictions on new data. Recall how the predict method is used with input data.",
+        "Your model is now ready to be trained! Try running your code to see how it performs.",
       visibilityConditions: [
         HintVisibilityCondition.HINT_BUTTON_CLICKED,
         HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
         HintVisibilityCondition.MUST_BE_ACTIVE,
       ],
-      conditionDescription: "Checks that the user has used the predict method.",
+      conditionDescription: "Checks that the user has trained the model.",
       active: (nntfCodeInfo) => {
-        return !(nntfCodeInfo as NNTFCodeInfo).usesModelPredict;
-      },
-    },
-    {
-      message:
-        "To determine the predicted classes, use a method to find the index of the maximum predicted probability for each sample.",
-      visibilityConditions: [
-        HintVisibilityCondition.HINT_BUTTON_CLICKED,
-        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
-        HintVisibilityCondition.MUST_BE_ACTIVE,
-      ],
-      conditionDescription:
-        "Checks that the user has used the np.argmax method.",
-      active: (nntfCodeInfo) => {
-        return !(nntfCodeInfo as NNTFCodeInfo).usesNpArgmax;
-      },
-    },
-    {
-      message: "Everything looks good. Run your code to see how it performs.",
-      visibilityConditions: [
-        HintVisibilityCondition.HINT_BUTTON_CLICKED,
-        HintVisibilityCondition.TRIGGERED_ON_NOTEBOOK_RETURN,
-      ],
-      conditionDescription: "complete",
-      active: (nmtCodeInfo) => {
         return true;
       },
     },
   ],
   autocompletion: [
     {
-      label: "train_images / 255.0",
+      label: "train_images = train_images / ",
       type: "text",
       apply,
       detail: "",
     },
     {
-      label: "test_images / 255.0",
+      label: "test_images = test_images / ",
       type: "text",
       apply,
       detail: "",
@@ -191,31 +209,43 @@ export const NNTF: Activity = {
       detail: "",
     },
     {
-      label: "optimizer='...' ",
+      label: "optimizer='adam'",
       type: "text",
       apply,
       detail: "",
     },
     {
-      label: "tf.keras.losses.SparseCategoricalCrossentropy()",
+      label: "optimizer='sgd'",
       type: "text",
       apply,
       detail: "",
     },
     {
-      label: "epochs=...",
+      label: "tf.keras.losses.SparseCategoricalCrossentropy(...)",
       type: "text",
       apply,
       detail: "",
     },
     {
-      label: "model.predict(...)",
+      label: "loss='sparse_categorical_crossentropy'",
       type: "text",
       apply,
       detail: "",
     },
     {
-      label: "np.argmax(..., axis=-1)",
+      label: "model.fit(...)",
+      type: "text",
+      apply,
+      detail: "",
+    },
+    {
+      label: "validation_split=",
+      type: "text",
+      apply,
+      detail: "",
+    },
+    {
+      label: "epochs=",
       type: "text",
       apply,
       detail: "",

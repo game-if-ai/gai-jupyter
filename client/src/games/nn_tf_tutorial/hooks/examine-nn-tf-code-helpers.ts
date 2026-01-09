@@ -14,16 +14,17 @@ export interface ClusterGroup {
 
 export function getAllNNTFCodeInfo(userCode: string[]): NNTFCodeInfo {
   return {
-    normalizeTrainImages: normalizeTrainImages(userCode),
-    normalizeTestImages: normalizeTestImages(userCode),
-    addReluDenseLayer: addReluDenseLayer(userCode),
-    addSoftmaxDenseLayer: addSoftmaxDenseLayer(userCode),
-    specifyAdamOptimizer: specifyAdamOptimizer(userCode),
-    specifySparseCategoricalCrossentropy:
-      specifySparseCategoricalCrossentropy(userCode),
-    specifyEpochs: specifyEpochs(userCode),
-    usesModelPredict: usesModelPredict(userCode),
-    usesNpArgmax: usesNpArgmax(userCode),
+    // code requirements
+    trainImageNormalization: trainImageNormalization(userCode),
+    testImageNormalization: testImageNormalization(userCode),
+    hiddenLayerUnits: hiddenLayerUnits(userCode),
+    hiddenLayerActivation: hiddenLayerActivation(userCode),
+    modelOptimizer: modelOptimizer(userCode),
+    lossFunction: lossFunction(userCode),
+    fitTrainingData: fitTrainingData(userCode),
+    fitTrainingLabels: fitTrainingLabels(userCode),
+    validationSplitRatio: validationSplitRatio(userCode),
+    trainingEpochs: trainingEpochs(userCode),
   };
 }
 
@@ -31,56 +32,67 @@ function codeContainsRegex(userCode: string[], regex: RegExp): boolean {
   return Boolean(userCode.find((codeLine) => codeLine.match(regex)));
 }
 
-function normalizeTrainImages(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /train_images\s*=\s*\S+\s*\/\s*255(\.0)?/);
-}
-
-function normalizeTestImages(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /test_images\s*=\s*\S+\s*\/\s*255(\.0)?/);
-}
-
-function addReluDenseLayer(userCode: string[]): boolean {
+function trainImageNormalization(userCode: string[]): boolean {
   return codeContainsRegex(
     userCode,
-    /Dense\s*\(\s*\d+\s*,\s*activation\s*=\s*['"]relu['"]\s*\)/
+    /train_images\s*=\s*train_images\s*\/\s*255(\.0)?/
   );
 }
 
-function addSoftmaxDenseLayer(userCode: string[]): boolean {
+function testImageNormalization(userCode: string[]): boolean {
   return codeContainsRegex(
     userCode,
-    /Dense\s*\(\s*10\s*,\s*activation\s*=\s*['"]softmax['"]\s*\)/
+    /test_images\s*=\s*test_images\s*\/\s*255(\.0)?/
   );
 }
 
-function specifyAdamOptimizer(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /optimizer\s*=\s*['"]adam['"]/);
+function hiddenLayerUnits(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /Dense\s*\(\s*\d+\s*,\s*activation/);
 }
 
-function specifySparseCategoricalCrossentropy(userCode: string[]): boolean {
+function hiddenLayerActivation(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /activation\s*=\s*['\"]relu['\"]/);
+}
+
+function modelOptimizer(userCode: string[]): boolean {
   return codeContainsRegex(
     userCode,
-    /loss\s*=\s*tf.keras.losses.SparseCategoricalCrossentropy\s*\(\s*\)/
+    /compile\s*\(\s*optimizer\s*=\s*['\"]\w+['\"]/
   );
 }
 
-function specifyEpochs(userCode: string[]): boolean {
+function lossFunction(userCode: string[]): boolean {
+  return codeContainsRegex(
+    userCode,
+    /loss\s*=\s*tf\.keras\.losses\.SparseCategoricalCrossentropy\s*\(\s*\)/
+  );
+}
+
+function trainingEpochs(userCode: string[]): boolean {
   return codeContainsRegex(userCode, /epochs\s*=\s*\d+/);
 }
 
-function usesModelPredict(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /model\.predict\s*\(\s*x_new\s*\)/);
+function fitTrainingData(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /model\.fit\s*\(\s*train_images\s*,/);
 }
 
-function usesNpArgmax(userCode: string[]): boolean {
-  return codeContainsRegex(
-    userCode,
-    /np\.argmax\s*\(\s*y_proba\s*,\s*axis\s*=\s*-1\s*\)/
-  );
+function fitTrainingLabels(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /train_labels/);
+}
+
+function validationSplitRatio(userCode: string[]): boolean {
+  return codeContainsRegex(userCode, /validation_split\s*=\s*0\.\d+/);
 }
 
 export interface NNTFClassifierOutput {
-  testAccuracy: number;
+  // output validations
+  testAccuracyOutput: boolean;
+  testLossOutput: boolean;
+  testImagePredictionsOutput: boolean;
+  testPredictedClassLabelsOutput: boolean;
+  testPredictedProbabilitiesOutput: boolean;
+  testVerifyTrueLabelsOutput: boolean;
+  testVerifyClassProbabilitiesOutput: boolean;
 }
 
 export function processData(
@@ -89,7 +101,13 @@ export function processData(
   // TODO: this needs to be updated to support the new NNTF output format
 
   return {
-    testAccuracy: 0,
+    testAccuracyOutput: false,
+    testLossOutput: false,
+    testImagePredictionsOutput: false,
+    testPredictedClassLabelsOutput: false,
+    testPredictedProbabilitiesOutput: false,
+    testVerifyTrueLabelsOutput: false,
+    testVerifyClassProbabilitiesOutput: false,
   };
 }
 

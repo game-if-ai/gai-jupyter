@@ -19,7 +19,14 @@ import { NNTFCodeInfo } from "./hooks/use-with-nn-tf-code-examine";
 export interface NNTFSimulationOutput {}
 
 export interface NNTFSimulationsSummary extends NNTFCodeInfo {
-  testAccuracy: number;
+  // output validations
+  testAccuracyOutput: boolean;
+  testLossOutput: boolean;
+  testImagePredictionsOutput: boolean;
+  testPredictedClassLabelsOutput: boolean;
+  testPredictedProbabilitiesOutput: boolean;
+  testVerifyTrueLabelsOutput: boolean;
+  testVerifyClassProbabilitiesOutput: boolean;
 }
 
 export function NNTFSimulator(): Simulator {
@@ -46,7 +53,14 @@ export function NNTFSimulator(): Simulator {
     }
     const data = extractNNTFCellOutput(outputs);
     experiment.summary = {
-      testAccuracy: data.testAccuracy,
+      testAccuracyOutput: data.testAccuracyOutput,
+      testLossOutput: data.testLossOutput,
+      testImagePredictionsOutput: data.testImagePredictionsOutput,
+      testPredictedClassLabelsOutput: data.testPredictedClassLabelsOutput,
+      testPredictedProbabilitiesOutput: data.testPredictedProbabilitiesOutput,
+      testVerifyTrueLabelsOutput: data.testVerifyTrueLabelsOutput,
+      testVerifyClassProbabilitiesOutput:
+        data.testVerifyClassProbabilitiesOutput,
       ...(experiment.codeInfo as NNTFCodeInfo),
     };
     experiment.evaluationScore = nntfScoreEvaluation(experiment);

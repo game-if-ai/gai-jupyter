@@ -11,15 +11,16 @@ import { getAllNNTFCodeInfo } from "./examine-nn-tf-code-helpers";
 type LoadStatus = "LOADING" | "LOADED";
 
 export interface NNTFCodeInfo {
-  normalizeTrainImages: boolean;
-  normalizeTestImages: boolean;
-  addReluDenseLayer: boolean;
-  addSoftmaxDenseLayer: boolean;
-  specifyAdamOptimizer: boolean;
-  specifySparseCategoricalCrossentropy: boolean;
-  specifyEpochs: boolean;
-  usesModelPredict: boolean;
-  usesNpArgmax: boolean;
+  trainImageNormalization: boolean;
+  testImageNormalization: boolean;
+  hiddenLayerUnits: boolean;
+  hiddenLayerActivation: boolean;
+  modelOptimizer: boolean;
+  lossFunction: boolean;
+  fitTrainingData: boolean;
+  fitTrainingLabels: boolean;
+  validationSplitRatio: boolean;
+  trainingEpochs: boolean;
 }
 
 export interface UserCodeInfoLoad extends NNTFCodeInfo {
@@ -37,15 +38,16 @@ export function useWithNNTFCodeExamine(
   notebookRunCount: number
 ): UseWithNNTFCodeExamine {
   const [nntfCodeInfo, setNNTFCodeInfo] = useState<UserCodeInfoLoad>({
-    normalizeTrainImages: false,
-    normalizeTestImages: false,
-    addReluDenseLayer: false,
-    addSoftmaxDenseLayer: false,
-    specifyAdamOptimizer: false,
-    specifySparseCategoricalCrossentropy: false,
-    specifyEpochs: false,
-    usesModelPredict: false,
-    usesNpArgmax: false,
+    trainImageNormalization: false,
+    testImageNormalization: false,
+    hiddenLayerUnits: false,
+    hiddenLayerActivation: false,
+    modelOptimizer: false,
+    lossFunction: false,
+    fitTrainingData: false,
+    fitTrainingLabels: false,
+    validationSplitRatio: false,
+    trainingEpochs: false,
     loadStatus: "LOADING",
   });
 

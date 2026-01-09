@@ -13,15 +13,16 @@ export default function wineScoreEvaluation(experiment: Experiment): number {
   const q = experiment.codeInfo as NNTFCodeInfo;
   const outputSummary = experiment.summary as NNTFSimulationsSummary;
 
-  q.normalizeTrainImages && (finalScore += 0.1);
-  q.normalizeTestImages && (finalScore += 0.1);
-  q.addReluDenseLayer && (finalScore += 0.2);
-  q.addSoftmaxDenseLayer && (finalScore += 0.2);
-  q.specifyAdamOptimizer && (finalScore += 0.1);
-  q.specifySparseCategoricalCrossentropy && (finalScore += 0.1);
-  q.specifyEpochs && (finalScore += 0.1);
-  q.usesModelPredict && (finalScore += 0.05);
-  q.usesNpArgmax && (finalScore += 0.05);
+  q.trainImageNormalization && (finalScore += 0.1);
+  q.testImageNormalization && (finalScore += 0.1);
+  q.hiddenLayerUnits && (finalScore += 0.2);
+  q.hiddenLayerActivation && (finalScore += 0.2);
+  q.modelOptimizer && (finalScore += 0.1);
+  q.lossFunction && (finalScore += 0.1);
+  q.fitTrainingData && (finalScore += 0.1);
+  q.fitTrainingLabels && (finalScore += 0.1);
+  q.validationSplitRatio && (finalScore += 0.1);
+  q.trainingEpochs && (finalScore += 0.1);
 
   return finalScore;
 }

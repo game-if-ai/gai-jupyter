@@ -28,7 +28,15 @@ export function NNTFCurrentExperimentView(props: {
   toNotebook: () => void;
 }) {
   const experiment = useAppSelector((s) => s.state.experiment!);
-  const { testAccuracy } = experiment.summary as NNTFSimulationsSummary;
+  const {
+    testAccuracyOutput,
+    testLossOutput,
+    testImagePredictionsOutput,
+    testPredictedClassLabelsOutput,
+    testPredictedProbabilitiesOutput,
+    testVerifyTrueLabelsOutput,
+    testVerifyClassProbabilitiesOutput,
+  } = experiment.summary as NNTFSimulationsSummary;
   const { time: dateOfExperiment } = experiment;
   const { toNotebook } = props;
 
@@ -70,7 +78,25 @@ export function NNTFCurrentExperimentView(props: {
             data-cy="data-table-row-0"
           >
             <TableCell align="center" component="th" scope="row">
-              {testAccuracy}
+              {testAccuracyOutput ? "True" : "False"}
+            </TableCell>
+            <TableCell align="center" component="th" scope="row">
+              {testLossOutput ? "True" : "False"}
+            </TableCell>
+            <TableCell align="center" component="th" scope="row">
+              {testImagePredictionsOutput ? "True" : "False"}
+            </TableCell>
+            <TableCell align="center" component="th" scope="row">
+              {testPredictedClassLabelsOutput ? "True" : "False"}
+            </TableCell>
+            <TableCell align="center" component="th" scope="row">
+              {testPredictedProbabilitiesOutput ? "True" : "False"}
+            </TableCell>
+            <TableCell align="center" component="th" scope="row">
+              {testVerifyTrueLabelsOutput ? "True" : "False"}
+            </TableCell>
+            <TableCell align="center" component="th" scope="row">
+              {testVerifyClassProbabilitiesOutput ? "True" : "False"}
             </TableCell>
           </TableRow>
         </TableBody>
