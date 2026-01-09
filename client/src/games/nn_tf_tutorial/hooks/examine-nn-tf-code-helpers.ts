@@ -51,13 +51,13 @@ function hiddenLayerUnits(userCode: string[]): boolean {
 }
 
 function hiddenLayerActivation(userCode: string[]): boolean {
-  return codeContainsRegex(userCode, /activation\s*=\s*['\"]relu['\"]/);
+  return codeContainsRegex(userCode, /activation\s*=\s*['"]relu['"]/);
 }
 
 function modelOptimizer(userCode: string[]): boolean {
   return codeContainsRegex(
     userCode,
-    /compile\s*\(\s*optimizer\s*=\s*['\"]\w+['\"]/
+    /compile\s*\(\s*optimizer\s*=\s*['"]\w+['"]/
   );
 }
 

@@ -6,12 +6,10 @@ The full terms of this copyright and license should always be found in the root 
 */
 import { Experiment } from "store/simulator";
 import { NNTFCodeInfo } from "./use-with-nn-tf-code-examine";
-import { NNTFSimulationsSummary } from "../simulator";
 
 export default function wineScoreEvaluation(experiment: Experiment): number {
   let finalScore = 0;
   const q = experiment.codeInfo as NNTFCodeInfo;
-  const outputSummary = experiment.summary as NNTFSimulationsSummary;
 
   q.trainImageNormalization && (finalScore += 0.1);
   q.testImageNormalization && (finalScore += 0.1);
