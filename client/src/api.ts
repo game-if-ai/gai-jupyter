@@ -13,6 +13,7 @@ import {
   SimulationSummary,
 } from "./store/simulator";
 import { WineSimulationsSummary } from "games/wine/simulator";
+import { NNTFSimulationsSummary } from "games/nn_tf_tutorial/simulator";
 
 const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_ENDPOINT;
 
@@ -142,6 +143,22 @@ mutation submitFruitPickerNotebookExperiment(
 }
 `;
 
+const nntfNotebookMutation = `mutation SubmitNnTfNotebookExperiment(
+            $cmi5LaunchParameters: Cmi5LaunchParametersType,
+            $activityId: String,
+            $notebookStateStringified: String
+            $summary: NnTfSummaryInputType
+            $displayedHints: [DisplayedHintsInputType]
+          ){
+            submitNnTfNotebookExperiment(
+              cmi5LaunchParameters: $cmi5LaunchParameters,
+              activityId: $activityId,
+              notebookStateStringified: $notebookStateStringified,
+              summary: $summary,
+              displayedHints: $displayedHints
+            )
+          }`;
+
 function extractNotebookSummaryGQL(
   data: SubmitNotebookExperimentGQL
 ): SimulationSummary {
@@ -185,6 +202,11 @@ function extractNotebookSummaryGQL(
       usesDataframe: summary.usesDataframe,
       clusters: summary.clusters,
     };
+  } else if (data.activityId === ActivityID.nntf) {
+    const dataSummary = data.summary as NNTFSimulationsSummary;
+    return {
+      ...dataSummary,
+    };
   } else {
     const dataSummary = data.summary as GameSimulationsSummary;
     return {
@@ -222,6 +244,9 @@ export async function submitNotebookExperimentGQL(
       break;
     case ActivityID.wine:
       mutationQuery = wineNotebookMutation;
+      break;
+    case ActivityID.nntf:
+      mutationQuery = nntfNotebookMutation;
       break;
     default:
       throw new Error(

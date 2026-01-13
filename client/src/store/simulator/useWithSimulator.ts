@@ -19,6 +19,7 @@ import { storeNotebookExperimentInGql } from "../../utils";
 import { initSimulate } from "./helpers";
 import { useWithExperimentsStore } from "../../hooks/use-with-experiments-store";
 import { updateLocalNotebook } from "../../store/notebook";
+import { NNTFSimulator } from "../../games/nn_tf_tutorial/simulator";
 
 // displayedHints can't be stored because they contain functions
 // if needed at a later time, remove just the function from the ImproveCodeHint
@@ -36,6 +37,7 @@ export function useWithSimulator() {
   const cafeSimulator = CafeSimulator();
   const fruitSimulator = FruitSimulator();
   const nmtSimulator = NMTSimulator();
+  const nntfSimulator = NNTFSimulator();
   const planeSimulator = PlaneSimulator();
   const wineSimulator = WineSimulator();
   const { addExperiment } = useWithExperimentsStore();
@@ -50,6 +52,8 @@ export function useWithSimulator() {
         return fruitSimulator.play();
       case ActivityID.nmt:
         return nmtSimulator.play();
+      case ActivityID.nntf:
+        return nntfSimulator.play();
       case ActivityID.planes:
         return planeSimulator.play();
       case ActivityID.wine:
@@ -109,6 +113,14 @@ export function useWithSimulator() {
         break;
       case ActivityID.wine:
         experiment = wineSimulator.simulate(
+          inputs,
+          outputs,
+          notebook,
+          displayedHints
+        );
+        break;
+      case ActivityID.nntf:
+        experiment = nntfSimulator.simulate(
           inputs,
           outputs,
           notebook,

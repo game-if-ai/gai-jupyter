@@ -28,6 +28,7 @@ import Wine from "../games/wine";
 import { WineSimulationsSummary } from "games/wine/simulator";
 import { useWithExperimentsStore } from "../hooks/use-with-experiments-store";
 import { WineCodeInfo } from "games/wine/hooks/use-with-wine-code-examine";
+import { NNTFCurrentExperimentView } from "../games/nn_tf_tutorial/components/current-experiment-view";
 
 function Summary(props: { onSubmit: () => void }): JSX.Element {
   const { loadExperiment, toNotebook } = useWithState();
@@ -216,6 +217,14 @@ function Summary(props: { onSubmit: () => void }): JSX.Element {
       case ActivityID.wine:
         return (
           <WineCurrentExperimentView
+            classes={classes}
+            onSubmit={props.onSubmit}
+            toNotebook={returnToNotebook}
+          />
+        );
+      case ActivityID.nntf:
+        return (
+          <NNTFCurrentExperimentView
             classes={classes}
             onSubmit={props.onSubmit}
             toNotebook={returnToNotebook}

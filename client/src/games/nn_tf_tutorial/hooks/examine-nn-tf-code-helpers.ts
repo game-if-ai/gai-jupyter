@@ -86,28 +86,19 @@ function validationSplitRatio(userCode: string[]): boolean {
 
 export interface NNTFClassifierOutput {
   // output validations
-  testAccuracyOutput: boolean;
-  testLossOutput: boolean;
-  testImagePredictionsOutput: boolean;
-  testPredictedClassLabelsOutput: boolean;
-  testPredictedProbabilitiesOutput: boolean;
-  testVerifyTrueLabelsOutput: boolean;
-  testVerifyClassProbabilitiesOutput: boolean;
+  testAccuracyOutput: number;
+  testLossOutput: number;
 }
 
 export function processData(
   validationCellOutput: string
 ): NNTFClassifierOutput {
-  // TODO: this needs to be updated to support the new NNTF output format
+  const testAccuracyOutput = (validationCellOutput[0] as any)["test_accuracy"];
+  const testLossOutput = (validationCellOutput[0] as any)["test_loss"];
 
   return {
-    testAccuracyOutput: false,
-    testLossOutput: false,
-    testImagePredictionsOutput: false,
-    testPredictedClassLabelsOutput: false,
-    testPredictedProbabilitiesOutput: false,
-    testVerifyTrueLabelsOutput: false,
-    testVerifyClassProbabilitiesOutput: false,
+    testAccuracyOutput: testAccuracyOutput,
+    testLossOutput: testLossOutput,
   };
 }
 

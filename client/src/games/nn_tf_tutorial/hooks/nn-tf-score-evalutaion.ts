@@ -7,7 +7,7 @@ The full terms of this copyright and license should always be found in the root 
 import { Experiment } from "store/simulator";
 import { NNTFCodeInfo } from "./use-with-nn-tf-code-examine";
 
-export default function wineScoreEvaluation(experiment: Experiment): number {
+export default function nntfScoreEvaluation(experiment: Experiment): number {
   let finalScore = 0;
   const q = experiment.codeInfo as NNTFCodeInfo;
 

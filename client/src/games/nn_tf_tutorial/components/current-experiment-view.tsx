@@ -28,15 +28,8 @@ export function NNTFCurrentExperimentView(props: {
   toNotebook: () => void;
 }) {
   const experiment = useAppSelector((s) => s.state.experiment!);
-  const {
-    testAccuracyOutput,
-    testLossOutput,
-    testImagePredictionsOutput,
-    testPredictedClassLabelsOutput,
-    testPredictedProbabilitiesOutput,
-    testVerifyTrueLabelsOutput,
-    testVerifyClassProbabilitiesOutput,
-  } = experiment.summary as NNTFSimulationsSummary;
+  const { testAccuracyOutput, testLossOutput } =
+    experiment.summary as NNTFSimulationsSummary;
   const { time: dateOfExperiment } = experiment;
   const { toNotebook } = props;
 
@@ -70,6 +63,7 @@ export function NNTFCurrentExperimentView(props: {
         <TableHead data-cy="data-table-head">
           <TableRow>
             <TableCell align="center">Test Accuracy</TableCell>
+            <TableCell align="center">Test Loss</TableCell>
           </TableRow>
         </TableHead>
         <TableBody data-cy="data-table-body">
@@ -78,25 +72,10 @@ export function NNTFCurrentExperimentView(props: {
             data-cy="data-table-row-0"
           >
             <TableCell align="center" component="th" scope="row">
-              {testAccuracyOutput ? "True" : "False"}
+              {testAccuracyOutput.toFixed(2)}
             </TableCell>
             <TableCell align="center" component="th" scope="row">
-              {testLossOutput ? "True" : "False"}
-            </TableCell>
-            <TableCell align="center" component="th" scope="row">
-              {testImagePredictionsOutput ? "True" : "False"}
-            </TableCell>
-            <TableCell align="center" component="th" scope="row">
-              {testPredictedClassLabelsOutput ? "True" : "False"}
-            </TableCell>
-            <TableCell align="center" component="th" scope="row">
-              {testPredictedProbabilitiesOutput ? "True" : "False"}
-            </TableCell>
-            <TableCell align="center" component="th" scope="row">
-              {testVerifyTrueLabelsOutput ? "True" : "False"}
-            </TableCell>
-            <TableCell align="center" component="th" scope="row">
-              {testVerifyClassProbabilitiesOutput ? "True" : "False"}
+              {testLossOutput.toFixed(2)}
             </TableCell>
           </TableRow>
         </TableBody>

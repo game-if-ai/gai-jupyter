@@ -34,7 +34,7 @@ interface UseWithNNTFCodeExamine {
 
 export function useWithNNTFCodeExamine(
   userCode: Record<string, string[]>,
-  validationCellOutput: any,
+  validationCellOutput: string[],
   notebookRunCount: number
 ): UseWithNNTFCodeExamine {
   const [nntfCodeInfo, setNNTFCodeInfo] = useState<UserCodeInfoLoad>({
@@ -63,7 +63,8 @@ export function useWithNNTFCodeExamine(
       ...getAllNNTFCodeInfo(allUserInputCode),
       loadStatus: "LOADED",
     });
-  }, [userCode, validationCellOutput, notebookRunCount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userCode, JSON.stringify(validationCellOutput), notebookRunCount]);
 
   return {
     codeInfo: nntfCodeInfo,
