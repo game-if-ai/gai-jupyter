@@ -4,39 +4,23 @@ Permission to use, copy, modify, and distribute this software and its documentat
 
 The full terms of this copyright and license should always be found in the root directory of this software deliverable as "license.txt" and if these terms are not found with this software, please contact the USC Stevens Center for the full license.
 */
+import { Experiment } from "store/simulator";
+import { NNTFCodeInfo } from "./use-with-nn-tf-code-examine";
 
-import Cafe from "./cafe";
-import FruitPicker from "./fruit-picker";
-import Wine from "./wine";
-import NeuralMachineTranslation from "./neural_machine_translation";
-import Planes from "./planes";
-import { Activity, SimulationOutput, Simulator } from "store/simulator";
-import NNTF from "./nn_tf_tutorial";
+export default function nntfScoreEvaluation(experiment: Experiment): number {
+  let finalScore = 0;
+  const q = experiment.codeInfo as NNTFCodeInfo;
 
-export interface GameParams {
-  playManually: boolean;
-  isMuted: boolean;
-  speed: number;
-  eventSystem: Phaser.Events.EventEmitter;
-  simulator: Simulator;
-  simulation?: SimulationOutput;
+  q.trainImageNormalization && (finalScore += 0.1);
+  q.testImageNormalization && (finalScore += 0.1);
+  q.hiddenLayerUnits && (finalScore += 0.2);
+  q.hiddenLayerActivation && (finalScore += 0.2);
+  q.modelOptimizer && (finalScore += 0.1);
+  q.lossFunction && (finalScore += 0.1);
+  q.fitTrainingData && (finalScore += 0.1);
+  q.fitTrainingLabels && (finalScore += 0.1);
+  q.validationSplitRatio && (finalScore += 0.1);
+  q.trainingEpochs && (finalScore += 0.1);
+
+  return finalScore;
 }
-
-export interface Game extends Activity {
-  activityType: "GAME";
-  config: Phaser.Types.Core.GameConfig;
-  summaryPanel: (props: { simulation: SimulationOutput }) => JSX.Element;
-}
-
-export function isGameActivity(object: Activity): object is Game {
-  return object.activityType === "GAME";
-}
-
-export const Activities: Activity[] = [
-  Cafe,
-  Planes,
-  FruitPicker,
-  NeuralMachineTranslation,
-  Wine,
-  NNTF,
-];

@@ -37,20 +37,27 @@ import {
   WineSimulationOutput,
   WineSimulationsSummary,
 } from "games/wine/simulator";
+import { NNTFCodeInfo } from "games/nn_tf_tutorial/hooks/use-with-nn-tf-code-examine";
+import {
+  NNTFSimulationOutput,
+  NNTFSimulationsSummary,
+} from "games/nn_tf_tutorial/simulator";
 
 export type SimulationOutput =
   | CafeSimulationOutput
   | FruitSimulationOutput
   | NMTSimulationOutput
   | PlaneSimulationOutput
-  | WineSimulationOutput;
+  | WineSimulationOutput
+  | NNTFSimulationOutput;
 
 export type SimulationSummary =
   | CafeSimulationsSummary
   | FruitSimulationsSummary
   | NMTSimulationsSummary
   | PlaneSimulationsSummary
-  | WineSimulationsSummary;
+  | WineSimulationsSummary
+  | NNTFSimulationsSummary;
 
 export interface GameSimulationsSummary {
   lowAccuracy: number;
@@ -78,7 +85,8 @@ export type CodeInfo =
   | FruitPickerCodeInfo
   | NMTCodeInfo
   | PlaneCodeInfo
-  | WineCodeInfo;
+  | WineCodeInfo
+  | NNTFCodeInfo;
 
 type LoadStatus = "LOADING" | "LOADED";
 interface LoadedCodeInfo {
@@ -92,6 +100,7 @@ export enum ActivityID {
   nmt = "neural_machine_translation",
   planes = "planes",
   wine = "wine",
+  nntf = "nn_tf_tutorial",
 }
 
 export type ActivityType = "GAME" | "NOTEBOOK_ONLY";
@@ -139,6 +148,7 @@ export const initialState: SimulationState = {
     neural_machine_translation: [],
     planes: [],
     wine: [],
+    nn_tf_tutorial: [],
   },
 };
 
